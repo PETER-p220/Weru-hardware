@@ -6,6 +6,8 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\OrderController;
 
 
 Route::get('/', function () {
@@ -17,9 +19,6 @@ Route::get('/catalog', function () {
 Route::get('/shopping', function () {
     return view('shopping');
 })->name('shopping');  
-Route::get('/order', function () {
-    return view('order');
-})->name('order');
 Route::get('/cart', function () {
     return view('cart');
 })->name('cart');
@@ -48,7 +47,12 @@ Route::post('/updateProduct/{product}',[ProductController::class,'update'])->nam
 Route::post('/deleteProduct/{product}',[ProductController::class,'destroy'])->name('deleteProduct');
 Route::get('/products', [ProductController::class, 'products'])->name('products');
 
-
+//Order routes
+    Route::get('/order', [OrderController::class, 'index'])
+     ->name('order')
+     ->middleware('auth');
+    Route::get('/OrderManagement', [OrderController::class, 'manage'])->name('OrderManagement');
+    Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
 // Category routes
 Route::get('/indexCategory', [CategoryController::class, 'index'])->name('indexCategory');
@@ -58,14 +62,32 @@ Route::get('/editCategory/{category}',[CategoryController::class,'edit'])->name(
 Route::post('/updateCategory/{category}',[CategoryController::class,'update'])->name('updateCategory');
 Route::post('/deleteCategory/{category}',[CategoryController::class,'destroy'])->name('deleteCategory');
 
+//User routes
+Route::get('/user', [UserController::class, 'index'])->name('user');
+
 // Cart routes
 Route::get('/cart', [CartController::class, 'index'])->name('cart');
 Route::post('/cart/add/{id}', [CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/update/{id}', [CartController::class, 'update'])->name('cart.update');
 Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
 Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
-// Add this line anywhere in web.php
+
 Route::get('/checkout', [CheckoutController::class, 'index'])
     ->name('checkout')
-    ->middleware('auth');   // ← This is the correct modern way
-require __DIR__.'/auth.php';
+    ->middleware('auth');   
+
+//Selcom Payment Routes
+Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout');
+Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('success');
+Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('cancel');
+Route::post('/webhook/selcom', [CheckoutController::class, 'webhook'])->name('selcom.webhook')->withoutMiddleware('csrf');
+
+Route::get('/selcom-test', [App\Http\Controllers\SelcomController::class, 'createOrder'])->name('selcom-test');
+
+//Advertisement routes
+Route::get('/ads', [App\Http\Controllers\AdvertisementController::class, 'index'])->name('ads');
+Route::get('/advertisement',[App\Http\Controllers\AdvertisementController::class,'create'])->name('advertisement');
+Route::post('/advertisement',[App\Http\Controllers\AdvertisementController::class,'store'])->name('store');
+Route::post('/ads/{id}',[App\Http\Controllers\AdvertisementController::class,'destroy'])->name('destroy');
+
+require __DIR__.'/auth.php';                          

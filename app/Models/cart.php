@@ -34,4 +34,18 @@ class Cart extends Model
             ['items' => []]
         );
     }
+    public function getTotal(): float
+    {
+        return $this->cartItems->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
+    }
+    public function cartItems()
+{
+    return $this->hasMany(CartItem::class);
+}
+public function getItemsCount(): int
+{
+    return $this->cartItems->sum('quantity');
+}
 }

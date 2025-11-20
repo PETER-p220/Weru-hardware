@@ -30,7 +30,7 @@
     <style>
         .product-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -12px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.1); }
-        .category-chip.active { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .category-chip.active { background: orange; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
         .badge-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
         .search-focus:focus-within { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
@@ -67,7 +67,7 @@
                         </a>
                     </div>
                     <div class="hidden md:flex md:space-x-1">
-                        <a href="{{ route('indexProduct') }}" class="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 font-semibold text-sm">Products</a>
+                        <a href="{{ route('indexProduct') }}" class="px-4 py-2 rounded-lg bg-orange-50 text-blue-700 font-semibold text-sm">Products</a>
                         <a href="#" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium text-sm transition-colors">About</a>
                         <a href="#" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium text-sm transition-colors">Contact</a>
                     </div>
@@ -75,21 +75,21 @@
                 <div class="flex items-center gap-3">
                     @auth
                         <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
-                            <div class="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center">
+                            <div class="w-7 h-7 bg-orange-600 rounded-full flex items-center justify-center">
                                 <span class="text-white text-xs font-bold">{{ substr(Auth::user()->name ?? 'U', 0, 1) }}</span>
                             </div>
                             <span class="text-sm font-medium text-gray-700">{{ Str::limit(Auth::user()->name ?? 'User', 15) }}</span>
                         </div>
                     @endauth
                     @guest
-                        <a href="{{ route('login') }}" class="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                        <a href="{{ route('login') }}" class="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-orange-50 rounded-lg transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
                             </svg>
                             Sign In
                         </a>
                     @endguest
-                    <a href="{{ route('cart') }}" class="relative inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all hover:shadow-lg font-semibold text-sm">
+                    <a href="{{ route('cart') }}" class="relative inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all hover:shadow-lg font-semibold text-sm">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                         </svg>
@@ -104,7 +104,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white">
+    <div class="bg-orange-500 text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div class="flex flex-col items-center md:items-start">
@@ -122,7 +122,7 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 rounded-lg hover:bg-blue-50 font-semibold text-sm transition-all hover:shadow-lg">
+                    <button class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 rounded-lg hover:bg-orange-50 font-semibold text-sm transition-all hover:shadow-lg">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
@@ -138,7 +138,7 @@
 
             <!-- Sidebar -->
             <aside class="lg:col-span-1">
-                <button onclick="toggleSidebar()" class="lg:hidden w-full flex items-center justify-center gap-2 mb-4 px-4 py-3 bg-blue-600 text-white rounded-xl font-semibold shadow-lg hover:bg-blue-700 transition-all">
+                <button onclick="toggleSidebar()" class="lg:hidden w-full flex items-center justify-center gap-2 mb-4 px-4 py-3 bg-orange-600 text-white rounded-xl font-semibold shadow-lg hover:bg-orange-700 transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
                     </svg>
@@ -173,7 +173,7 @@
                                 </svg>
                                 <span class="font-semibold">All Products</span>
                             </div>
-                            <span class="px-2.5 py-0.5 {{ request()->query('category') ? 'bg-gray-100 text-gray-600' : 'bg-blue-500 text-white' }} text-xs font-bold rounded-full">
+                            <span class="px-2.5 py-0.5 {{ request()->query('category') ? 'bg-gray-100 text-gray-600' : 'bg-orange-500 text-white' }} text-xs font-bold rounded-full">
                                 {{ $totalProducts ?? 0 }}
                             </span>
                         </a>
@@ -182,7 +182,7 @@
                             <a href="{{ route('indexProduct', ['category' => $category->slug]) }}"
                                class="flex items-center justify-between p-3.5 rounded-xl transition-all {{ request()->query('category') === $category->slug ? 'category-chip active text-white' : 'hover:bg-gray-50 text-gray-700' }}">
                                 <span class="font-medium">{{ $category->name }}</span>
-                                <span class="px-2.5 py-0.5 {{ request()->query('category') === $category->slug ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-600' }} text-xs font-bold rounded-full">
+                                <span class="px-2.5 py-0.5 {{ request()->query('category') === $category->slug ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600' }} text-xs font-bold rounded-full">
                                     {{ $category->products_count }}
                                 </span>
                             </a>
@@ -222,9 +222,9 @@
                                 </div>
                                 <input type="search" name="search" value="{{ request('search') }}"
                                        placeholder="Search for cement, steel bars, paint..."
-                                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
                             </div>
-                            <button type="submit" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all hover:shadow-lg">
+                            <button type="submit" class="px-6 py-3 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-all hover:shadow-lg">
                                 Search
                             </button>
                         </div>
@@ -265,7 +265,7 @@
                                 </div>
 
                                 @if($product->min_order)
-                                    <div class="absolute top-3 right-3 px-2.5 py-1 bg-blue-600 text-white text-xs font-bold rounded-full shadow-lg">
+                                    <div class="absolute top-3 right-3 px-2.5 py-1 bg-orange-600 text-white text-xs font-bold rounded-full shadow-lg">
                                         Min: {{ $product->min_order }}
                                     </div>
                                 @endif
@@ -273,7 +273,7 @@
 
                             <div class="p-5">
                                 <div class="mb-3">
-                                    <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg">
+                                    <span class="text-xs font-semibold text-blue-700 bg-orange-50 px-2.5 py-1 rounded-lg">
                                         {{ $product->categories?->name ?? 'Uncategorized' }}
                                     </span>
                                 </div>
@@ -288,20 +288,30 @@
                                     {{ Str::limit($product->description, 80) }}
                                 </p>
 
-                                <div class="flex items-baseline gap-2 mb-5 pb-4 border-t border-gray-100 pt-4">
-                                    <p class="text-3xl font-extrabold text-gray-900">
-                                        {{ number_format($product->price) }}
-                                    </p>
-                                    <p class="text-sm text-gray-500">TZS / {{ $product->unit ?? 'unit' }}</p>
-                                </div>
+                                 <!-- Price -->
+                                <td class="px-6 py-4">
+                                    <div>
+                                        <p class="font-semibold text-gray-900">
+                                            TZS {{ number_format($product->price, 0) }}
+                                        </p>
+                                        @if($product->old_price && $product->old_price > $product->price)
+                                            <p class="text-sm text-gray-500 line-through">
+                                                TZS {{ number_format($product->old_price, 0) }}
+                                            </p>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                {{ round((($product->old_price - $product->price) / $product->old_price) * 100) }}% OFF
+                                            </span>
+                                        @endif
+                                    </div>
+                                </td>
 
                                 <div class="flex items-center gap-2">
                                     @if($product->stock > 0)
                                         <form action="{{ route('cart.add', $product->id) }}" method="POST" class="flex-1">
                                             @csrf
                                             <button type="submit" onclick="showCartNotification()"
-                                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all hover:shadow-lg">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-all hover:shadow-lg">
+                                                <svg class="w-4 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
                                                 </svg>
                                                 Add to Cart
@@ -313,7 +323,7 @@
                                         </button>
                                     @endif
 
-                                    <a href="#" class="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                    <a href="#" class="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-orange-50 hover:text-blue-600 transition-colors">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -326,7 +336,7 @@
                         <div class="col-span-full bg-white rounded-2xl p-12 text-center border-2 border-dashed border-gray-300">
                             <h3 class="text-xl font-bold text-gray-900 mb-2">No Products Found</h3>
                             <p class="text-gray-600 mb-6">Try adjusting your search or filter.</p>
-                            <a href="{{ route('indexProduct') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
+                            <a href="{{ route('indexProduct') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700">
                                 Clear Filters
                             </a>
                         </div>
