@@ -5,25 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Checkout as CheckoutRecord;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
+use Bryceandy\Selcom\Facades\Selcom;
 
 class CheckoutController extends Controller
 {
     public function index()
     {
         $cart = Cart::getCurrentCart()->load('cartItems.product');
-
-        $subtotal    = $cart->getTotal();
-        $deliveryFee = 10000;
-        $vat         = round($subtotal * 0.18);
-        $total       = $subtotal + $deliveryFee + $vat;
-
-        return view('checkout', compact('cart', 'subtotal', 'deliveryFee', 'vat', 'total'));
+        return view('checkout', compact('cart'));
     }
 
     public function process(Request $request)
@@ -36,142 +26,72 @@ class CheckoutController extends Controller
             'region'  => 'required|string',
             'city'    => 'required|string',
             'notes'   => 'nullable|string',
-            'cart_id' => 'required|exists:carts,id',
         ]);
 
-        $cart = Cart::with('cartItems.product')->findOrFail($request->cart_id);
+        $cart = Cart::getCurrentCart()->load('cartItems.product');
 
-        if ($cart->user_id !== auth()->id()) {
-            return back()->with('error', 'Invalid cart');
+        if ($cart->getItemsCount() == 0) {
+            return back()->with('error', 'Your cart is empty');
         }
 
-        $subtotal    = $cart->getTotal();
-        $deliveryFee = 10000;
-        $vat         = round($subtotal * 0.18);
-        $totalAmount = $subtotal + $deliveryFee + $vat;
+        $subtotal = $cart->getTotal();
+        $delivery = 25000;
+        $vat      = $subtotal * 0.18;
+        $total    = $subtotal + $delivery + $vat;
 
-        // Format phone
         $phone = preg_replace('/\D/', '', $request->phone);
-        if (strlen($phone) == 10 && str_starts_with($phone, '0')) {
+        if (str_starts_with($phone, '0')) {
             $phone = '255' . substr($phone, 1);
         }
 
-        DB::beginTransaction();
+        $order = Order::create([
+            'user_id'          => auth()->id(),
+            'order_number'     => 'WH-' . date('YmdHis') . rand(100, 999),
+            'total_amount'     => $total,
+            'status'           => 'pending',
+            'payment_status'   => 'unpaid',
+            'payment_method'   => 'selcom',
+            'customer_name'    => $request->name,
+            'customer_email'   => $request->email,
+            'customer_phone'   => $phone,
+            'shipping_address' => $request->address . ', ' . $request->city . ', ' . $request->region,
+            'notes'            => $request->notes,
+        ]);
 
-        try {
-
-            // Generate unique order number
-            $orderNumber = 'WH-' . date('Ymd') . '-' . strtoupper(Str::random(6));
-
-            // Save checkout tracking record
-            CheckoutRecord::create([
-                'user_id'      => auth()->id(),
-                'cart_id'      => $cart->id,
-                'order_number' => $orderNumber,
-                'status'       => 'pending',
-                'total_amount' => $totalAmount,
+        foreach ($cart->cartItems as $item) {
+            OrderItem::create([
+                'order_id'     => $order->id,
+                'product_id'   => $item->product_id,
+                'product_name' => $item->product->name ?? $item->product_name,
+                'quantity'     => $item->quantity,
+                'price'        => $item->price,
+                'subtotal'     => $item->price * $item->quantity,
             ]);
-
-            // Create the actual order
-            $order = Order::create([
-                'user_id'          => auth()->id(),
-                'order_number'     => $orderNumber,
-                'status'           => 'pending',
-                'total_amount'     => $totalAmount,
-                'payment_method'   => 'selcom',
-                'payment_status'   => 'unpaid',
-                'shipping_address' => $request->address . ', ' . $request->city . ', ' . $request->region,
-                'customer_name'    => $request->name,
-                'customer_email'   => $request->email,
-                'customer_phone'   => $phone,
-                'notes'            => $request->notes,
-            ]);
-
-            // Add items to order
-            foreach ($cart->cartItems as $item) {
-                OrderItem::create([
-                    'order_id'     => $order->id,
-                    'product_id'   => $item->product_id,
-                    'product_name' => $item->product->name,
-                    'quantity'     => $item->quantity,
-                    'price'        => $item->price,
-                    'subtotal'     => $item->price * $item->quantity,
-                ]);
-            }
-
-            // Clear the cart
-            $cart->cartItems()->delete();
-
-            DB::commit();
-
-            // ================================================================
-            //      FIXED + CLEANED + CORRECTED SELCOM MINIMAL CHECKOUT CODE
-            // ================================================================
-
-            $params = [
-                'vendor'        => env('SELCOM_VENDOR_ID'),
-                'order_id'      => $order->id,
-                'buyer_email'   => $request->email,
-                'buyer_name'    => $request->name,
-                'buyer_phone'   => $phone,
-                'amount'        => $totalAmount,
-                'currency'      => 'TZS',
-                'reference'     => $orderNumber,
-                'timestamp'     => now()->format('YmdHis'),
-                'redirect_url'  => route('success', $order->id),
-                'cancel_url'    => route('cancel'),
-                'buyer_remarks' => "Order #{$orderNumber}",
-            ];
-
-            // Correct Selcom Minimal Checkout Signature (10 fields only)
-            $signString =
-                $params['vendor'] .
-                $params['order_id'] .
-                $params['buyer_email'] .
-                $params['buyer_name'] .
-                $params['buyer_phone'] .
-                $params['amount'] .
-                $params['currency'] .
-                $params['reference'] .
-                $params['timestamp'] .
-                env('SELCOM_API_SECRET');
-
-            $params['sig'] = hash('sha256', $signString);
-
-            Log::info('Selcom Request Payload', $params);
-
-            $response = Http::asForm()
-                ->timeout(30)
-                ->post('https://apigw.selcommobile.com/v1/checkout/create-order-minimal', $params);
-
-            Log::info('Selcom Response', [
-                'body'   => $response->body(),
-                'status' => $response->status()
-            ]);
-
-            if ($response->failed()) {
-                return back()->with('error', 'Selcom connection failed. Please try again.');
-            }
-
-            $result = $response->json();
-
-            if (!isset($result['redirect_url'])) {
-                return back()->with('error', 'Selcom error: ' . ($result['message'] ?? 'Unknown error from Selcom'));
-            }
-
-            return redirect($result['redirect_url']);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Checkout Exception: ' . $e->getMessage());
-            return back()->with('error', 'Payment failed. Please try again.');
         }
+
+        $cart->cartItems()->delete();
+
+        $payment = Selcom::checkout([
+            'amount'         => $total,
+            'order_id'       => $order->order_number,
+            'msisdn'         => $phone,
+            'buyer_name'     => $request->name,
+            'buyer_email'    => $request->email,
+            'redirect_url'   => route('payment.success', $order->id),
+            'cancel_url'     => route('payment.cancel'),
+            'payment_method' => 'mobile',   // forces web flow + USSD even in sandbox
+        ]);
+
+        \Log::info('SELCOM REDIRECT URL: ' . $payment->redirect_url);
+
+        return redirect($payment->redirect_url);
     }
 
     public function success($orderId)
     {
         $order = Order::with('orderItems.product')->findOrFail($orderId);
         if ($order->user_id !== auth()->id()) abort(403);
+
         return view('success', compact('order'));
     }
 
@@ -179,28 +99,85 @@ class CheckoutController extends Controller
     {
         return view('cancel');
     }
+    public function testPage()
+{
+    $transactions = \DB::table('selcom_orders')
+        ->orderByDesc('created_at')
+        ->limit(10)
+        ->get();
 
-    public function webhook(Request $request)
-    {
-        Log::info('Selcom Webhook Received', $request->all());
+    return view('selcom-test', compact('transactions'));
+}
+public function testPayment(Request $request)
+{
+    $request->validate([
+        'phone' => 'required',
+        'amount' => 'required|numeric|min:100'
+    ]);
 
-        $payload = $request->all();
-
-        if (in_array($payload['result'] ?? '', ['SUCCESS', 'COMPLETED', 'SUCCESSFUL'])) {
-            $order = Order::find($payload['order_id'] ?? null);
-            if ($order && $order->payment_status === 'unpaid') {
-                $order->update([
-                    'payment_status' => 'paid',
-                    'status'         => 'confirmed',
-                    'paid_at'        => now(),
-                ]);
-
-                foreach ($order->orderItems as $item) {
-                    $item->product->decrement('stock', $item->quantity);
-                }
-            }
+    if (config('selcom.environment') === 'live') {
+        if ($request->amount > 5000) {
+            return back()->with('error', 
+                'Production testing limited to max 5,000 TZS');
         }
-
-        return response('OK', 200);
+        
+        \Log::warning('⚠️ PRODUCTION PAYMENT TEST', [
+            'amount' => $request->amount,
+            'phone' => $request->phone,
+            'user' => auth()->id()
+        ]);
     }
+
+    $phone = preg_replace('/\D/', '', $request->phone);
+    if (str_starts_with($phone, '0')) {
+        $phone = '255' . substr($phone, 1);
+    }
+
+    $orderId = 'TEST-' . now()->format('YmdHis');
+
+    try {
+        \Log::info('SELCOM TEST - ABOUT TO CALL API', [
+            'phone' => $phone,
+            'amount' => $request->amount,
+            'order_id' => $orderId,
+            'environment' => config('selcom.environment')
+        ]);
+
+        $payment = Selcom::checkout([
+            'amount'         => $request->amount,
+            'order_id'       => $orderId,
+            'phone'          => $phone,
+            'name'           => auth()->user()->name,
+            'email'          => auth()->user()->email,
+            'transaction_id' => $orderId,
+            'redirect_url'   => route('selcom.test'),
+            'cancel_url'     => route('selcom.test'),
+            // ✅ ADD WEBHOOK URL using your ngrok URL
+            'webhook_url'    => 'https://anthropogenic-wonda-groundably.ngrok-free.dev/selcom/webhook',
+        ]);
+
+        \Log::info('SELCOM SUCCESS! Redirect URL: ' . $payment->redirect_url);
+
+        return redirect($payment->redirect_url);
+        
+    } catch (\Illuminate\Http\Client\ConnectionException $e) {
+        \Log::error('SELCOM CONNECTION ERROR: ' . $e->getMessage());
+        return back()->with('error', 'Unable to connect to payment gateway. Please try again later.');
+    } catch (\Exception $e) {
+        \Log::error('SELCOM ERROR: ' . $e->getMessage());
+        return back()->with('error', 'Payment initialization failed: ' . $e->getMessage());
+    }
+}
+public function handleWebhook(Request $request)
+{
+    \Log::info('SELCOM WEBHOOK RECEIVED', [
+        'payload' => $request->all(),
+        'headers' => $request->headers->all()
+    ]);
+
+    // Selcom will send payment status updates here
+    // Process according to Selcom's webhook documentation
+    
+    return response()->json(['status' => 'received']);
+}
 }

@@ -355,7 +355,7 @@
     
     <footer class="bg-gray-800 mt-12 text-gray-400 py-8">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <p>&copy; {{ date('Y') }} Weru Hardware. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} OWeru Hardware. All rights reserved.</p>
             <p class="mt-1 text-sm">Quality building materials delivered fast in Tanzania.</p>
         </div>
     </footer>

@@ -4,164 +4,188 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Checkout • Weru Hardware</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Secure Checkout • Weru Hardware</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
         :root {
             --primary: #f97316;
             --primary-dark: #ea580c;
-            --secondary: #fbbf24;
+            --primary-light: #fff7ed;
         }
         body { font-family: 'Inter', sans-serif; }
-        .input-focus { transition: all 0.3s ease; }
-        .input-focus:focus { ring: 2px; ring-color: #f97316; border-color: #f97316; }
-        .btn-hover { transition: all 0.3s ease; }
         .btn-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(249, 115, 22, 0.3); }
+        .input-focus:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2); }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-    <!-- Success/Error Messages -->
-    @if(session('success'))
-        <div class="fixed top-24 right-6 z-50 bg-green-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-pulse">
-            <i class="fa-solid fa-check-circle"></i> {{ session('success') }}
-        </div>
-    @endif
-
-    @if(session('error') || $errors->any())
-        <div class="fixed top-24 right-6 z-50 bg-red-600 text-white px-6 py-4 rounded-xl shadow-2xl animate-pulse">
-            <i class="fa-solid fa-exclamation-triangle mr-2"></i>
-            {{ session('error') ?: 'Please correct the errors below' }}
-        </div>
-    @endif
+<div class="container max-w-7xl mx-auto px-6 py-8">
 
     <!-- Header -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-lg">
-        <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-orange-600 to-orange-700 rounded-xl flex items-center justify-center shadow-lg">
-                    <i class="fa-solid fa-hard-hat text-white text-xl"></i>
-                </div>
-                <h1 class="text-2xl font-black text-gray-900">Weru<span class="text-orange-600">Hardware</span></h1>
+    <div class="bg-white rounded-3xl shadow-xl p-8 mb-10 flex justify-between items-center flex-wrap gap-6">
+        <div class="flex items-center gap-5">
+            <div class="w-14 h-14 bg-gradient-to-br from-orange-600 to-orange-700 rounded-2xl flex items-center justify-center shadow-lg">
+                <i class="fa-solid fa-hard-hat text-white text-2xl"></i>
             </div>
-
-            <a href="{{ route('cart') }}" class="flex items-center gap-2 text-orange-600 font-bold hover:text-orange-700 transition">
-                <i class="fa-solid fa-arrow-left"></i> Back to Cart ({{ $cart->getItemsCount() }} items)
-            </a>
+            <h1 class="text-3xl font-black text-gray-900">Weru<span class="text-orange-600">Hardware</span></h1>
         </div>
-    </header>
+        <a href="{{ route('cart') }}" class="flex items-center gap-3 text-orange-600 font-bold hover:text-orange-700 transition">
+            <i class="fa-solid fa-arrow-left"></i> Back to Cart ({{ count(session('cart', [])) }} items)
+        </a>
+    </div>
 
-    <main class="max-w-7xl mx-auto px-6 py-10">
-        <div class="text-center mb-10">
-            <h2 class="text-4xl font-black text-gray-900 mb-3">Secure Checkout</h2>
-            <p class="text-xl text-gray-600">Complete your order in under 2 minutes</p>
-        </div>
+    <!-- Page Title -->
+    <div class="text-center mb-12">
+        <h2 class="text-5xl font-black text-gray-900 mb-4">Secure Checkout</h2>
+        <p class="text-xl text-gray-600">Complete your order in under 2 minutes</p>
+    </div>
 
+    <form action="{{ route('checkout.process') }}" method="POST">
+        @csrf
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            <!-- Checkout Form -->
-            <div class="lg:col-span-8">
-                <form action="{{ route('store') }}" method="POST" id="checkout-form" class="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                    @csrf
 
-                    <!-- Customer Info -->
-                    <div class="p-8 border-b border-gray-100">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                                <i class="fa-solid fa-user text-orange-600 text-xl"></i>
-                            </div>
-                            <h3 class="text-2xl font-black text-gray-900">1. Contact Information</h3>
+            <!-- Left: Form -->
+            <div class="lg:col-span-8 space-y-8">
+
+                <!-- Contact Information -->
+                <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                            <span class="text-orange-600 font-black text-xl">1</span>
+                        </div>
+                        <h3 class="text-2xl font-black text-gray-900">Contact Information</h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Full Name <span class="text-red-600">*</span></label>
+                            <input type="text" name="name" value="{{ old('name', auth()->user()->name ?? '') }}" required
+                                   class="w-full px-6 py-4 border-2 border-gray-200 rounded-xl input-focus transition" placeholder="John Doe">
+                            @error('name') <p class="text-red-600 text-sm mt-2 flex items-center gap-1"><i class="fa-solid fa-exclamation-triangle"></i> {{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Phone Number <span class="text-red-600">*</span></label>
+                            <input type="tel" name="phone"  required
+                                   class="w-full px-6 py-4 border-2 border-gray-200 rounded-xl input-focus transition" placeholder="+255 712 345 678">
+                            @error('phone') <p class="text-red-600 text-sm mt-2 flex items-center gap-1"><i class="fa-solid fa-exclamation-triangle"></i> {{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Email Address <span class="text-red-600">*</span></label>
+                            <input type="email" name="email" value="{{ old('email', auth()->user()->email ?? '') }}" required
+                                   class="w-full px-6 py-4 border-2 border-gray-200 rounded-xl input-focus transition" placeholder="john@example.com">
+                            @error('email') <p class="text-red-600 text-sm mt-2 flex items-center gap-1"><i class="fa-solid fa-exclamation-triangle"></i> {{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Address -->
+                <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                            <span class="text-orange-600 font-black text-xl">2</span>
+                        </div>
+                        <h3 class="text-2xl font-black text-gray-900">Delivery Address</h3>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Full Address <span class="text-red-600">*</span></label>
+                            <input type="text" name="address" value="{{ old('address') }}" required
+                                   class="w-full px-6 py-4 border-2 border-gray-200 rounded-xl input-focus transition"
+                                   placeholder="Plot 123, Mwananyamala Street, Kinondoni">
+                            @error('address') <p class="text-red-600 text-sm mt-2 flex items-center gap-1"><i class="fa-solid fa-exclamation-triangle"></i> {{ $message }}</p> @enderror
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Full Name *</label>
-                                <input type="text" name="name" value="{{ old('name', auth()->user()->name ?? '') }}" required
-                                       class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl input-focus focus:border-orange-600" placeholder="John Doe">
-                                @error('name') <p class="text-red-600 text-sm mt-2">{{ $message }}</p> @enderror
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Region <span class="text-red-600">*</span></label>
+                                <select name="region" required class="w-full px-6 py-4 border-2 border-gray-200 rounded-xl input-focus transition">
+                                    <option value="">Select Region</option>
+                                    @foreach(['Dar es Salaam','Arusha','Mwanza','Dodoma','Mbeya','Morogoro','Tanga','Kilimanjaro','Zanzibar','Other'] as $region)
+                                        <option value="{{ $region }}" {{ old('region') == $region ? 'selected' : '' }}>{{ $region }}</option>
+                                    @endforeach
+                                </select>
+                                @error('region') <p class="text-red-600 text-sm mt-2 flex items-center gap-1"><i class="fa-solid fa-exclamation-triangle"></i> {{ $message }}</p> @enderror
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Phone Number *</label>
-                                <input type="tel" name="phone" value="{{ old('phone', auth()->user()->phone ?? '') }}" required
-                                       class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl input-focus focus:border-orange-600" placeholder="+255 712 345 678">
-                                @error('phone') <p class="text-red-600 text-sm mt-2">{{ $message }}</p> @enderror
+                                <label class="block text-sm font-bold text-gray-700 mb-2">City / District <span class="text-red-600">*</span></label>
+                                <input type="text" name="city" value="{{ old('city') }}" required
+                                       class="w-full px-6 py-4 border-2 border-gray-200 rounded-xl input-focus transition" placeholder="Ilala, Temeke">
+                                @error('city') <p class="text-red-600 text-sm mt-2 flex items-center gap-1"><i class="fa-solid fa-exclamation-triangle"></i> {{ $message }}</p> @enderror
                             </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Email Address *</label>
-                                <input type="email" name="email" value="{{ old('email', auth()->user()->email ?? '') }}" required
-                                       class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl input-focus focus:border-orange-600" placeholder="john@example.com">
-                                @error('email') <p class="text-red-600 text-sm mt-2">{{ $message }}</p> @enderror
-                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Delivery Notes (Optional)</label>
+                            <textarea name="notes" rows="3" class="w-full px-6 py-4 border-2 border-gray-200 rounded-xl input-focus transition resize-none"
+                                      placeholder="Landmarks, gate color, preferred time...">{{ old('notes') }}</textarea>
                         </div>
                     </div>
-
-                    <!-- Delivery Address -->
-                    <div class="p-8">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-12 h-12 bg-orange-100 rounded-xl flexed items-center justify-center">
-                                <i class="fa-solid fa-truck text-orange-600 text-xl"></i>
-                            </div>
-                            <h3 class="text-2xl font-black text-gray-900">2. Delivery Address</h3>
-                        </div>
-
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Full Address *</label>
-                                <input type="text" name="address" value="{{ old('address') }}" required
-                                       class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl input-focus focus:border-orange-600"
-                                       placeholder="Plot 123, Mwananyamala Street, Kinondoni, Dar es Salaam">
-                                @error('address') <p class="text-red-600 text-sm mt-2">{{ $message }}</p> @enderror
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">Region *</label>
-                                    <select name="region" required class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl input-focus focus:border-orange-600">
-                                        <option value="">Select Region</option>
-                                        @foreach(['Dar es Salaam', 'Arusha', 'Mwanza', 'Dodoma', 'Mbeya', 'Morogoro', 'Tanga', 'Kilimanjaro', 'Zanzibar', 'Other'] as $region)
-                                            <option value="{{ $region }}" {{ old('region') == $region ? 'selected' : '' }}>{{ $region }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">City / District *</label>
-                                    <input type="text" name="city" value="{{ old('city') }}" required
-                                           class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl input-focus focus:border-orange-600" placeholder="e.g. Ilala, Temeke">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Delivery Notes (Optional)</label>
-                                <textarea name="notes" rows="3" class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl input-focus focus:border-orange-600"
-                                          placeholder="Landmarks, gate number, preferred delivery time...">{{ old('notes') }}</textarea>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+                </div>
             </div>
 
-            <!-- Order Summary & Payment -->
+            <!-- Right: Order Summary -->
             <div class="lg:col-span-4">
-                <div class="bg-gradient-to-br from-orange-600 to-orange-700 rounded-3xl shadow-2xl p-8 text-white sticky top-24">
-                    <h3 class="text-2xl font-black mb-6">Order Summary</h3>
+                <div class="bg-gradient-to-br from-orange-600 to-orange-700 rounded-3xl shadow-2xl p-8 text-white sticky top-6">
+
+                    <h3 class="text-2xl font-black mb-8">Order Summary</h3>
 
                     @php
-                        $subtotal = $cart->getTotal();
-                        $deliveryFee = $cart->getItemsCount() > 0 ? 25000 : 0;
+                        $subtotal = 0;
+                        $totalItems = 0;
+                        $cart = session('cart', []);
+                        
+                        foreach($cart as $item) {
+                            $subtotal += $item['price'] * $item['quantity'];
+                            $totalItems += $item['quantity'];
+                        }
+                        
+                        $delivery = $totalItems > 0 ? 25000 : 0;
                         $vat = $subtotal * 0.18;
-                        $total = $subtotal + $deliveryFee + $vat;
+                        $total = $subtotal + $delivery + $vat;
                     @endphp
+
+                    @if($totalItems > 0)
+                        <!-- Cart Items Preview -->
+                        <div class="mb-6 max-h-64 overflow-y-auto space-y-3">
+                            @foreach($cart as $id => $item)
+                                <div class="bg-white/10 backdrop-blur rounded-xl p-4">
+                                    <div class="flex gap-3">
+                                        <div class="w-16 h-16 bg-white/20 rounded-lg overflow-hidden flex-shrink-0">
+                                            @if($item['image'])
+                                                <img src="{{ asset('storage/'.$item['image']) }}" alt="{{ $item['name'] }}" class="w-full h-full object-cover">
+                                            @else
+                                                <div class="w-full h-full flex items-center justify-center">
+                                                    <i class="fa-solid fa-box text-white text-xl"></i>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="font-bold text-sm truncate">{{ $item['name'] }}</h4>
+                                            <p class="text-xs opacity-90 mt-1">{{ $item['quantity'] }} × TZS {{ number_format($item['price']) }}</p>
+                                            <p class="text-sm font-bold mt-1">TZS {{ number_format($item['price'] * $item['quantity']) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="border-t-2 border-white/30 pt-6 mb-6"></div>
+                    @endif
 
                     <div class="space-y-5 text-lg">
                         <div class="flex justify-between">
-                            <span>Subtotal ({{ $cart->getItemsCount() }} items)</span>
+                            <span>Subtotal ({{ $totalItems }} items)</span>
                             <span class="font-bold">TZS {{ number_format($subtotal) }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span>Delivery Fee</span>
-                            <span class="font-bold">TZS {{ number_format($deliveryFee) }}</span>
+                            <span class="font-bold">TZS {{ number_format($delivery) }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span>VAT (18%)</span>
@@ -175,56 +199,64 @@
                         </div>
                     </div>
 
-                    <!-- Payment Button -->
-                    <button type="submit" form="checkout-form"
-                            class="w-full mt-8 py-6 bg-white text-orange-600 font-black text-2xl rounded-2xl shadow-2xl hover:shadow-orange-500/50 btn-hover transform transition-all duration-300 flex items-center justify-center gap-4">
-                        <i class="fa-solid fa-mobile-alt text-3xl"></i>
-                        Pay with Mobile Money
-                    </button>
+                    @if($totalItems == 0)
+                        <div class="mt-8 text-center">
+                            <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fa-solid fa-cart-shopping text-3xl"></i>
+                            </div>
+                            <p class="font-medium text-white/90 mb-4">Your cart is currently empty</p>
+                            <a href="{{ route('products') }}" class="inline-block px-6 py-3 bg-white text-orange-600 font-bold rounded-xl hover:bg-white/90 transition">
+                                Browse Products
+                            </a>
+                        </div>
+                    @else
+                        <button type="submit"
+                                class="btn-hover w-full mt-10 py-6 bg-white text-orange-600 font-black text-xl rounded-2xl shadow-2xl transition-all duration-300 flex items-center justify-center gap-3">
+                            <i class="fa-solid fa-mobile-alt text-2xl"></i>
+                            Pay with Mobile Money
+                        </button>
 
-                    <!-- Trust Badges -->
-                    <div class="mt-8 grid grid-cols-3 gap-4 text-center text-sm">
-                        <div class="bg-white/20 backdrop-blur rounded-xl p-4">
-                            <i class="fa-solid fa-shield-halved text-2xl mb-2 block"></i>
-                            <span class="font-bold">Secure</span>
+                        <div class="mt-10 grid grid-cols-3 gap-4 text-center text-sm">
+                            <div class="bg-white/20 backdrop-blur rounded-xl p-4">
+                                <i class="fa-solid fa-shield-halved text-2xl mb-2 block"></i>
+                                <span class="font-bold">Secure</span>
+                            </div>
+                            <div class="bg-white/20 backdrop-blur rounded-xl p-4">
+                                <i class="fa-solid fa-lock text-2xl mb-2 block"></i>
+                                <span class="font-bold">Encrypted</span>
+                            </div>
+                            <div class="bg-white/20 backdrop-blur rounded-xl p-4">
+                                <i class="fa-solid fa-trophy text-2xl mb-2 block"></i>
+                                <span class="font-bold">Trusted</span>
+                            </div>
                         </div>
-                        <div class="bg-white/20 backdrop-blur rounded-xl p-4">
-                            <i class="fa-solid fa-lock text-2xl mb-2 block"></i>
-                            <span class="font-bold">Encrypted</span>
-                        </div>
-                        <div class="bg-white/20 backdrop-blur rounded-xl p-4">
-                            <i class="fa-solid fa-trophy text-2xl mb-2 block"></i>
-                            <span class="font-bold">Trusted</span>
-                        </div>
-                    </div>
 
-                    <div class="mt-8 text-center">
-                        <p class="text-sm opacity-90">Powered by <strong>Selcom • NMB • CRDB • M-Pesa</strong></p>
-                        <p class="text-xs mt-3 opacity-80">
-                            Supports M-Pesa • Tigo Pesa • Airtel Money • HaloPesa • Bank Cards
+                        <div class="mt-8 text-center text-sm">
+                            <p class="opacity-90">Powered by <strong>Selcom • NMB • CRDB • M-Pesa</strong></p>
+                            <p class="text-xs mt-3 opacity-80">Supports M-Pesa • Tigo Pesa • Airtel Money • HaloPesa • Bank Cards</p>
+                        </div>
+
+                        <p class="text-center text-xs mt-8 opacity-80">
+                            By placing your order, you agree to our
+                            <a href="#" class="underline hover:opacity-100">Terms</a> &
+                            <a href="#" class="underline hover:opacity-100">Privacy Policy</a>
                         </p>
-                    </div>
-
-                    <p class="text-center text-xs mt-8 opacity-80">
-                        By placing your order, you agree to our 
-                        <a href="#" class="underline hover:opacity-100">Terms</a> & 
-                        <a href="#" class="underline hover:opacity-100">Privacy Policy</a>
-                    </p>
+                    @endif
                 </div>
             </div>
         </div>
-    </main>
+    </form>
 
     <!-- Footer -->
-    <footer class="mt-20 bg-gray-900 text-gray-400 py-12 text-center">
-        <div class="max-w-7xl mx-auto px-6">
-            <p class="text-lg">&copy; {{ date('Y') }} Weru Hardware • Tanzania's #1 Building Materials Supplier</p>
-            <p class="mt-4 text-sm">
-                <a href="#" class="hover:text-white transition">Privacy</a> • 
-                <a href="#" class="hover:text-white transition">Terms</a> • 
-                <a href="tel:+255784123456" class="hover:text-white transition">+255 784 123 456</a>
-            </p>
-        </div>
+    <footer class="mt-20 text-center text-gray-600">
+        <p class="text-lg font-medium">&copy; {{ date('Y') }} Weru Hardware • Tanzania's #1 Building Materials Supplier</p>
+        <p class="mt-4 text-sm">
+            <a href="#" class="text-orange-600 hover:underline">Privacy</a> •
+            <a href="#" class="text-orange-600 hover:underline">Terms</a> •
+            <a href="tel:+255784123456" class="text-orange-600 hover:underline">+255 784 123 456</a>
+        </p>
     </footer>
+</div>
+
 </body>
 </html>

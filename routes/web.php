@@ -72,12 +72,9 @@ Route::post('/cart/update/{id}', [CartController::class, 'update'])->name('cart.
 Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
 Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
-Route::get('/checkout', [CheckoutController::class, 'index'])
-    ->name('checkout')
-    ->middleware('auth');   
-
 //Selcom Payment Routes
-Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout');
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout')->middleware('auth');
+Route::post('/checkout', [CheckoutController::class, 'process']);
 Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('success');
 Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('cancel');
 Route::post('/webhook/selcom', [CheckoutController::class, 'webhook'])->name('selcom.webhook')->withoutMiddleware('csrf');
@@ -90,4 +87,22 @@ Route::get('/advertisement',[App\Http\Controllers\AdvertisementController::class
 Route::post('/advertisement',[App\Http\Controllers\AdvertisementController::class,'store'])->name('store');
 Route::post('/ads/{id}',[App\Http\Controllers\AdvertisementController::class,'destroy'])->name('destroy');
 
-require __DIR__.'/auth.php';                          
+Route::middleware('auth')->group(function () {
+    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+    Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
+
+    Route::get('/payment/success/{order}', [CheckoutController::class, 'success'])->name('payment.success');
+    Route::get('/payment/cancel', [CheckoutController::class, 'cancel'])->name('payment.cancel');
+});
+    
+
+
+
+Route::post('/selcom/webhook', [CheckoutController::class, 'handleWebhook'])
+    ->name('selcom.webhook');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/selcom-test', [CheckoutController::class, 'testPage'])->name('selcom.test');
+    Route::post('/selcom-test', [CheckoutController::class, 'testPayment'])->name('selcom.test.pay');
+});
+require __DIR__.'/auth.php';

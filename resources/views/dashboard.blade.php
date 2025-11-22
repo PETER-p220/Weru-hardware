@@ -26,7 +26,6 @@ $recentOrders = $userOrders->take(3)->map(function ($order) {
     return [
         'number' => $order->order_number,
         'status' => ucfirst($order->status),
-        'date' => $order->created_at->diffForHumans(),
         'amount' => number_format($order->total_amount),
         'statusClass' => match($order->status) {
             'pending' => 'bg-orange-100 text-orange-700 border border-orange-300',
@@ -43,7 +42,6 @@ if ($recentOrders->isEmpty()) {
     $recentOrders = collect([[
         'number' => '—',
         'status' => 'No Orders Yet',
-        'date' => '—',
         'amount' => '0',
         'statusClass' => 'bg-gray-100 text-gray-600 border border-gray-300'
     ]]);
@@ -212,7 +210,6 @@ $savedAddressesCount = 3; // Replace with real count later
                                             {{ $order['status'] }}
                                         </span>
                                     </div>
-                                    <p class="text-sm text-gray-600">Placed {{ $order['date'] }}</p>
                                 </div>
                                 <div class="text-right">
                                     <p class="font-bold text-xl">TZS {{ $order['amount'] }}</p>

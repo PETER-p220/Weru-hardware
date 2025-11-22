@@ -29,6 +29,11 @@
                 <p class="text-sm text-green-700 mt-1">Expect delivery within 1–3 business days in Dar es Salaam</p>
             </div>
 
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+                <p class="text-blue-800 font-medium">Phone used for payment: <strong>{{ session('phone') }}</strong></p>
+                <p class="text-sm text-blue-700 mt-1">Selcom response: <pre>{{ session('selcom_action') }}</pre></p>
+            </div>
+
             <div class="space-y-3">
                 <a href="{{ route('orders.show', $order->id) }}" 
                    class="block w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">

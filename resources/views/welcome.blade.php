@@ -71,7 +71,7 @@ use App\Models\Categories;
                     </div>
                     <div class="hidden md:flex space-x-8">
                         <a href="/" class="text-primary font-bold transition">Home</a>
-                        <a href="category" class="text-gray-600 hover:text-primary font-medium transition">Categories</a>
+                        <a href="/indexCategory" class="text-gray-600 hover:text-primary font-medium transition">Categories</a>
                         <a href="/products" class="text-gray-600 hover:text-primary font-medium transition">Products</a>
                         <a href="#about" class="text-gray-600 hover:text-primary font-medium transition">About Us</a>
                         <a href="#contact" class="text-gray-600 hover:text-primary font-medium transition">Contact</a>
@@ -193,7 +193,7 @@ use App\Models\Categories;
                         <a href="/products?cat={{ $category->slug }}" 
                            class="category-card block bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:border-primary/50 transition duration-300 group">
                             <div class="w-16 h-16 mb-4 mx-auto bg-primary/10 text-primary rounded-full flex items-center justify-center text-3xl group-hover:bg-primary group-hover:text-white transition duration-300">
-                                <i class="{{ $category->icon }}"></i>
+                                <i class="{{ $category->icon }}">{{ $category->icon }}</i>
                             </div>
                             <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ $category->name }}</h3>
                             @if($category->description)

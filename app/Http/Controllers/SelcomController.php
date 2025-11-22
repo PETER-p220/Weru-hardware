@@ -18,7 +18,7 @@ class SelcomController extends Controller
             "order_id" => "ORDER12345",
             "amount"   => 1000,
             "currency" => "TZS",
-            "customer_id" => "255712345678"
+            "customer_id" => "255616012915"
         ];
 
         $response = $selcom->postFunc("/create-order-minimal", $data);

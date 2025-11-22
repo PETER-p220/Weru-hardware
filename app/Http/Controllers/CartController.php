@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    
     public function add(Request $request, $id)
     {
         $product = Product::findOrFail($id);

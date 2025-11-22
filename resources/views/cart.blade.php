@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
+     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         :root {
             --primary: #f97316;
@@ -221,7 +221,7 @@
                                 <i class="fa-solid fa-lock mr-3"></i>
                                 Proceed to Secure Checkout
                             </a>
-                            <a href="{{ route('products') }}" class="block text-center py-4 border-2 border-orange-600 text-orange-600 font-bold rounded-xl hover:bg-orange-50 transition">
+                            <a href="{{ route('products',$id) }}" class="block text-center py-4 border-2 border-orange-600 text-orange-600 font-bold rounded-xl hover:bg-orange-50 transition">
                                 Continue Shopping
                             </a>
                         </div>
@@ -243,7 +243,7 @@
                 <p class="text-xl text-gray-600 mb-10 max-w-md mx-auto">
                     Looks like you haven't added any building materials yet. Start shopping and build something great!
                 </p>
-                <a href="{{ route('products') }}" class="inline-flex items-center gap-4 px-10 py-5 bg-gradient-to-r from-orange-600 to-orange-700 text-white font-black text-xl rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition">
+                <a href="{{ route('products')}}" class="inline-flex items-center gap-4 px-10 py-5 bg-gradient-to-r from-orange-600 to-orange-700 text-white font-black text-xl rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition">
                     <i class="fa-solid fa-store"></i>
                     Browse Products Now
                 </a>

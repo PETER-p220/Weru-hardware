@@ -170,11 +170,10 @@ $user = Auth::user();
                                         <i class="fa-solid fa-box text-orange-600"></i>
                                     </div>
                                     <div>
-                                        <a href="{{ route('order.show', $order) }}" class="font-bold text-lg text-gray-900 hover:text-orange-600 transition">
+                                        <a href="#" class="font-bold text-lg text-gray-900 hover:text-orange-600 transition">
                                             #{{ $order->order_number ?? $order->id }}
                                         </a>
                                         <p class="text-sm text-gray-500">
-                                            {{ $order->created_at->format('M d, Y') }}
                                         </p>
                                     </div>
                                 </div>
@@ -198,7 +197,7 @@ $user = Auth::user();
 
                             <div class="lg:col-span-4 text-right">
                                 <div class="flex items-center justify-end gap-3">
-                                    <a href="{{ route('order.show', $order) }}" class="text-orange-600 font-semibold hover:underline">
+                                    <a href="#" class="text-orange-600 font-semibold hover:underline">
                                         View Details →
                                     </a>
                                     @if($order->status === 'pending')
@@ -206,11 +205,11 @@ $user = Auth::user();
                                         <button class="text-red-600 font-semibold hover:underline" onclick="event.preventDefault(); if(confirm('Cancel order #{{ $order->id }}?')) this.closest('form').submit();">
                                             Cancel
                                         </button>
-                                        <form method="POST" action="{{ route('order.cancel', $order) }}" class="hidden">
+                                        <form method="POST" action="#" class="hidden">
                                             @csrf @method('DELETE')
                                         </form>
                                     @endif
-                                    <a href="{{ route('order.invoice', $order) }}" class="text-gray-600 hover:text-gray-900">
+                                    <a href="#" class="text-gray-600 hover:text-gray-900">
                                         <i class="fa-solid fa-download"></i>
                                     </a>
                                 </div>
