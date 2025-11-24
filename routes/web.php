@@ -22,9 +22,15 @@ Route::get('/shopping', function () {
 Route::get('/cart', function () {
     return view('cart');
 })->name('cart');
+
+
+// Admin Dashboard
 Route::get('/adminDashboard', function () {
     return view('adminDashboard');
 })->name('adminDashboard');
+
+Route::delete('/orders/{order}', [OrderController::class, 'destroy'])
+    ->name('orders.destroy');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -53,6 +59,8 @@ Route::get('/products', [ProductController::class, 'products'])->name('products'
      ->middleware('auth');
     Route::get('/OrderManagement', [OrderController::class, 'manage'])->name('OrderManagement');
     Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+    Route::patch('orders/{order}/update-status', [OrderController::class, 'updateStatus'])
+    ->name('orders.update-status');
 
 // Category routes
 Route::get('/indexCategory', [CategoryController::class, 'index'])->name('indexCategory');
@@ -64,6 +72,7 @@ Route::post('/deleteCategory/{category}',[CategoryController::class,'destroy'])-
 
 //User routes
 Route::get('/user', [UserController::class, 'index'])->name('user');
+Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
 // Cart routes
 Route::get('/cart', [CartController::class, 'index'])->name('cart');

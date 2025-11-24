@@ -51,14 +51,19 @@ class OrderController extends Controller
         return view('OrderManagement', compact('orders', 'products', 'users'));
     }
 
-    public function update(Request $request, Order $order)
-    {
-        $request->validate([
-            'status' => 'required|in:pending,processing,shipped,delivered,cancelled'
-        ]);
+    public function updateStatus(Request $request, Order $order)
+{
+    $request->validate([
+        'status' => 'required|in:pending,processing,shipped,delivered,cancelled'
+    ]);
 
-        $order->update(['status' => $request->status]);
+    $order->update(['status' => $request->status]);
 
-        return back()->with('success', 'Order status updated successfully.');
-    }
+    return back()->with('success', "Order #{$order->order_number} updated to " . ucfirst($request->status) . "!");
+}
+public function destroy(Order $order)
+{
+    $order->delete();
+    return back()->with('success', "Order #{$order->id} has been deleted permanently.");
+}
 }

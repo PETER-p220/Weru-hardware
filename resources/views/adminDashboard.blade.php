@@ -12,7 +12,6 @@ $products = Product::all();
 $advertisements = Advertisement::orderBy('sort_order')->get();
 $totalRevenue = Order::where('status', 'completed')->sum('total_amount') ?? 0;
 $lowStockProducts = Product::where('stock', '<=', 20)->get();
-
 ?>
 
 <!DOCTYPE html>
@@ -20,252 +19,243 @@ $lowStockProducts = Product::where('stock', '<=', 20)->get();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Weru Hardware</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <title>Weru Hardware Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ff6b35',
+                        'primary-dark': '#e85a2a',
+                        'primary-light': '#ff8c5f',
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
     </script>
     <style>
-        .stat-card { transition: all 0.3s ease; }
-        .stat-card:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        .table-row:hover { background-color: #f9fafb; }
+        .text-xs { font-size: 0.6875rem; }
+        .text-2xs { font-size: 0.625rem; }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(255, 107, 53, 0.25); }
     </style>
 </head>
-<body class="bg-gray-50 antialiased">
+<body class="bg-gradient-to-br from-orange-50 via-white to-orange-50 min-h-screen font-sans">
+
+    <!-- Success / Error Messages -->
+    @if(session('success'))
+        <div class="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 text-green-700 px-5 py-3 rounded-lg shadow-lg text-xs font-medium flex items-center gap-2 animate-slide-in">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            {{ session('success') }}
+        </div>
+    @endif
 
     <!-- Header -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fa-solid fa-hard-hat text-white text-xl"></i>
-                    </div>
-                    <span class="text-xl font-extrabold text-gray-900">Weru <span class="text-primary">Hardware</span> Admin</span>
+    <header class="bg-white shadow-sm border-b border-orange-100 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-hard-hat text-white text-lg"></i>
                 </div>
-
-                <nav class="hidden md:flex items-center gap-8">
-                    <a href="{{ url('adminDashboard') }}" class="text-orange-600 font-bold text-sm">Dashboard</a>
-                    <a href="{{ url('admin/products') }}" class="text-gray-600 hover:text-orange-600 font-medium text-sm">Products</a>
-                    <a href="{{ url('admin/orders') }}" class="text-gray-600 hover:text-orange-600 font-medium text-sm">Orders</a>
-                    <a href="{{ url('admin/customers') }}" class="text-gray-600 hover:text-orange-600 font-medium text-sm">Customers</a>
-                    <a href="{{ url('admin/advertisements') }}" class="text-orange-600 font-bold text-sm border-b-2 border-orange-600">Advertisements</a>
-                </nav>
-
-                <div class="flex items-center gap-4">
-                    <span class="text-sm font-medium text-gray-700">Welcome, Admin</span>
-                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold">AD</div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-900">Weru <span class="text-primary">Hardware</span></h1>
+                    <p class="text-2xs text-gray-500">Admin Dashboard • {{ now()->format('d M Y') }}</p>
                 </div>
+            </div>
+
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="{{ url('adminDashboard') }}" class="text-xs font-bold text-primary border-b-2 border-primary pb-1">Dashboard</a>
+                <a href="{{ url('createProduct') }}" class="text-xs font-medium text-gray-600 hover:text-primary">Products</a>
+                <a href="{{ url('OrderManagement') }}" class="text-xs font-medium text-gray-600 hover:text-primary">Orders</a>
+                <a href="{{ url('user') }}" class="text-xs font-medium text-gray-600 hover:text-primary">Customers</a>
+                <a href="{{ url('ads') }}" class="text-xs font-medium text-gray-600 hover:text-primary">Ads</a>
+            </nav>
+
+            <div class="flex items-center space-x-3">
+                <span class="text-xs font-medium text-gray-700">Admin</span>
+                <div class="w-8 h-8 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center text-white text-xs font-bold shadow">A</div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        <!-- Page Title -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-extrabold text-gray-900">Welcome Back, Boss!</h1>
-            <p class="text-gray-600 mt-2">Here's what's happening with Weru Hardware today — {{ now()->format('l, d F Y') }}</p>
-        </div>
+    <main class="max-w-7xl mx-auto px-6 py-8">
 
         <!-- Stats Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-            <div class="stat-card bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-2xl p-6 shadow-xl">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-orange-100 text-sm font-medium">Total Revenue</p>
-                        <p class="text-3xl font-black mt-2">TZS {{ number_format($totalRevenue) }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="bg-white rounded-xl border border-orange-100 p-5 hover-lift transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="p-2 bg-gradient-to-br from-green-400 to-green-500 rounded-lg">
+                        <i class="fa-solid fa-sack-dollar text-white text-sm"></i>
                     </div>
-                    <i class="fa-solid fa-sack-dollar text-4xl opacity-80"></i>
+                    <span class="text-2xs text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full">+12.5%</span>
                 </div>
-                <p class="text-xs mt-3 opacity-90">All completed orders</p>
+                <p class="text-2xs text-gray-500 uppercase font-bold tracking-wider">Total Revenue</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">TZS {{ number_format($totalRevenue, 0) }}</p>
+                <p class="text-2xs text-gray-400 mt-1">Completed orders</p>
             </div>
 
-            <div class="stat-card bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">Total Orders</p>
-                        <p class="text-3xl font-black text-gray-900 mt-2">{{ $orders->count() }}</p>
+            <div class="bg-white rounded-xl border border-orange-100 p-5 hover-lift transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="p-2 bg-gradient-to-br from-primary to-primary-dark rounded-lg">
+                        <i class="fa-solid fa-shopping-cart text-white text-sm"></i>
                     </div>
-                    <i class="fa-solid fa-shopping-cart text-orange-600 text-4xl"></i>
+                    <span class="text-2xs text-primary font-bold bg-orange-50 px-2 py-0.5 rounded-full">+8.2%</span>
                 </div>
-                <p class="text-xs text-green-600 mt-3">+12% from last month</p>
+                <p class="text-2xs text-gray-500 uppercase font-bold tracking-wider">Total Orders</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">{{ $orders->count() }}</p>
+                <p class="text-2xs text-gray-400 mt-1">This month</p>
             </div>
 
-            <div class="stat-card bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">Products</p>
-                        <p class="text-3xl font-black text-gray-900 mt-2">{{ $products->count() }}</p>
+            <div class="bg-white rounded-xl border border-orange-100 p-5 hover-lift transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="p-2 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg">
+                        <i class="fa-solid fa-boxes-stacked text-white text-sm"></i>
                     </div>
-                    <i class="fa-solid fa-boxes-stacked text-blue-600 text-4xl"></i>
                 </div>
-                <p class="text-xs text-gray-500 mt-3">In catalog</p>
+                <p class="text-2xs text-gray-500 uppercase font-bold tracking-wider">Products</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">{{ $products->count() }}</p>
+                <p class="text-2xs text-gray-400 mt-1">In catalog</p>
             </div>
 
-            <div class="stat-card bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">Customers</p>
-                        <p class="text-3xl font-black text-gray-900 mt-2">{{ $users->count() }}</p>
+            <div class="bg-white rounded-xl border border-orange-100 p-5 hover-lift transition-all">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="p-2 bg-gradient-to-br from-purple-400 to-purple-500 rounded-lg">
+                        <i class="fa-solid fa-users text-white text-sm"></i>
                     </div>
-                    <i class="fa-solid fa-users text-green-600 text-4xl"></i>
+                    <span class="text-2xs text-purple-600 font-bold bg-purple-50 px-2 py-0.5 rounded-full">+15.3%</span>
                 </div>
-                <p class="text-xs text-green-600 mt-3">+18% growth</p>
+                <p class="text-2xs text-gray-500 uppercase font-bold tracking-wider">Customers</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">{{ $users->count() }}</p>
+                <p class="text-2xs text-gray-400 mt-1">Registered</p>
             </div>
         </div>
 
-        <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- Left: Recent Orders + Quick Actions -->
-            <div class="lg:col-span-2 space-y-8">
-
-                <!-- Recent Orders -->
-                <div class="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
-                    <div class="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
-                        <h2 class="text-xl font-bold text-gray-900">Recent Orders</h2>
-                        <a href="{{ url('admin/orders') }}" class="text-sm text-orange-600 font-semibold hover:underline">View All →</a>
+            <!-- Recent Orders with Delete Button -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl border border-orange-100 shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-orange-100 flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-gray-900">Recent Orders</h3>
+                        <a href="{{ url('OrderManagement') }}" class="text-2xs text-primary font-bold hover:text-primary-dark flex items-center gap-1">
+                            View All <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </a>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full">
-                            <thead class="bg-gray-50">
+                            <thead class="bg-orange-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Order ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Customer</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Amount</th>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Status</th>
+                                    <th class="px-5 py-3 text-left text-2xs font-bold text-gray-600 uppercase tracking-wider">Order ID</th>
+                                    <th class="px-5 py-3 text-left text-2xs font-bold text-gray-600 uppercase tracking-wider">Customer</th>
+                                    <th class="px-5 py-3 text-left text-2xs font-bold text-gray-600 uppercase tracking-wider">Amount</th>
+                                    <th class="px-5 py-3 text-left text-2xs font-bold text-gray-600 uppercase tracking-wider">Status</th>
+                                    <th class="px-5 py-3 text-left text-2xs font-bold text-gray-600 uppercase tracking-wider">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                @forelse($orders->take(6) as $order)
-                                <tr class="table-row">
-                                    <td class="px-6 py-4 text-sm font-medium text-orange-600">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-700">{{ $order->user?->name ?? 'Guest' }}</td>
-                                    <td class="px-6 py-4 text-sm font-semibold">TZS {{ number_format($order->total_amount) }}</td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-3 py-1 text-xs font-bold rounded-full 
-                                            {{ $order->status == 'completed' ? 'bg-green-100 text-green-800' : '' }}
-                                            {{ $order->status == 'pending' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                                            {{ $order->status == 'processing' ? 'bg-blue-100 text-blue-800' : '' }}
-                                            {{ $order->status == 'cancelled' ? 'bg-red-100 text-red-800' : '' }}">
+                                @forelse($orders as $order)
+                                <tr class="hover:bg-orange-50 transition-colors">
+                                    <td class="px-5 py-3 text-xs font-bold text-primary">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</td>
+                                    <td class="px-5 py-3 text-xs text-gray-700">{{ $order->user?->name ?? 'Guest' }}</td>
+                                    <td class="px-5 py-3 text-xs font-bold text-gray-900">TZS {{ number_format($order->total_amount, 0) }}</td>
+                                    <td class="px-5 py-3">
+                                        <span class="px-2 py-1 text-2xs font-bold rounded-full
+                                            {{ $order->status == 'completed' ? 'bg-green-100 text-green-700' : '' }}
+                                            {{ $order->status == 'pending' ? 'bg-yellow-100 text-yellow-700' : '' }}
+                                            {{ $order->status == 'processing' ? 'bg-blue-100 text-blue-700' : '' }}
+                                            {{ $order->status == 'cancelled' ? 'bg-red-100 text-red-700' : '' }}">
                                             {{ ucfirst($order->status) }}
                                         </span>
                                     </td>
+                                    <td class="px-5 py-3">
+                                        <form action="{{ route('orders.destroy', $order->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    onclick="return confirm('⚠️ Are you sure you want to DELETE order #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}? This cannot be undone.')"
+                                                    class="text-2xs text-red-600 hover:text-red-800 font-bold hover:underline">
+                                                 Delete
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                                 @empty
-                                <tr><td colspan="4" class="text-center py-8 text-gray-500">No orders yet</td></tr>
+                                <tr><td colspan="5" class="text-center py-8 text-gray-500 text-xs">No orders found</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
                 </div>
-
-                <!-- Quick Actions -->
-                <div class="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
-                    <h2 class="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <a href="{{ url('createProduct') }}" class="text-center p-4 bg-orange-50 rounded-xl hover:bg-orange-100 transition">
-                            <i class="fa-solid fa-plus text-2xl text-orange-600 mb-2"></i>
-                            <p class="text-sm font-bold">Add Product</p>
-                        </a>
-                        <a href="{{ url('ads') }}" class="text-center p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition">
-                            <i class="fa-solid fa-bullhorn text-2xl text-purple-600 mb-2"></i>
-                            <p class="text-sm font-bold">New Ad</p>
-                        </a>
-                        <a href="{{ url('OrderManagement') }}" class="text-center p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition">
-                            <i class="fa-solid fa-truck text-2xl text-blue-600 mb-2"></i>
-                            <p class="text-sm font-bold">Manage Orders</p>
-                        </a>
-                        <a href="{{ url('user') }}" class="text-center p-4 bg-green-50 rounded-xl hover:bg-green-100 transition">
-                            <i class="fa-solid fa-users text-2xl text-green-600 mb-2"></i>
-                            <p class="text-sm font-bold">Customers</p>
-                        </a>
-                    </div>
-                </div>
             </div>
 
-            <!-- Right Sidebar -->
-            <div class="space-y-6">
+            <!-- Right Sidebar: Ads + Low Stock -->
+            <div class="space-y-5">
 
-                <!-- Advertisements Management -->
-                <div class="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
+                <!-- Manage Advertisements -->
+                <div class="bg-white rounded-xl border border-orange-100 p-5 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-gray-900">Manage Advertisements</h3>
-                        <a href="{{ url('admin/advertisements/create') }}" class="text-xs bg-orange-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-orange-700">
-                            <i class="fa-solid fa-plus mr-1"></i> New Ad
+                        <h3 class="text-sm font-bold text-gray-900">Advertisements</h3>
+                        <a href="{{ url('ads') }}" class="text-2xs bg-gradient-to-r from-primary to-primary-dark text-white px-3 py-1.5 rounded-lg font-bold shadow hover:shadow-md">
+                            + New Ad
                         </a>
                     </div>
                     <div class="space-y-3">
                         @forelse($advertisements as $ad)
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border {{ $ad->is_active ? 'border-green-300' : 'border-gray-300' }}">
+                        <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg border {{ $ad->is_active ? 'border-green-300' : 'border-orange-200' }}">
                             <div class="flex items-center gap-3">
                                 @if($ad->media_type === 'image')
-                                    <img src="{{ Storage::url($ad->media_path) }}" class="w-12 h-12 object-cover rounded-lg">
+                                    <img src="{{ Storage::url($ad->media_path) }}" class="w-10 h-10 object-cover rounded-lg">
                                 @else
-                                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                                        <i class="fa-solid fa-video text-red-600"></i>
+                                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                        <i class="fa-solid fa-video text-red-600 text-sm"></i>
                                     </div>
                                 @endif
                                 <div>
-                                    <p class="font-semibold text-sm">{{ Str::limit($ad->title, 20) }}</p>
-                                    <p class="text-xs text-gray-500">Sort: {{ $ad->sort_order }}</p>
+                                    <p class="text-xs font-bold text-gray-900">{{ Str::limit($ad->title, 18) }}</p>
+                                    <p class="text-2xs text-gray-500">Sort: {{ $ad->sort_order }}</p>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs {{ $ad->is_active ? 'text-green-600' : 'text-gray-500' }}">
-                                    {{ $ad->is_active ? 'Active' : 'Off' }}
-                                </span>
-                                <a href="{{ url('admin/advertisements/'.$ad->id.'/edit') }}" class="text-blue-600 hover:text-blue-800">
-                                    <i class="fa-solid fa-edit"></i>
-                                </a>
-                            </div>
+                            <a href="{{ url('ads/'.$ad->id.'/edit') }}" class="text-primary hover:text-primary-dark">
+                                <i class="fa-solid fa-edit text-xs"></i>
+                            </a>
                         </div>
                         @empty
-                        <p class="text-center text-gray-500 py-6">No ads yet. Create your first promotion!</p>
+                        <p class="text-center text-2xs text-gray-500 py-4">No ads yet</p>
                         @endforelse
                     </div>
                 </div>
 
                 <!-- Low Stock Alert -->
                 @if($lowStockProducts->count() > 0)
-                <div class="bg-red-50 border-2 border-red-300 rounded-2xl p-6">
+                <div class="bg-red-50 border-2 border-red-300 rounded-xl p-5">
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-bold text-red-800">Low Stock Alert</h3>
+                        <h3 class="text-sm font-bold text-red-800">Low Stock Alert</h3>
                         <i class="fa-solid fa-exclamation-triangle text-red-600"></i>
                     </div>
                     <div class="space-y-2">
                         @foreach($lowStockProducts->take(4) as $p)
-                        <div class="text-sm">
-                            <span class="font-semibold">{{ $p->name }}</span>
-                            <span class="text-red-700"> — only {{ $p->stock }} left</span>
+                        <div class="text-xs">
+                            <span class="font-bold">{{ $p->name }}</span>
+                            <span class="text-red-700"> — {{ $p->stock }} left</span>
                         </div>
                         @endforeach
                     </div>
-                    <a href="{{ url('admin/products') }}" class="block text-center mt-4 text-sm font-bold text-red-700 hover:underline">
-                        Restock Now →
+                    <a href="{{ url('createProduct') }}" class="block text-center mt-4 text-2xs font-bold text-red-700 hover:underline">
+                        Restock Items →
                     </a>
                 </div>
                 @endif
 
-                <!-- Top Products -->
-                <div class="bg-white rounded-2xl border border-gray-200 shadow-lg p-6">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4">Top Selling Products</h3>
-                    <div class="space-y-3">
-                       
-                    </div>
-                </div>
             </div>
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 mt-16 py-8">
+    <footer class="mt-16 py-6 border-t border-orange-100 bg-white">
         <div class="max-w-7xl mx-auto px-6 text-center">
-            <p class="text-sm text-gray-600">© {{ date('Y') }} Weru Hardware Tanzania • All rights reserved</p>
+            <p class="text-2xs text-gray-500">© {{ date('Y') }} Weru Hardware Tanzania • All rights reserved</p>
         </div>
     </footer>
 </body>

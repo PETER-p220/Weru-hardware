@@ -22,6 +22,7 @@ class RegisteredUserController extends Controller
     {
         return view('auth.register');
     }
+    
 
     /**
      * Handle an incoming registration request.
@@ -29,36 +30,43 @@ class RegisteredUserController extends Controller
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
-            'tel' => ['required', 'string', 'regex:/^[0-9]{3} [0-9]{3} [0-9]{3}$/', 'unique:users,tel'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-            'role' => ['sometimes', 'in:user,admin'],
-        ]);
+{
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+        'tel' => ['required', 'string', 'regex:/^[0-9]{3} [0-9]{3} [0-9]{3}$/'],
+        'password' => ['required', 'confirmed', Password::defaults()],
+        'role' => ['sometimes', 'in:user,admin'],
+    ]);
 
-        // Clean and format phone: "712 345 678" → "255712345678"
-        $tel = preg_replace('/\s+/', '', $request->tel);
-        $tel = '255' . $tel;
+    // Clean phone number
+    $tel = '255' . preg_replace('/\D/', '', $request->tel);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'tel' => $tel,
-            'password' => Hash::make($request->password),
-        ]);
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'tel' => $tel,
+        'password' => Hash::make($request->password),
+    ]);
 
-        // Assign role
-        $role = $request->input('role', 'user');
-        if (!Role::where('name', $role)->exists()) {
-            Role::create(['name' => $role]);
-        }
-        $user->assignRole($role);
+    // === SAFE ROLE ASSIGNMENT ===
+    $role = 'user'; // default
 
-        event(new Registered($user));
-        Auth::login($user);
-
-        return redirect()->route('dashboard');
+    // Only allow role change if current user is admin
+    if (auth()->check() && auth()->user()->hasRole('admin') && $request->filled('role')) {
+        $role = $request->role; // 'user' or 'admin'
     }
+
+    $user->assignRole($role);
+
+    event(new Registered($user));
+
+    // If admin is creating the account, stay on page
+    if (auth()->check()) {
+        return redirect()->back()->with('success', "User {$user->name} created as {$role}!");
+    }
+
+    Auth::login($user);
+    return redirect()->route('dashboard');
+}
 }

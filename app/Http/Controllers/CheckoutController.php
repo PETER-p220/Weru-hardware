@@ -6,7 +6,6 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
-use Bryceandy\Selcom\Facades\Selcom;
 
 class CheckoutController extends Controller
 {

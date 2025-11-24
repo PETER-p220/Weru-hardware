@@ -11,4 +11,9 @@ class UserController extends Controller
     {
         return view('user');
     }
+    public function destroy(User $user)
+{
+    $user->delete();
+    return back()->with('success', "User {$user->name} has been deleted.");
+}
 }

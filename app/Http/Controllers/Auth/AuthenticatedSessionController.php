@@ -28,6 +28,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // THIS IS THE ONLY THING YOU NEED TO CHANGE
+        $user = Auth::user();
+
+        if ($user->hasRole('admin')) {
+            return redirect()->intended('/adminDashboard');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
@@ -39,7 +46,6 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');
