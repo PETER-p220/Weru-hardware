@@ -93,6 +93,7 @@ $savedAddressesCount = 3; // Replace with real count later
         .progress-fill { height: 100%; background: var(--primary); transition: width 0.8s ease; }
     </style>
 </head>
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
 <body class="bg-gray-50 text-gray-800">
 
 <!-- Header -->

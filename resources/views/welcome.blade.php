@@ -34,6 +34,7 @@ use App\Models\Categories;
             }
         }
     </script>
+            @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }

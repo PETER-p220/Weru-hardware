@@ -8,6 +8,7 @@
     <title>Weru Hardware Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
 <body class="bg-gray-50">
     <!-- Header -->
     <header class="bg-white shadow-sm border-b">
@@ -15,10 +16,10 @@
             <div class="flex items-center space-x-8">
                 <h1 class="text-2xl font-bold text-blue-600">Weru Hardware Admin</h1>
                 <nav class="hidden md:flex space-x-6">
-                    <a href="#" class="text-blue-600 font-medium">Dashboard</a>
-                    <a href="#" class="text-gray-600 hover:text-gray-900">Products</a>
-                    <a href="#" class="text-gray-600 hover:text-gray-900">Orders</a>
-                    <a href="#" class="text-gray-600 hover:text-gray-900">Customers</a>
+                    <a href="/adminDashboard" class="text-blue-600 font-medium">Dashboard</a>
+                    <a href="/createProduct" class="text-gray-600 hover:text-gray-900">Products</a>
+                    <a href="OrderManagement" class="text-gray-600 hover:text-gray-900">Orders</a>
+                    <a href="/user" class="text-gray-600 hover:text-gray-900">Customers</a>
                     <a href="#" class="text-gray-600 hover:text-gray-900">Settings</a>
                 </nav>
             </div>
@@ -28,7 +29,6 @@
                     <p class="text-xs text-gray-500">Administrator</p>
                 </div>
                 <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                    AU
                 </div>
             </div>
         </div>
@@ -46,16 +46,14 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-medium text-gray-600">Total Revenue</h3>
-                    <span class="text-xs text-green-600 font-semibold">+12.5%</span>
+                    <span class="text-xs text-green-600 font-semibold">TZS {{$price}}</span>
                 </div>
-                <p class="text-3xl font-bold text-gray-900">TZS 8.5M</p>
-                <p class="text-xs text-gray-500 mt-2">vs. last month</p>
             </div>
 
             <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-medium text-gray-600">Total Orders</h3>
-                    <span class="text-xs text-green-600 font-semibold">+8.2%</span>
+                    <span class="text-xs text-green-600 font-semibold"></span>
                 </div>
                 <p class="text-3xl font-bold text-gray-900">{{ $orders->count() }}</p>
                 <p class="text-xs text-gray-500 mt-2">vs. last month</p>
@@ -122,7 +120,7 @@
                                                     class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                                 Update
                                             </button>
-                                            <a href="#" class="text-gray-600 hover:text-gray-800 text-sm">View</a>
+                                            <a href="" class="text-gray-600 hover:text-gray-800 text-sm">View</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -134,15 +132,15 @@
 
                 <!-- Quick Actions -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                    <button class="bg-blue-600 text-white rounded-lg p-4 text-center hover:bg-blue-700 transition">
+                    <a href="/createProduct" class="bg-blue-600 text-white rounded-lg p-4 text-center hover:bg-blue-700 transition">
                         <p class="font-semibold">Add Product</p>
-                    </button>
-                    <button class="bg-white border-2 border-gray-200 rounded-lg p-4 text-center hover:border-blue-600 transition">
+                    </a>
+                    <a href="/OrderManagement" class="bg-white border-2 border-gray-200 rounded-lg p-4 text-center hover:border-blue-600 transition">
                         <p class="font-semibold text-gray-700">View Orders</p>
-                    </button>
-                    <button class="bg-white border-2 border-gray-200 rounded-lg p-4 text-center hover:border-blue-600 transition">
+                    </a>
+                    <a href="/user" class="bg-white border-2 border-gray-200 rounded-lg p-4 text-center hover:border-blue-600 transition">
                         <p class="font-semibold text-gray-700">Customers</p>
-                    </button>
+                    </a>
                     <button class="bg-white border-2 border-gray-200 rounded-lg p-4 text-center hover:border-blue-600 transition">
                         <p class="font-semibold text-gray-700">Analytics</p>
                     </button>
@@ -254,7 +252,6 @@
             </div>
             <form id="orderStatusForm" method="POST">
                 @csrf
-                @method('PATCH')
                 <div class="p-6 space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Order Number</label>

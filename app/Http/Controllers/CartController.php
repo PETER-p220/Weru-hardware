@@ -25,7 +25,7 @@ class CartController extends Controller
                 'id'       => $product->id,
                 'name'     => $product->name,
                 'price'    => $product->price,
-                'quantity' => $product->min_order ?? 1,
+                'quantity' => $product->min_order ?? 10,
                 'image'    => $product->image,
                 'stock'    => $product->stock,
                 'unit'     => $product->unit ?? 'unit',

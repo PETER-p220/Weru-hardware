@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
+use App\Models\Product;
 
 class OrderController extends Controller
 {
@@ -37,14 +38,15 @@ class OrderController extends Controller
         $orders = Order::with('user')->latest()->get();
         $products = \App\Models\Product::all(); // Adjust model name as needed
         $users = \App\Models\User::all();
-        return view('OrderManagement', compact('orders', 'products', 'users'));
+        $price=Order::with('total_amount')->sum('total_amount');
+        return view('OrderManagement', compact('orders', 'products', 'users','price'));
     }
 
     public function show()
 
     {
         $orders = Order::with('user')->latest()->get();
-        $products = \App\Models\Product::all(); // Adjust model name as needed
+        $products = \App\Models\Product::all(); 
         $users = \App\Models\User::all();
         return view('OrderManagement', compact('orders', 'products', 'users'));
     }
