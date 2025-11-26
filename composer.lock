@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d6a8a4516abdb89084bf82d3b2812259",
+    "content-hash": "6f9a8cec7c00a89d46a7e0bd3741267e",
     "packages": [
         {
             "name": "brick/math",
@@ -65,6 +65,65 @@
                 }
             ],
             "time": "2025-08-29T12:40:03+00:00"
+        },
+        {
+            "name": "bryceandy/laravel-selcom",
+            "version": "v0.0.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/bryceandy/laravel-selcom.git",
+                "reference": "74dff48cee697784db815f27969e65dd9d819e76"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/bryceandy/laravel-selcom/zipball/74dff48cee697784db815f27969e65dd9d819e76",
+                "reference": "74dff48cee697784db815f27969e65dd9d819e76",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "guzzlehttp/guzzle": "^7.3",
+                "php": "^7.4|^8.0"
+            },
+            "require-dev": {
+                "ext-json": "*",
+                "orchestra/testbench": "^6.19"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Bryceandy\\Selcom\\SelcomBaseServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Bryceandy\\Selcom\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "bryceandy",
+                    "email": "hello@bryceandy.com"
+                }
+            ],
+            "description": "Laravel package that integrates with Selcom APIs (Utility Payments, Wallet Cashin, Agent Cashout, C2B, Qwiksend, VCN, Checkout & International Money Transfer",
+            "support": {
+                "issues": "https://github.com/bryceandy/laravel-selcom/issues",
+                "source": "https://github.com/bryceandy/laravel-selcom/tree/v0.0.7"
+            },
+            "funding": [
+                {
+                    "url": "https://www.patreon.com/bryceandy",
+                    "type": "patreon"
+                }
+            ],
+            "time": "2022-06-23T18:01:13+00:00"
         },
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -3278,6 +3337,40 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.1"
             },
             "time": "2025-09-04T20:59:21+00:00"
+        },
+        {
+            "name": "selcom/selcom-apigw-client",
+            "version": "v1.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/selcompaytechltd/selcom-apigw-client-php.git",
+                "reference": "3192f3691c388034b91873867266f7adfcb98dc0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/selcompaytechltd/selcom-apigw-client-php/zipball/3192f3691c388034b91873867266f7adfcb98dc0",
+                "reference": "3192f3691c388034b91873867266f7adfcb98dc0",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/apigwClient.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "dev",
+                    "email": "dev@selcom.net"
+                }
+            ],
+            "description": "Client library to help access selcom apis",
+            "support": {
+                "issues": "https://github.com/selcompaytechltd/selcom-apigw-client-php/issues",
+                "source": "https://github.com/selcompaytechltd/selcom-apigw-client-php/tree/v1.0.5"
+            },
+            "time": "2023-02-27T06:25:09+00:00"
         },
         {
             "name": "spatie/laravel-permission",
@@ -8498,5 +8591,5 @@
         "php": "^8.2"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

@@ -24,21 +24,21 @@
             setTimeout(() => {
                 notification.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => notification.classList.add('hidden'), 300);
-            }, 2000);
+            }, 2500);
         }
     </script>
     <style>
         .product-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -12px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.1); }
-        .category-chip.active { background: orange; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .product-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -12px rgba(249, 115, 22, 0.25); }
+        .category-chip.active { background: #ea580c; color: white; }
         .badge-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
-        .search-focus:focus-within { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .search-focus:focus-within { box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2); }
     </style>
 </head>
 <body class="bg-gray-50 antialiased">
 
-    <!-- Success Notification (when item added) -->
+    <!-- Success Notification -->
     @if(session('success'))
         <div id="cart-notification" class="fixed top-20 right-4 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-2xl transform transition-all duration-300 opacity-100 translate-y-0">
             <div class="flex items-center gap-2">
@@ -63,11 +63,11 @@
                 <div class="flex items-center gap-8">
                     <div class="flex-shrink-0">
                         <a href="/" class="flex items-center gap-2">
-                            <span class="text-xl font-extrabold text-gray-900">Weru<span class="text-blue-600">Hardware</span></span>
+                            <span class="text-xl font-extrabold text-gray-900">Weru<span class="text-orange-600">Hardware</span></span>
                         </a>
                     </div>
                     <div class="hidden md:flex md:space-x-1">
-                        <a href="{{ route('indexProduct') }}" class="px-4 py-2 rounded-lg bg-orange-50 text-blue-700 font-semibold text-sm">Products</a>
+                        <a href="{{ route('products') }}" class="px-4 py-2 rounded-lg bg-orange-50 text-orange-700 font-semibold text-sm">Products</a>
                         <a href="#" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium text-sm transition-colors">About</a>
                         <a href="#" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium text-sm transition-colors">Contact</a>
                     </div>
@@ -82,20 +82,16 @@
                         </div>
                     @endauth
                     @guest
-                        <a href="{{ route('login') }}" class="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-orange-50 rounded-lg transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                            </svg>
+                        <a href="{{ route('login') }}" class="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-orange-600 hover:bg-orange-50 rounded-lg transition-colors">
                             Sign In
                         </a>
                     @endguest
+
+                    <!-- Cart Button with Real Count -->
                     <a href="{{ route('cart') }}" class="relative inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all hover:shadow-lg font-semibold text-sm">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                        <span class="hidden sm:inline">Cart</span>
+                        Cart
                         <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
-                            {{ count(session('cart', [])) }}
+                            {{ \App\Models\Cart::current()->totalItems() }}
                         </span>
                     </a>
                 </div>
@@ -104,101 +100,77 @@
     </nav>
 
     <!-- Hero Section -->
-    <div class="bg-orange-500 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+    <div class="bg-gradient-to-r from-orange-600 to-orange-700 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
                 <div class="flex flex-col items-center md:items-start">
-                    <div class="mb-4 flex justify-center">
-                        <div class="bg-white rounded-full p-2 shadow-lg flex items-center justify-center" style="height:72px;width:72px;">
-                            <img src="images\IMG-20251114-WA0007.jpg" alt="Weru Hardware Logo" class="h-20 w-24 object-contain" />
+                    <div class="mb-6">
+                        <div class="bg-white rounded-full p-3 shadow-2xl">
+                            <img src="{{ asset('images/IMG-20251114-WA0007.jpg') }}" alt="Weru Hardware Logo" class="h-24 w-24 object-contain rounded-full">
                         </div>
                     </div>
-                    <h1 class="text-4xl font-extrabold tracking-tight mb-2 text-center md:text-left">
+                    <h1 class="text-5xl font-black tracking-tight mb-3 text-center md:text-left">
                         Products Catalog
-                        <span class="inline-block ml-2">Construction</span>
                     </h1>
-                    <p class="text-lg text-blue-100 text-center md:text-left">
-                        Browse and order from <strong>{{ $totalProducts ?? 0 }}+ certified</strong> building materials
+                    <p class="text-xl text-orange-100 text-center md:text-left">
+                        Browse <strong>{{ $totalProducts ?? 0 }}+ premium building materials</strong> delivered fast across Tanzania
                     </p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-blue-700 rounded-lg hover:bg-orange-50 font-semibold text-sm transition-all hover:shadow-lg">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        Download Catalog
-                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
             <!-- Sidebar -->
             <aside class="lg:col-span-1">
-                <button onclick="toggleSidebar()" class="lg:hidden w-full flex items-center justify-center gap-2 mb-4 px-4 py-3 bg-orange-600 text-white rounded-xl font-semibold shadow-lg hover:bg-orange-700 transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
-                    </svg>
+                <button onclick="toggleSidebar()" class="lg:hidden w-full flex items-center justify-center gap-2 mb-4 px-4 py-3 bg-orange-600 text-white rounded-xl font-bold shadow-lg hover:bg-orange-700 transition">
                     Filter Categories
                 </button>
 
                 <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
 
-                <div id="category-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white p-6 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 lg:relative lg:translate-x-0 lg:w-full lg:rounded-2xl lg:border lg:border-gray-200 lg:sticky lg:top-24">
-                    <div class="flex justify-between items-center mb-6 lg:hidden">
-                        <h3 class="text-xl font-bold text-gray-900">Filter Categories</h3>
-                        <button onclick="toggleSidebar()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
+                <div id="category-sidebar" class="fixed top-0 right-0 h-full w-80 bg-white p-6 shadow-2xl transform translate-x-full transition-transform duration-300 z-50 lg:relative lg:translate-x-0 lg:w-full lg:rounded-2xl lg:border lg:border-gray-200 lg:sticky lg:top-24 overflow-y-auto">
+                    <div class="flex justify-between items-center mb-8 lg:hidden">
+                        <h3 class="text-xl font-bold text-gray-900">Categories</h3>
+                        <button onclick="toggleSidebar()" class="text-gray-400 hover:text-gray-600">
+                            X
                         </button>
                     </div>
 
-                    <div class="hidden lg:flex items-center gap-2 mb-6">
-                        <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                        </svg>
-                        <h3 class="text-lg font-bold text-gray-900">Categories</h3>
-                    </div>
-
-                    <div class="space-y-2">
-                        <a href="{{ route('indexProduct') }}"
-                           class="flex items-center justify-between p-3.5 rounded-xl transition-all {{ request()->query('category') ? 'hover:bg-gray-50 text-gray-700' : 'category-chip active text-white' }}">
+                    <div class="space-y-3">
+                        <a href="{{ route('products') }}"
+                           class="flex items-center justify-between p-4 rounded-xl transition-all {{ !request('category') ? 'bg-orange-600 text-white shadow-lg' : 'hover:bg-gray-50 text-gray-700' }}">
                             <div class="flex items-center gap-3">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                                </svg>
-                                <span class="font-semibold">All Products</span>
+                                All Products
                             </div>
-                            <span class="px-2.5 py-0.5 {{ request()->query('category') ? 'bg-gray-100 text-gray-600' : 'bg-orange-500 text-white' }} text-xs font-bold rounded-full">
+                            <span class="px-3 py-1 bg-white/20 rounded-full text-xs font-bold">
                                 {{ $totalProducts ?? 0 }}
                             </span>
                         </a>
 
                         @foreach(\App\Models\Categories::withCount('products')->orderBy('name')->get() as $category)
-                            <a href="{{ route('indexProduct', ['category' => $category->slug]) }}"
-                               class="flex items-center justify-between p-3.5 rounded-xl transition-all {{ request()->query('category') === $category->slug ? 'category-chip active text-white' : 'hover:bg-gray-50 text-gray-700' }}">
+                            <a href="{{ route('products', ['category' => $category->slug]) }}"
+                               class="flex items-center justify-between p-4 rounded-xl transition-all {{ request('category') === $category->slug ? 'bg-orange-600 text-white shadow-lg' : 'hover:bg-gray-50 text-gray-700' }}">
                                 <span class="font-medium">{{ $category->name }}</span>
-                                <span class="px-2.5 py-0.5 {{ request()->query('category') === $category->slug ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600' }} text-xs font-bold rounded-full">
+                                <span class="px-3 py-1 {{ request('category') === $category->slug ? 'bg-white/20' : 'bg-gray-200' }} rounded-full text-xs font-bold">
                                     {{ $category->products_count }}
                                 </span>
                             </a>
                         @endforeach
                     </div>
 
-                    <div class="mt-6 pt-6 border-t border-gray-200">
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3">Quick Stats</h4>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex justify-between text-gray-600">
-                                <span>In Stock</span>
-                                <span class="font-semibold text-green-600">{{ $totalProducts ?? 0 }}</span>
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <h4 class="text-sm font-bold text-gray-700 mb-4">Quick Stats</h4>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total Products</span>
+                                <span class="font-bold text-orange-600">{{ $totalProducts ?? 0 }}</span>
                             </div>
-                            <div class="flex justify-between text-gray-600">
-                                <span>Categories</span>
-                                <span class="font-semibold">{{ \App\Models\Categories::count() }}</span>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Categories</span>
+                                <span class="font-bold">{{ \App\Models\Categories::count() }}</span>
                             </div>
                         </div>
                     </div>
@@ -208,23 +180,21 @@
             <!-- Main Content -->
             <section class="lg:col-span-3">
                 <!-- Search Bar -->
-                <div class="bg-white rounded-2xl border border-gray-200 p-4 mb-6 sticky top-20 z-30 shadow-sm">
-                    <form action="{{ route('indexProduct') }}" method="GET">
+                <div class="bg-white rounded-2xl border border-gray-200 p-5 mb-8 sticky top-20 z-30 shadow-md">
+                    <form action="{{ route('products') }}" method="GET">
                         @if(request('category'))
                             <input type="hidden" name="category" value="{{ request('category') }}">
                         @endif
-                        <div class="flex gap-2 search-focus rounded-xl">
+                        <div class="flex gap-3 search-focus rounded-xl">
                             <div class="relative flex-1">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                    </svg>
+                                    Search
                                 </div>
                                 <input type="search" name="search" value="{{ request('search') }}"
-                                       placeholder="Search for cement, steel bars, paint..."
-                                       class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all">
+                                       placeholder="Search cement, steel, paint, roofing..."
+                                       class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition">
                             </div>
-                            <button type="submit" class="px-6 py-3 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-all hover:shadow-lg">
+                            <button type="submit" class="px-8 py-4 bg-orange-600 text-white font-bold rounded-xl hover:bg-orange-700 transition shadow-lg">
                                 Search
                             </button>
                         </div>
@@ -233,118 +203,118 @@
 
                 <!-- Results Info -->
                 <div class="mb-6 flex items-center justify-between">
-                    <p class="text-sm text-gray-600">
-                        Showing <span class="font-semibold text-gray-900">{{ $products->count() }}</span> products
+                    <p class="text-gray-600">
+                        Showing <strong class="text-gray-900">{{ $products->count() }}</strong> of {{ $totalProducts ?? 0 }} products
                     </p>
                 </div>
 
                 <!-- Products Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                     @forelse($products as $product)
-                        <article class="product-card bg-white rounded-2xl overflow-hidden group border border-gray-200">
-                            <div class="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden">
+                        <article class="product-card bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-lg hover:shadow-2xl">
+                            <div class="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
                                 @if($product->image)
-                                    <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                    <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                                 @else
-                                    <svg class="w-24 h-24 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM4 6v8.586l3.293-3.293a1 1 0 011.414 0l2.586 2.586L16.293 8.293a1 1 0 011.414 0l2.293 2.293V6H4z"/>
-                                    </svg>
+                                    <div class="w-full h-full flex items-center justify-center">
+                                        <i class="fa-solid fa-box text-6xl text-gray-300"></i>
+                                    </div>
                                 @endif
 
-                                <div class="absolute top-3 left-3">
+                                <!-- Stock Badge -->
+                                <div class="absolute top-4 left-4">
                                     @if($product->stock > 0)
-                                        <span class="inline-flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
-                                            <span class="w-1.5 h-1.5 bg-white rounded-full badge-pulse"></span>
+                                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-full shadow-lg">
+                                            <span class="w-2 h-2 bg-white rounded-full badge-pulse"></span>
                                             In Stock
                                         </span>
                                     @else
-                                        <span class="px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-full shadow-lg">
+                                        <span class="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-full shadow-lg">
                                             Out of Stock
                                         </span>
                                     @endif
                                 </div>
 
-                                @if($product->min_order)
-                                    <div class="absolute top-3 right-3 px-2.5 py-1 bg-orange-600 text-white text-xs font-bold rounded-full shadow-lg">
+                                @if($product->min_order > 1)
+                                    <div class="absolute top-4 right-4 px-3 py-1.5 bg-orange-700 text-white text-xs font-bold rounded-full shadow-lg">
                                         Min: {{ $product->min_order }}
                                     </div>
                                 @endif
                             </div>
 
-                            <div class="p-5">
+                            <div class="p-6">
                                 <div class="mb-3">
-                                    <span class="text-xs font-semibold text-blue-700 bg-orange-50 px-2.5 py-1 rounded-lg">
-                                        {{ $product->categories?->name ?? 'Uncategorized' }}
+                                    <span class="inline-block px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full">
+                                        {{ $product->category?->name ?? 'Uncategorized' }}
                                     </span>
                                 </div>
 
-                                <a href="#" class="block mb-3">
-                                    <h3 class="text-lg font-bold text-gray-900 line-clamp-2 transition-colors group-hover:text-blue-600 leading-snug">
-                                        {{ $product->name }}
-                                    </h3>
-                                </a>
+                                <h3 class="text-xl font-black text-gray-900 mb-2 line-clamp-2">
+                                    {{ $product->name }}
+                                </h3>
 
-                                <p class="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                                    {{ Str::limit($product->description, 80) }}
+                                <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                                    {{ Str::limit($product->description, 90) }}
                                 </p>
 
-                                 <!-- Price -->
-                                <td class="px-6 py-4">
-                                    <div>
-                                        <p class="font-semibold text-gray-900">
-                                            TZS {{ number_format($product->price, 0) }}
-                                        </p>
+                                <!-- Price Section -->
+                                <div class="mb-6">
+                                    <div class="flex items-baseline gap-3">
+                                        <span class="text-3xl font-black text-orange-600">
+                                            TZS {{ number_format($product->price) }}
+                                        </span>
                                         @if($product->old_price && $product->old_price > $product->price)
-                                            <p class="text-sm text-gray-500 line-through">
-                                                TZS {{ number_format($product->old_price, 0) }}
-                                            </p>
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                {{ round((($product->old_price - $product->price) / $product->old_price) * 100) }}% OFF
+                                            <span class="text-lg text-gray-500 line-through">
+                                                TZS {{ number_format($product->old_price) }}
                                             </span>
                                         @endif
                                     </div>
-                                </td>
+                                    @if($product->old_price && $product->old_price > $product->price)
+                                        <span class="inline-block mt-2 px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                                            {{ round((($product->old_price - $product->price) / $product->old_price) * 100) }}% OFF
+                                        </span>
+                                    @endif
+                                </div>
 
-                                <div class="flex items-center gap-2">
+                                <!-- Add to Cart Button -->
+                                <div class="flex gap-3">
                                     @if($product->stock > 0)
                                         <form action="{{ route('cart.add', $product->id) }}" method="POST" class="flex-1">
                                             @csrf
                                             <button type="submit" onclick="showCartNotification()"
-                                                    class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition-all hover:shadow-lg">
-                                                <svg class="w-4 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                                </svg>
+                                                    class="w-full py-4 bg-gradient-to-r from-orange-600 to-orange-700 text-white font-black text-lg rounded-xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition duration-300 flex items-center justify-center gap-3">
                                                 Add to Cart
                                             </button>
                                         </form>
                                     @else
-                                        <button disabled class="flex-1 px-4 py-3 bg-gray-100 text-gray-400 font-semibold rounded-xl cursor-not-allowed">
+                                        <button disabled class="w-full py-4 bg-gray-200 text-gray-500 font-bold rounded-xl cursor-not-allowed">
                                             Out of Stock
                                         </button>
                                     @endif
 
-                                    <a href="#" class="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-orange-50 hover:text-blue-600 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
+                                    <a href="{{ route('show', $product->slug ?? $product->id) }}" class="p-4 bg-gray-100 rounded-xl hover:bg-orange-100 transition">
+                                        View
                                     </a>
                                 </div>
                             </div>
                         </article>
                     @empty
-                        <div class="col-span-full bg-white rounded-2xl p-12 text-center border-2 border-dashed border-gray-300">
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">No Products Found</h3>
-                            <p class="text-gray-600 mb-6">Try adjusting your search or filter.</p>
-                            <a href="{{ route('indexProduct') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700">
+                        <div class="col-span-full text-center py-20">
+                            <div class="w-32 h-32 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <i class="fa-solid fa-box-open text-6xl text-orange-400"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-3">No Products Found</h3>
+                            <p class="text-gray-600 mb-8">Try adjusting your search or filters.</p>
+                            <a href="{{ route('products') }}" class="px-8 py-4 bg-orange-600 text-white font-bold rounded-xl hover:bg-orange-700 transition shadow-lg">
                                 Clear Filters
                             </a>
                         </div>
                     @endforelse
                 </div>
 
-                @if(isset($products) && method_exists($products, 'links'))
-                    <div class="mt-8">
+                <!-- Pagination -->
+                @if($products->hasPages())
+                    <div class="mt-12">
                         {{ $products->appends(request()->query())->links() }}
                     </div>
                 @endif
@@ -352,11 +322,11 @@
         </div>
     </main>
 
-    
-    <footer class="bg-gray-800 mt-12 text-gray-400 py-8">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p>&copy; {{ date('Y') }} OWeru Hardware. All rights reserved.</p>
-            <p class="mt-1 text-sm">Quality building materials delivered fast in Tanzania.</p>
+    <footer class="bg-gray-900 text-gray-400 py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-xl font-bold text-white mb-2">Weru Hardware</p>
+            <p class="text-lg">Tanzania's #1 Building Materials Supplier • Fast Delivery Nationwide</p>
+            <p class="mt-6 text-sm">&copy; {{ date('Y') }} Weru Hardware. All rights reserved.</p>
         </div>
     </footer>
 </body>

@@ -66,7 +66,7 @@ class ProductController extends Controller
             ->with('success', 'Product created successfully!');
     }
 
-    /**
+    /** 
      * Display the specified product
      */
     public function show(Product $product)

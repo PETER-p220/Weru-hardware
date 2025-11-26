@@ -2,89 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
-    
-    public function add(Request $request, $id)
+    public function index()
     {
-        $product = Product::findOrFail($id);
+        $cart = Cart::current();
+        return view('cart', compact('cart'));
+    }
+
+    public function add(Request $request, $productId)
+    {
+        $product = Product::findOrFail($productId);
 
         if ($product->stock <= 0) {
             return back()->with('error', 'Sorry, this product is out of stock!');
         }
 
-        $cart = session('cart', []);
+        $cart = Cart::current();
 
-        if (isset($cart[$id])) {
-            $cart[$id]['quantity']++;
-        } else {
-            $cart[$id] = [
-                'id'       => $product->id,
-                'name'     => $product->name,
-                'price'    => $product->price,
-                'quantity' => $product->min_order ?? 10,
-                'image'    => $product->image,
-                'stock'    => $product->stock,
-                'unit'     => $product->unit ?? 'unit',
-                'min_order'=> $product->min_order,
-                'category' => $product->categories?->name ?? 'Uncategorized'
-            ];
-        }
-
-        // Enforce minimum order
-        if ($product->min_order && $cart[$id]['quantity'] < $product->min_order) {
-            $cart[$id]['quantity'] = $product->min_order;
-        }
-
-        session(['cart' => $cart]);
+        // Add item (handles min_order automatically in model)
+        $cart->addItem($product, $request->input('quantity', 1));
 
         return back()->with('success', 'Added to cart successfully!');
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $productId)
     {
-        $cart = session('cart', []);
-        if (!isset($cart[$id])) return back();
+        $cart = Cart::current();
 
         $action = $request->input('action');
 
         if ($action === 'increase') {
-            $cart[$id]['quantity']++;
-        } elseif ($action === 'decrease' && $cart[$id]['quantity'] > 1) {
-            $cart[$id]['quantity']--;
+            $product = Product::findOrFail($productId);
+            $cart->addItem($product, 1);
+        } elseif ($action === 'decrease') {
+            $currentQty = $cart->items[$productId]['quantity'] ?? 0;
+            if ($currentQty > 1) {
+                $cart->updateItem($productId, $currentQty - 1);
+            }
         }
 
-        $product = Product::find($id);
-        if ($product?->min_order && $cart[$id]['quantity'] < $product->min_order) {
-            $cart[$id]['quantity'] = $product->min_order;
-        }
-
-        if ($cart[$id]['quantity'] <= 0) unset($cart[$id]);
-
-        session(['cart' => $cart]);
         return back()->with('success', 'Cart updated!');
     }
 
-    public function remove($id)
+    public function remove($productId)
     {
-        $cart = session('cart', []);
-        unset($cart[$id]);
-        session(['cart' => $cart]);
-        return back()->with('success', 'Item removed.');
+        $cart = Cart::current();
+        $cart->removeItem($productId);
+
+        return back()->with('success', 'Item removed from cart.');
     }
 
     public function clear()
     {
-        session()->forget('cart');
-        return back()->with('success', 'Cart cleared!');
-    }
+        $cart = Cart::current();
+        $cart->clear();
 
-    public function index()
-    {
-        $cart = session('cart', []);
-        return view('cart', compact('cart'));
+        return back()->with('success', 'Cart cleared!');
     }
 }

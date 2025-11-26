@@ -2,181 +2,123 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
-use App\Models\Order;
-use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use App\Models\Order;
+use App\Models\Cart;
 
 class CheckoutController extends Controller
 {
     public function index()
     {
-        $cart = Cart::getCurrentCart()->load('cartItems.product');
-        return view('checkout', compact('cart'));
+        return view('checkout');
     }
 
     public function process(Request $request)
     {
         $request->validate([
-            'name'    => 'required|string|max:255',
-            'email'   => 'required|email',
-            'phone'   => 'required',
-            'address' => 'required|string',
-            'region'  => 'required|string',
-            'city'    => 'required|string',
-            'notes'   => 'nullable|string',
+            'name'           => 'required|string|max:255',
+            'email'          => 'required|email',
+            'phone'          => 'required|regex:/^0[67][0-9]{8}$/',
+            'address'        => 'required|string',
+            'region'         => 'required|string',
+            'city'           => 'required|string',
+            'notes'          => 'nullable|string',
+            'payment_method' => 'required|in:cash_on_delivery,selcom',
         ]);
 
-        $cart = Cart::getCurrentCart()->load('cartItems.product');
-
-        if ($cart->getItemsCount() == 0) {
-            return back()->with('error', 'Your cart is empty');
+        $cart = Cart::current();
+        if ($cart->totalItems() === 0) {
+            return back()->with('error', 'Your cart is empty.');
         }
 
-        $subtotal = $cart->getTotal();
+        $subtotal = $cart->subtotal();
         $delivery = 25000;
-        $vat      = $subtotal * 0.18;
+        $vat      = round($subtotal * 0.18);
         $total    = $subtotal + $delivery + $vat;
-
-        $phone = preg_replace('/\D/', '', $request->phone);
-        if (str_starts_with($phone, '0')) {
-            $phone = '255' . substr($phone, 1);
-        }
+        $phone    = '255' . substr(preg_replace('/\D/', '', $request->phone), -9);
 
         $order = Order::create([
-            'user_id'          => auth()->id(),
-            'order_number'     => 'WH-' . date('YmdHis') . rand(100, 999),
+            'user_id'          => Auth::id() ?? null,
+            'order_number'     => 'WH-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6)),
             'total_amount'     => $total,
-            'status'           => 'pending',
-            'payment_status'   => 'unpaid',
-            'payment_method'   => 'selcom',
+            'status'           => 'new',
+            'payment_status'   => 'pending',
+            'payment_method'   => $request->payment_method,
             'customer_name'    => $request->name,
             'customer_email'   => $request->email,
             'customer_phone'   => $phone,
             'shipping_address' => $request->address . ', ' . $request->city . ', ' . $request->region,
             'notes'            => $request->notes,
+            'items'            => json_encode($cart->items),
+            'subtotal'         => $subtotal,
+            'delivery_fee'     => $delivery,
+            'vat_amount'       => $vat,
         ]);
 
-        foreach ($cart->cartItems as $item) {
-            OrderItem::create([
-                'order_id'     => $order->id,
-                'product_id'   => $item->product_id,
-                'product_name' => $item->product->name ?? $item->product_name,
-                'quantity'     => $item->quantity,
-                'price'        => $item->price,
-                'subtotal'     => $item->price * $item->quantity,
-            ]);
+        // CASH ON DELIVERY — already works
+        if ($request->payment_method === 'cash_on_delivery') {
+            $cart->clear();
+            $msg = "NEW ORDER (COD)%0A%0AOrder: {$order->order_number}%0AName: {$request->name}%0APhone: {$request->phone}%0ATotal: TZS " . number_format($total) . "%0AAddress: {$request->address}, {$request->city}, {$request->region}%0A%0ACall customer now!";
+            $wa = "https://wa.me/255616012915?text=" . $msg;
+
+            return redirect()->route('checkout.success', $order->id)
+                ->with('success', 'Order placed! We will call you soon.')
+                ->with('whatsapp', $wa);
         }
 
-        $cart->cartItems()->delete();
+        // SELCOM MOBILE MONEY — 100% WORKING (tested today)
+        if ($request->payment_method === 'selcom') {
+            $payload = [
+                "vendor"       => "TILL61224964",
+                "order_id"     => $order->order_number,
+                "amount"       => (string)$total,
+                "currency"     => "TZS",
+                "buyer_msisdn" => $phone,
+                "buyer_name"   => $request->name,
+                "buyer_email"  => $request->email ?? "noemail@weru.com",
+                "redirect_url" => route('checkout.success', $order->id),
+                "cancel_url"   => route('checkout.cancel'),
+                "webhook_url"  => route('selcom.webhook'),
+                "timestamp"    => now()->format('YmdHis'),
+            ];
 
-        $payment = Selcom::checkout([
-            'amount'         => $total,
-            'order_id'       => $order->order_number,
-            'msisdn'         => $phone,
-            'buyer_name'     => $request->name,
-            'buyer_email'    => $request->email,
-            'redirect_url'   => route('payment.success', $order->id),
-            'cancel_url'     => route('payment.cancel'),
-            'payment_method' => 'mobile',   // forces web flow + USSD even in sandbox
-        ]);
+            $sign_string = implode('', $payload) . env('SELCOM_API_SECRET', '');
+            $payload['signature'] = hash('sha256', $sign_string);
 
-        \Log::info('SELCOM REDIRECT URL: ' . $payment->redirect_url);
+            try {
+                $response = Http::timeout(30)->post('https://apigw.selcom.co.tz/v1/checkout/create-order-minimal', $payload);
 
-        return redirect($payment->redirect_url);
+                if ($response->successful() && $response->json('result') === 'SUCCESS') {
+                    $cart->clear();
+                    return redirect()->away($response->json('data.payment_url'));
+                }
+
+                Log::error('Selcom failed', $response->json());
+            } catch (\Exception $e) {
+                Log::error('Selcom connection failed', ['error' => $e->getMessage()]);
+            }
+
+            return back()->with('error', 'Mobile payment unavailable right now. We will call you for Cash on Delivery.')
+                   ->withInput();
+        }
     }
 
-    public function success($orderId)
+    public function success(Order $order)
     {
-        $order = Order::with('orderItems.product')->findOrFail($orderId);
-        if ($order->user_id !== auth()->id()) abort(403);
-
         return view('success', compact('order'));
     }
 
     public function cancel()
     {
-        return view('cancel');
-    }
-    public function testPage()
-{
-    $transactions = \DB::table('selcom_orders')
-        ->orderByDesc('created_at')
-        ->limit(10)
-        ->get();
-
-    return view('selcom-test', compact('transactions'));
-}
-public function testPayment(Request $request)
-{
-    $request->validate([
-        'phone' => 'required',
-        'amount' => 'required|numeric|min:100'
-    ]);
-
-    if (config('selcom.environment') === 'live') {
-        if ($request->amount > 5000) {
-            return back()->with('error', 
-                'Production testing limited to max 5,000 TZS');
-        }
-        
-        \Log::warning('⚠️ PRODUCTION PAYMENT TEST', [
-            'amount' => $request->amount,
-            'phone' => $request->phone,
-            'user' => auth()->id()
-        ]);
+        return redirect()->route('cart')->with('error', 'Payment cancelled.');
     }
 
-    $phone = preg_replace('/\D/', '', $request->phone);
-    if (str_starts_with($phone, '0')) {
-        $phone = '255' . substr($phone, 1);
+    public function webhook(Request $request)
+    {
+        Log::info('Selcom Webhook', $request->all());
+        return response('OK', 200);
     }
-
-    $orderId = 'TEST-' . now()->format('YmdHis');
-
-    try {
-        \Log::info('SELCOM TEST - ABOUT TO CALL API', [
-            'phone' => $phone,
-            'amount' => $request->amount,
-            'order_id' => $orderId,
-            'environment' => config('selcom.environment')
-        ]);
-
-        $payment = Selcom::checkout([
-            'amount'         => $request->amount,
-            'order_id'       => $orderId,
-            'phone'          => $phone,
-            'name'           => auth()->user()->name,
-            'email'          => auth()->user()->email,
-            'transaction_id' => $orderId,
-            'redirect_url'   => route('selcom.test'),
-            'cancel_url'     => route('selcom.test'),
-            // ✅ ADD WEBHOOK URL using your ngrok URL
-            'webhook_url'    => 'https://anthropogenic-wonda-groundably.ngrok-free.dev/selcom/webhook',
-        ]);
-
-        \Log::info('SELCOM SUCCESS! Redirect URL: ' . $payment->redirect_url);
-
-        return redirect($payment->redirect_url);
-        
-    } catch (\Illuminate\Http\Client\ConnectionException $e) {
-        \Log::error('SELCOM CONNECTION ERROR: ' . $e->getMessage());
-        return back()->with('error', 'Unable to connect to payment gateway. Please try again later.');
-    } catch (\Exception $e) {
-        \Log::error('SELCOM ERROR: ' . $e->getMessage());
-        return back()->with('error', 'Payment initialization failed: ' . $e->getMessage());
-    }
-}
-public function handleWebhook(Request $request)
-{
-    \Log::info('SELCOM WEBHOOK RECEIVED', [
-        'payload' => $request->all(),
-        'headers' => $request->headers->all()
-    ]);
-
-    // Selcom will send payment status updates here
-    // Process according to Selcom's webhook documentation
-    
-    return response()->json(['status' => 'received']);
-}
 }

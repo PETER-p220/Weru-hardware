@@ -16,13 +16,14 @@
     </head>
     <body class="font-sans text-gray-900 antialiased">
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
+            <div class="mb-6">
+                <a href="/" class="inline-flex items-center">
+                    <x-application-logo class="w-16 h-16 md:w-20 md:h-20 fill-current text-primary-700" />
+                    <span class="sr-only">{{ config('app.name', 'App') }}</span>
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
+            <div class="w-full sm:max-w-md mt-6 px-4 md:px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg border border-gray-100">
                 {{ $slot }}
             </div>
         </div>

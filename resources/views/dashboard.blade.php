@@ -4,9 +4,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 $user = Auth::user();
-
 $userOrders = Order::where('user_id', $user->id)->orderBy('created_at', 'desc')->get();
-
 $totalOrders = $userOrders->count();
 $totalSpent = number_format($userOrders->sum('total_amount') ?? 0);
 $averageOrderValue = $userOrders->avg('total_amount') ? number_format($userOrders->avg('total_amount'), 2) : '0.00';

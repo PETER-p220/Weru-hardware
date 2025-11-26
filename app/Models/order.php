@@ -120,4 +120,5 @@ class Order extends Model
     {
         return in_array($this->status, ['pending']) && $this->payment_status === 'unpaid';
     }
+    
 }

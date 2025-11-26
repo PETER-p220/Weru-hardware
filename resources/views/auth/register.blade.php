@@ -132,32 +132,7 @@
                         required
                     />
                 </div>
-
-                <!-- Role Selection (Advanced/Admin Toggle) -->
-                <!-- Note: This would typically be secured server-side, this is just for UI demonstration -->
-                <div class="mt-4 border-t pt-4 border-gray-200">
-                    <div x-show="showRole" x-collapse.duration.500ms>
-                        <label for="role" class="block font-medium text-sm text-gray-700 mb-1">Account Type (Advanced Option)</label>
-                        <select
-                            id="role"
-                            name="role"
-                            class="custom-input block mt-1 w-full"
-                        >
-                            <option value="user" selected>Regular Customer/User</option>
-                            <option value="admin">Administrator (Restricted Access)</option>
-                        </select>
-                    </div>
-
-                    <div class="mt-2 text-right">
-                        <button type="button" @click="showRole = !showRole" class="text-xs text-primary hover:text-orange-700 font-semibold transition">
-                            <span x-show="!showRole">Show account settings</span>
-                            <span x-show="showRole">Hide account settings</span>
-                        </button>
-                    </div>
-                    <input type="hidden" x-show="!showRole" name="role" value="user">
-                </div>
-
-                <!-- Submit -->
+                <input type="hidden" name="role" value="user">
                 <div class="flex items-center justify-end mt-6">
                     <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition"
                         href="/login">

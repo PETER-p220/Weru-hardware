@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+// config/services.php
+'selcom' => [
+    'base_url'   => env('SELCOM_BASE_URL', 'https://apigw.selcom.co.tz/v1'),
+    'vendor_id'  => env('SELCOM_VENDOR_ID'),
+    'api_key'    => env('SELCOM_API_KEY'),
+    'api_secret' => env('SELCOM_API_SECRET'),
+],
+
 ];

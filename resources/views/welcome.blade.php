@@ -72,7 +72,6 @@ use App\Models\Categories;
                     </div>
                     <div class="hidden md:flex space-x-8">
                         <a href="/" class="text-primary font-bold transition">Home</a>
-                        <a href="/indexCategory" class="text-gray-600 hover:text-primary font-medium transition">Categories</a>
                         <a href="/products" class="text-gray-600 hover:text-primary font-medium transition">Products</a>
                         <a href="#about" class="text-gray-600 hover:text-primary font-medium transition">About Us</a>
                         <a href="#contact" class="text-gray-600 hover:text-primary font-medium transition">Contact</a>
@@ -377,7 +376,7 @@ use App\Models\Categories;
                     <h3 class="text-xl font-bold mb-6 text-primary">Quick Links</h3>
                     <ul class="space-y-3">
                         <li><a href="/" class="text-gray-400 hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Home</a></li>
-                        <li><a href="category" class="text-gray-400 hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Categories</a></li>
+                        <li><a href="createCategory" class="text-gray-400 hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Categories</a></li>
                         <li><a href="/products" class="text-gray-400 hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Products</a></li>
                         <li><a href="#about" class="text-gray-400 hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> About Us</a></li>
                         <li><a href="#contact" class="text-gray-400 hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Contact</a></li>

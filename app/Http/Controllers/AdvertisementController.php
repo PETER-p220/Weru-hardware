@@ -51,4 +51,5 @@ class AdvertisementController extends Controller
         $id->delete();
         return back()->with('success', 'Deleted!');
     }
+    
 }
