@@ -12,18 +12,23 @@ class CategoryController extends Controller
      * Display a listing of categories
      */
     public function index()
-{
-    $categories = Categories::withCount([
-        'products as products_count', // Total
-        'products as active_products_count' => function ($query) {
-            $query->where('is_active', 1);
-        }
-    ])
-    ->orderBy('order')
-    ->get();
+    {
+        $categories = Categories::withCount([
+            'products as products_count', // Total
+            'products as active_products_count' => function ($query) {
+                $query->where('is_active', 1);
+            }
+        ])
+        ->orderBy('order')
+        ->paginate(15);
 
-    return view('indexCategory', compact('categories'));
-}
+        // Calculate totals for stats cards
+        $totalCategories = Categories::count();
+        $totalProducts = Categories::withCount('products')->get()->sum('products_count');
+        $avgProductsPerCategory = $totalCategories > 0 ? round($totalProducts / $totalCategories, 1) : 0;
+
+        return view('indexCategory', compact('categories', 'totalCategories', 'totalProducts', 'avgProductsPerCategory'));
+    }
 
     /**
      * Show the form for creating a new category
@@ -99,7 +104,7 @@ class CategoryController extends Controller
     /**
      * Remove the specified category
      */
-    public function destroy(Category $category)
+    public function destroy(Categories $category)
     {
         // Check if category has products
         if ($category->products()->count() > 0) {

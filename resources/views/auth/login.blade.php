@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign in • Weru Hardware Tanzania</title>
+    <title>Sign in • Oweru Hardware Tanzania</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,32 +21,32 @@
         }
     </script>
 </head>
-<body class="h-full bg-gradient-to-br from-orange-50 via-white to-orange-50">
+<body class="h-full bg-slate-900">
 
 <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
         <!-- Logo -->
         <div class="flex justify-center">
             <div class="relative">
-                <div class="w-24 h-24 bg-gradient-to-br from-primary to-primary-dark rounded-3xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition">
+                <div class="w-24 h-24 bg-slate-600 rounded-3xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition">
                     <i class="fa-solid fa-hard-hat text-white text-4xl"></i>
                 </div>
-                <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-yellow-400 rounded-full shadow-lg flex items-center justify-center">
+                <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-slate-600 rounded-full shadow-lg flex items-center justify-center">
                     <span class="text-xs font-black text-gray-900">TZ</span>
                 </div>
             </div>
         </div>
 
-        <h2 class="mt-10 text-center text-4xl font-black tracking-tight text-gray-900">
+        <h2 class="mt-10 text-center text-2xl font-black tracking-tight text-amber-600">
             Welcome Back!
         </h2>
         <p class="mt-3 text-center text-lg text-gray-600 font-medium">
-            Sign in to your <span class="text-primary">Weru Hardware</span> account
+            Sign in to your <span class="text-primary">Oweru Hardware</span> account
         </p>
     </div>
 
     <div class="mt-12 sm:mx-auto sm:w-full sm:max-w-md">
-        <div class="bg-white py-12 px-8 shadow-2xl rounded-3xl border border-orange-100">
+        <div class="bg-white py-12 px-8 shadow-2xl rounded-3xl border border-slate-100">
 
             <!-- Success / Info Message -->
             @if (session('status'))
@@ -121,7 +121,7 @@
                 <!-- Submit Button -->
                 <div class="pt-4">
                     <button type="submit"
-                            class="w-full flex justify-center py-5 px-4 rounded-2xl shadow-2xl text-lg font-black text-white bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-red-600 focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all transform hover:scale-[1.02] active:scale-100">
+                            class="w-full flex justify-center py-5 px-4 rounded-2xl shadow-2xl text-lg font-black text-white bg-slate-900 focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all transform hover:scale-[1.02] active:scale-100">
                         Sign In Now
                     </button>
                 </div>
@@ -131,7 +131,7 @@
             <div class="mt-10">
                 <div class="relative">
                     <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t-2 border-orange-100"></div>
+                        <div class="w-full border-t-2 border-slate-900"></div>
                     </div>
                     <div class="relative flex justify-center text-sm">
                         <span class="px-6 bg-white text-gray-500 font-bold">New here?</span>
@@ -154,7 +154,7 @@
         <!-- Footer -->
         <div class="mt-16 text-center">
             <p class="text-sm text-gray-600 font-medium">
-                © {{ date('Y') }} <span class="text-primary font-black">Weru Hardware</span> Tanzania
+                © {{ date('Y') }} <span class="text-primary font-black">Oweru Hardware</span> Tanzania
             </p>
             <p class="text-xs text-gray-500 mt-2">
                 Your trusted building materials partner in Dar es Salaam & beyond

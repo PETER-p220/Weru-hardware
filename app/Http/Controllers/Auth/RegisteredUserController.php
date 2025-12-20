@@ -31,13 +31,21 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'tel' => ['required', 'string', 'regex:/^[0-9]{3} [0-9]{3} [0-9]{3}$/', 'unique:users,tel'],
+            'tel' => ['required', 'string', 'regex:/^[0-9]{9}$|^[0-9]{3}\s[0-9]{3}\s[0-9]{3}$/', 'unique:users,tel'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'role' => ['sometimes', 'in:user,admin'],
         ]);
 
-        // Clean and format phone number: e.g. "255 712 345 678" → "255712345678"
-        $tel = '255' . preg_replace('/\D/', '', $request->tel);
+        // Clean and format phone number: Remove all non-digits, then ensure it's 9 digits
+        $telDigits = preg_replace('/\D/', '', $request->tel);
+        
+        // Validate we have exactly 9 digits (Tanzanian mobile number without country code)
+        if (strlen($telDigits) !== 9) {
+            return back()->withErrors(['tel' => 'Phone number must be exactly 9 digits (e.g., 712345678 or 712 345 678).'])->withInput();
+        }
+        
+        // Prepend country code: 255
+        $tel = '255' . $telDigits;
 
         $user = User::create([
             'name' => $request->name,
@@ -54,6 +62,10 @@ class RegisteredUserController extends Controller
             $role = $request->role; // 'user' or 'admin'
         }
 
+        // Ensure the role exists before assigning (create if it doesn't)
+        Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
+        
+        // Assign role to user
         $user->assignRole($role);
 
         event(new Registered($user));
@@ -65,12 +77,23 @@ class RegisteredUserController extends Controller
 
         // CASE 2: Normal user registering themselves
         Auth::login($user);
+        
+        // Regenerate session for security (same as login)
+        $request->session()->regenerate();
+        
+        // Get fresh user instance and ensure roles are loaded
+        $authenticatedUser = Auth::user();
+        $authenticatedUser->refresh();
+        $authenticatedUser->load('roles');
 
-        // Redirect based on role
-        if ($user->hasRole('admin')) {
-            return redirect()->route('adminDashboard'); // e.g. /admin/dashboard
+        // Redirect based on role:
+        // Admin users → Admin Dashboard
+        // Regular users → User Dashboard
+        if ($authenticatedUser->hasRole('admin')) {
+            return redirect()->route('adminDashboard')->with('success', 'Welcome! Registration successful. You have been logged in as an Administrator.');
         }
 
-        return redirect()->route('dashboard'); // Regular user dashboard
+        // Regular users go to their dashboard
+        return redirect()->route('dashboard')->with('success', 'Welcome! Registration successful. You have been logged in.');
     }
 }

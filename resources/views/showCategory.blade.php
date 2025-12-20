@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $category->name }} - Weru Hardware</title>
+    <title>{{ $category->name }} - Oweru Hardware</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <!-- Tailwind configured centrally via tailwind.config.js -->
@@ -20,7 +20,7 @@
                             <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
                         </svg>
                     </div>
-                    <span class="text-lg font-bold text-gray-900">Weru Hardware Admin</span>
+                    <span class="text-lg font-bold text-gray-900">Oweru Hardware Admin</span>
                 </div>
 
                 <nav class="hidden md:flex items-center gap-6">

@@ -16,6 +16,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(prepend: [
             \App\Http\Middleware\DisableCsrfForWebhooks::class,
         ]);
+        
+        // Register alias for role-based middleware
+        $middleware->alias([
+            'role.redirect' => \App\Http\Middleware\RedirectBasedOnRole::class,
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'user' => \App\Http\Middleware\EnsureUserIsRegularUser::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

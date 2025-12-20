@@ -3,189 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Product - Weru Hardware Admin</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Add New Product • Oweru Hardware Admin</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        primary: '#ff6b35',
-                        'primary-dark': '#e85a2a',
-                        'primary-light': '#ff8c5f',
+                        primary: 'rgb(218,165,32)',
+                        'primary-dark': '#002147',
+                        'primary-light': '#f5f5f5',
                     }
                 }
             }
         }
     </script>
+
     <style>
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        :root {
+            --primary: rgb(218,165,32);
+            --primary-dark: #002147;
+            --primary-light: #f5f5f5;
         }
-        .animate-slide-in {
-            animation: slideIn 0.3s ease-out;
+        * { -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f5f5f5; }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f5f5f5; }
+        ::-webkit-scrollbar-thumb { background: rgb(218,165,32); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d4af37; }
+        .text-2xs { font-size: 0.625rem; line-height: 0.875rem; }
+        .hover-lift:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -10px rgba(218,165,32,0.2); }
+        .toast { animation: slideDown 0.5s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .text-2xl { font-size: 1.5rem; }
+            .text-xl { font-size: 1.125rem; }
+            .p-8 { padding: 1.5rem; }
+            .p-5 { padding: 1rem; }
+            .gap-8 { gap: 1.5rem; }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-orange-50 via-white to-orange-50 min-h-screen">
+<body class="bg-slate-50 min-h-screen">
+
+    <!-- Mobile Menu Button -->
+    <button id="menu-btn" class="fixed top-4 left-4 z-50 lg:hidden bg-white rounded-full p-3 shadow-xl" style="border: 1px solid rgba(218,165,32,0.2);">
+        <i class="fa-solid fa-bars text-xl" style="color: #002147;"></i>
+    </button>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+    <!-- Success Toast -->
+    @if(session('success'))
+        <div class="fixed top-4 right-4 z-50 border px-6 py-4 rounded-xl shadow-xl text-sm font-medium flex items-center gap-3 toast" style="background: rgba(76,175,80,0.1); border-color: rgba(76,175,80,0.3); color: #4caf50;">
+            <i class="fa-solid fa-check-circle"></i>
+            {{ session('success') }}
+        </div>
+    @endif
 
     <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-full w-64 bg-white shadow-xl z-40 border-r border-orange-100">
-        <div class="p-5 border-b border-orange-100">
-            <h1 class="text-xl font-bold text-primary">Weru Hardware</h1>
-            <p class="text-[10px] text-gray-500 mt-0.5">Admin Dashboard</p>
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out" style="border-right: 1px solid rgba(218,165,32,0.2);">
+        <div class="p-6" style="border-bottom: 1px solid rgba(218,165,32,0.2);">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style="background: #002147;">
+                    <i class="fa-solid fa-hard-hat text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">Oweru<span style="color: rgb(218,165,32);">Hardware</span></h1>
+                    <p class="text-2xs text-gray-500">Admin Panel</p>
+                </div>
+            </div>
         </div>
-        
-        <nav class="p-4">
-            <a href="{{ route('adminDashboard') }}" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 hover:bg-orange-50 hover:text-primary transition-all mb-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                </svg>
-                <span class="text-xs font-medium">Dashboard</span>
+
+        <nav class="p-4 space-y-1">
+            <a href="{{ route('adminDashboard') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-gray-600 transition text-sm font-medium" style="color: #666;" onmouseover="this.style.backgroundColor='rgba(218,165,32,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                <i class="fa-solid fa-gauge-high w-5 h-5"></i> Dashboard
             </a>
-            <a href="{{ route('products') }}" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white mb-1 shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                </svg>
-                <span class="text-xs font-medium">Products</span>
+            <a href="{{ route('indexProduct') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-white shadow-md text-sm font-medium" style="background: #002147;">
+                <i class="fa-solid fa-boxes-stacked w-5 h-5"></i> Products
             </a>
-            <a href="{{ route('indexCategory') }}" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 hover:bg-orange-50 hover:text-primary transition-all mb-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                </svg>
-                <span class="text-xs font-medium">Categories</span>
+            <a href="{{ route('indexCategory') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-gray-600 transition text-sm font-medium" style="color: #666;" onmouseover="this.style.backgroundColor='rgba(218,165,32,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                <i class="fa-solid fa-tags w-5 h-5"></i> Categories
             </a>
-            <a href="/OrderManagement" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 hover:bg-orange-50 hover:text-primary transition-all mb-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                </svg>
-                <span class="text-xs font-medium">Orders</span>
+            <a href="/OrderManagement" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-gray-600 transition text-sm font-medium" style="color: #666;" onmouseover="this.style.backgroundColor='rgba(218,165,32,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                <i class="fa-solid fa-shopping-bag w-5 h-5"></i> Orders
             </a>
-            <a href="/user" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 hover:bg-orange-50 hover:text-primary transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                </svg>
-                <span class="text-xs font-medium">Customers</span>
+            <a href="{{ route('user') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-gray-600 transition text-sm font-medium" style="color: #666;" onmouseover="this.style.backgroundColor='rgba(218,165,32,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                <i class="fa-solid fa-users w-5 h-5"></i> Customers
             </a>
         </nav>
 
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-orange-100">
-            <div class="flex items-center space-x-3 px-3">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white text-xs font-bold">
-                    A
+        <div class="absolute bottom-0 left-0 right-0 p-5 bg-gray-50" style="border-top: 1px solid rgba(218,165,32,0.2);">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow" style="background: #002147;">
+                    {{ auth()->check() ? strtoupper(substr(auth()->user()->name ?? 'A', 0, 2)) : 'AD' }}
                 </div>
-                <div class="flex-1">
-                    <p class="text-xs font-semibold text-gray-800">Admin User</p>
-                    <p class="text-[10px] text-gray-500">Administrator</p>
+                <div>
+                    <p class="font-semibold text-gray-800 text-sm">{{ auth()->check() ? Str::limit(auth()->user()->name, 15) : 'Admin' }}</p>
+                    <p class="text-2xs text-gray-500">Administrator</p>
                 </div>
             </div>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-64 min-h-screen">
-        <!-- Top Bar -->
-        <header class="bg-white shadow-sm border-b border-orange-100 sticky top-0 z-30">
-            <div class="flex items-center justify-between px-6 py-3">
+    <main class="lg:ml-72 min-h-screen">
+        <header class="bg-white sticky top-0 z-40 shadow-sm" style="border-bottom: 1px solid rgba(218,165,32,0.2);">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 lg:px-8 py-4 lg:py-5 gap-4">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-800">Add New Product</h2>
-                    <p class="text-[10px] text-gray-500">Create a new product in your catalog</p>
+                    <h2 class="text-lg lg:text-2xl font-bold text-gray-900">Add New Product</h2>
+                    <p class="text-xs lg:text-sm text-gray-500 mt-1">Create a new product in your catalog</p>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <a href="{{ route('products') }}" class="text-[10px] text-gray-600 hover:text-primary transition-colors font-medium">
-                        Back to Products
+                <div class="flex items-center gap-4 flex-wrap">
+                    <a href="{{ route('indexProduct') }}" class="text-xs lg:text-sm font-medium text-gray-600 hover:text-gray-900">
+                        <i class="fa-solid fa-arrow-left mr-2"></i>Back to Products
                     </a>
-                    <div class="h-6 w-px bg-gray-200"></div>
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
-                        <button type="submit" class="text-xs text-gray-600 hover:text-primary transition-colors font-medium">
-                            Logout
-                        </button>
+                        <button type="submit" class="text-xs lg:text-sm font-medium text-gray-600 hover:text-gray-900">Logout</button>
                     </form>
                 </div>
             </div>
         </header>
 
-        <div class="p-6 max-w-6xl mx-auto">
+        <div class="p-4 lg:p-8 max-w-6xl mx-auto">
+
             <!-- Breadcrumb -->
-            <div class="mb-6">
-                <div class="flex items-center space-x-2 text-[10px] text-gray-500">
-                    <a href="{{ route('adminDashboard') }}" class="hover:text-primary font-medium">Dashboard</a>
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                    <a href="{{ route('products') }}" class="hover:text-primary font-medium">Products</a>
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                    <span class="text-primary font-semibold">Add New</span>
+            <div class="mb-6 lg:mb-8 text-xs lg:text-sm text-gray-500">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <a href="{{ route('adminDashboard') }}" class="hover:text-gray-900 font-medium">Dashboard</a>
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                    <a href="{{ route('indexProduct') }}" class="hover:text-gray-900 font-medium">Products</a>
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                    <span font-bold" style="color: #002147;">Add New</span>
                 </div>
             </div>
 
-            <!-- Success/Error Messages -->
-            @if(session('success'))
-            <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-xs font-medium animate-slide-in flex items-center space-x-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                <span>{{ session('success') }}</span>
-            </div>
-            @endif
-
+            <!-- Error Messages -->
             @if($errors->any())
-            <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium animate-slide-in">
-                <div class="flex items-center space-x-2 mb-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    <span class="font-bold">Please fix the following errors:</span>
+                <div class="mb-6 lg:mb-8 p-4 lg:p-6 rounded-lg lg:rounded-2xl text-red-700" style="background: rgba(211,47,47,0.1); border: 1px solid rgba(211,47,47,0.3);">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-circle-exclamation text-lg lg:text-xl"></i>
+                        <p class="font-bold text-sm lg:text-base">Please fix the following errors:</p>
+                    </div>
+                    <ul class="list-disc list-inside space-y-1 text-xs lg:text-sm">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
-                <ul class="list-disc list-inside space-y-1 text-[10px]">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
             @endif
 
             <!-- Form -->
-            <form method="POST" action="#" enctype="multipart/form-data" class="space-y-4">
+            <form method="POST" action="#" enctype="multipart/form-data" class="space-y-8">
                 @csrf
 
                 <!-- Basic Information -->
-                <div class="bg-white rounded-xl shadow-sm border border-orange-100 p-6">
-                    <div class="flex items-center space-x-3 mb-5">
-                        <div class="w-8 h-8 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                <div class="bg-white rounded-lg lg:rounded-2xl shadow-sm p-5 lg:p-8 mb-6 lg:mb-8" style="border: 1px solid rgba(218,165,32,0.2);">
+                    <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
+                        <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center shadow-lg" style="background: #002147;">
+                            <i class="fa-solid fa-info text-white text-lg lg:text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-gray-900">Basic Information</h3>
-                            <p class="text-[10px] text-gray-500">Essential product details</p>
+                            <h3 class="text-base lg:text-xl font-bold text-gray-900">Basic Information</h3>
+                            <p class="text-xs lg:text-sm text-gray-500">Essential product details</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                         <div class="lg:col-span-2">
-                            <label class="block text-[11px] font-bold text-gray-700 mb-2">Product Name <span class="text-red-500">*</span></label>
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Product Name <span class="text-red-500">*</span></label>
                             <input type="text" name="name" id="name" value="{{ old('name') }}" required
-                                class="w-full px-4 py-2.5 text-xs rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('name') border-red-300 @enderror"
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm transition @error('name') border-red-400 @enderror" style="focus-color: rgb(218,165,32); focus-ring-color: rgba(218,165,32,0.1);" 
                                 placeholder="e.g. Twiga Cement 50kg Bag">
+                            @error('name')<p class="mt-2 text-xs text-red-600">{{ $message }}</p>@enderror
                         </div>
 
                         <div class="lg:col-span-2">
-                            <label class="block text-[11px] font-bold text-gray-700 mb-2">Slug (URL) <span class="text-red-500">*</span></label>
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Slug (URL) <span class="text-red-500">*</span></label>
                             <input type="text" name="slug" id="slug" value="{{ old('slug') }}" required
-                                class="w-full px-4 py-2.5 text-xs rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('slug') border-red-300 @enderror"
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm transition @error('slug') border-red-400 @enderror"
                                 placeholder="twiga-cement-50kg-bag">
-                            <p class="text-[9px] text-gray-500 mt-1">Auto-generated from name • Used in URL</p>
+                            <p class="text-2xs text-gray-500 mt-2">Auto-generated from name</p>
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-700 mb-2">Category <span class="text-red-500">*</span></label>
-                            <select name="category_id" required class="w-full px-4 py-2.5 text-xs rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('category_id') border-red-300 @enderror">
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Category <span class="text-red-500">*</span></label>
+                            <select name="category_id" required class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm @error('category_id') border-red-400 @enderror">
                                 <option value="">Choose category</option>
                                 @foreach($categories as $cat)
                                     <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>
@@ -196,100 +209,89 @@
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-700 mb-2">Unit <span class="text-red-500">*</span></label>
-                            <input type="text" name="unit" value="{{ old('unit') }}" required placeholder="e.g. bag, piece, roll, meter"
-                                class="w-full px-4 py-2.5 text-xs rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('unit') border-red-300 @enderror">
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Unit <span class="text-red-500">*</span></label>
+                            <input type="text" name="unit" value="{{ old('unit') }}" required placeholder="e.g. bag, piece, meter"
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm @error('unit') border-red-400 @enderror">
                         </div>
 
                         <div class="lg:col-span-2">
-                            <label class="block text-[11px] font-bold text-gray-700 mb-2">Description <span class="text-red-500">*</span></label>
-                            <textarea name="description" rows="4" required placeholder="Detailed description, specifications, and uses..."
-                                class="w-full px-4 py-2.5 text-xs rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('description') border-red-300 @enderror">{{ old('description') }}</textarea>
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Description <span class="text-red-500">*</span></label>
+                            <textarea name="description" rows="5" lg:rows="6" required placeholder="Detailed description, specifications, uses..."
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 resize-none text-xs lg:text-sm @error('description') border-red-400 @enderror">{{ old('description') }}</textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- Pricing & Stock -->
-                <div class="bg-white rounded-xl shadow-sm border border-orange-100 p-6">
-                    <div class="flex items-center space-x-3 mb-5">
-                        <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-green-500 rounded-lg flex items-center justify-center">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                            </svg>
+                <div class="bg-white rounded-lg lg:rounded-2xl shadow-sm p-5 lg:p-8 mb-6 lg:mb-8" style="border: 1px solid rgba(218,165,32,0.2);">
+                    <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
+                        <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center shadow-lg" style="background: #4caf50;">
+                            <i class="fa-solid fa-tag text-white text-lg lg:text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-gray-900">Pricing & Stock</h3>
-                            <p class="text-[10px] text-gray-500">Set prices and inventory</p>
+                            <h3 class="text-base lg:text-xl font-bold text-gray-900">Pricing & Stock</h3>
+                            <p class="text-xs lg:text-sm text-gray-500">Set price and inventory levels</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-700 mb-2">Current Price (TZS) <span class="text-red-500">*</span></label>
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Current Price (TZS) <span class="text-red-500">*</span></label>
                             <input type="number" name="price" id="price" value="{{ old('price') }}" required step="100"
-                                class="w-full px-4 py-2.5 text-xs rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('price') border-red-300 @enderror"
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm @error('price') border-red-400 @enderror"
                                 placeholder="28000">
                         </div>
-
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-700 mb-2">Old Price (Optional)</label>
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Old Price (Optional)</label>
                             <input type="number" name="old_price" id="old_price" value="{{ old('old_price') }}" step="100"
-                                class="w-full px-4 py-2.5 text-xs rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm"
                                 placeholder="32000">
-                            <p class="text-[9px] text-gray-500 mt-1">For showing discount</p>
+                            <p class="text-2xs text-gray-500 mt-2">Shows discount badge</p>
                         </div>
-
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-700 mb-2">Stock Quantity <span class="text-red-500">*</span></label>
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Stock Quantity <span class="text-red-500">*</span></label>
                             <input type="number" name="stock" value="{{ old('stock', 0) }}" required min="0"
-                                class="w-full px-4 py-2.5 text-xs rounded-lg border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('stock') border-red-300 @enderror"
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm @error('stock') border-red-400 @enderror"
                                 placeholder="150">
                         </div>
                     </div>
 
-                    <!-- Live Discount Preview -->
-                    <div id="discountPreview" class="hidden mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                </svg>
+                    <div id="discountPreview" class="hidden mt-6 lg:mt-8 p-4 lg:p-6 rounded-lg lg:rounded-2xl" style="background: rgba(76,175,80,0.1); border: 2px solid rgba(76,175,80,0.2);">
+                        <div class="flex items-center gap-3 lg:gap-5">
+                            <div class="w-10 lg:w-14 h-10 lg:h-14 rounded-full flex items-center justify-center flex-shrink-0" style="background: rgba(76,175,80,0.15);">
+                                <i class="fa-solid fa-gift text-lg lg:text-2xl" style="color: #4caf50;"></i>
                             </div>
                             <div>
-                                <p class="text-green-800 font-bold text-sm" id="discountText">Save 12%</p>
-                                <p class="text-green-700 text-[10px] font-medium">Customers save <span id="saveAmount">TZS 4,000</span> per unit!</p>
+                                <p class="text-lg lg:text-2xl font-bold" style="color: #4caf50;" id="discountText">Save 12%</p>
+                                <p class="text-sm lg:text-base" style="color: #4caf50;">Customers save <span id="saveAmount">TZS 4,000</span> per unit!</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Product Image -->
-                <div class="bg-white rounded-xl shadow-sm border border-orange-100 p-6">
-                    <div class="flex items-center space-x-3 mb-5">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
+                <div class="bg-white rounded-lg lg:rounded-2xl shadow-sm p-5 lg:p-8 mb-6 lg:mb-8" style="border: 1px solid rgba(218,165,32,0.2);">
+                    <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
+                        <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center shadow-lg" style="background: #2196F3;">
+                            <i class="fa-solid fa-image text-white text-lg lg:text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-gray-900">Product Image</h3>
-                            <p class="text-[10px] text-gray-500">Upload product photo</p>
+                            <h3 class="text-base lg:text-xl font-bold text-gray-900">Product Image</h3>
+                            <p class="text-xs lg:text-sm text-gray-500">Upload a high-quality photo</p>
                         </div>
                     </div>
 
-                    <div class="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center hover:border-primary transition-all">
+                    <div class="border-4 border-dashed border-gray-300 rounded-lg lg:rounded-2xl p-8 lg:p-12 text-center hover:border-gray-400 transition-all cursor-pointer" style="border-color: rgba(218,165,32,0.2);">
                         <input type="file" name="image" id="image" accept="image/*" class="hidden">
-                        <label for="image" class="cursor-pointer">
-                            <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                            </svg>
-                            <p class="text-xs font-bold text-gray-700 mb-1">Click to upload image</p>
-                            <p class="text-[10px] text-gray-500">PNG, JPG, WebP • Max 10MB</p>
+                        <label for="image" class="cursor-pointer block">
+                            <i class="fa-solid fa-cloud-arrow-up text-4xl lg:text-6xl text-gray-300 mb-3 lg:mb-4"></i>
+                            <p class="text-base lg:text-lg font-bold text-gray-700">Click to upload image</p>
+                            <p class="text-xs lg:text-sm text-gray-500 mt-2">PNG, JPG, WebP • Max 10MB</p>
                         </label>
 
-                        <div id="imagePreview" class="mt-4 hidden">
-                            <img id="previewImg" class="mx-auto max-h-64 rounded-lg shadow-lg" alt="Product preview">
-                            <button type="button" onclick="removeImage()" class="mt-3 text-[10px] text-red-600 font-bold hover:text-red-700">
+                        <div id="imagePreview" class="mt-6 lg:mt-8 hidden">
+                            <img id="previewImg" class="mx-auto max-h-96 rounded-lg lg:rounded-2xl shadow-2xl border-4 border-white" alt="Product preview">
+                            <button type="button" onclick="removeImage()" class="mt-4 px-5 lg:px-6 py-2 text-red-600 font-bold rounded-lg hover:bg-red-50 transition text-sm">
                                 Remove Image
                             </button>
                         </div>
@@ -297,79 +299,78 @@
                 </div>
 
                 <!-- Settings -->
-                <div class="bg-white rounded-xl shadow-sm border border-orange-100 p-6">
-                    <div class="flex items-center space-x-3 mb-5">
-                        <div class="w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-500 rounded-lg flex items-center justify-center">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-                            </svg>
+                <div class="bg-white rounded-lg lg:rounded-2xl shadow-sm p-5 lg:p-8 mb-6 lg:mb-8" style="border: 1px solid rgba(218,165,32,0.2);">
+                    <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
+                        <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center shadow-lg" style="background: #9333ea;">
+                            <i class="fa-solid fa-sliders text-white text-lg lg:text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-gray-900">Product Settings</h3>
-                            <p class="text-[10px] text-gray-500">Configure visibility options</p>
+                            <h3 class="text-base lg:text-xl font-bold text-gray-900">Product Settings</h3>
+                            <p class="text-xs lg:text-sm text-gray-500">Visibility and promotion options</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label class="flex items-start space-x-3 cursor-pointer p-3 rounded-lg hover:bg-orange-50 transition-colors border border-gray-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+                        <label class="flex items-center gap-4 lg:gap-5 p-4 lg:p-5 rounded-lg lg:rounded-2xl cursor-pointer transition" style="border: 2px solid rgba(218,165,32,0.1);" onmouseover="this.style.borderColor='rgba(218,165,32,0.3)'; this.style.backgroundColor='rgba(218,165,32,0.05)'" onmouseout="this.style.borderColor='rgba(218,165,32,0.1)'; this.style.backgroundColor='transparent'">
                             <input type="checkbox" name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }}
-                                class="w-4 h-4 text-primary rounded focus:ring-primary mt-0.5">
+                                class="w-5 lg:w-6 h-5 lg:h-6 rounded" style="accent-color: rgb(218,165,32);">
                             <div>
-                                <p class="text-xs font-bold text-gray-900">Featured Product</p>
-                                <p class="text-[10px] text-gray-600">Display on homepage & promotions</p>
+                                <p class="font-bold text-gray-900 text-base lg:text-lg">Featured Product</p>
+                                <p class="text-xs lg:text-sm text-gray-600">Appear on homepage & special banners</p>
                             </div>
                         </label>
 
-                        <label class="flex items-start space-x-3 cursor-pointer p-3 rounded-lg hover:bg-orange-50 transition-colors border border-gray-100">
+                        <label class="flex items-center gap-4 lg:gap-5 p-4 lg:p-5 rounded-lg lg:rounded-2xl cursor-pointer transition" style="border: 2px solid rgba(218,165,32,0.1);" onmouseover="this.style.borderColor='rgba(218,165,32,0.3)'; this.style.backgroundColor='rgba(218,165,32,0.05)'" onmouseout="this.style.borderColor='rgba(218,165,32,0.1)'; this.style.backgroundColor='transparent'">
                             <input type="checkbox" name="is_active" value="1" checked {{ old('is_active', true) ? 'checked' : '' }}
-                                class="w-4 h-4 text-primary rounded focus:ring-primary mt-0.5">
+                                class="w-5 lg:w-6 h-5 lg:h-6 rounded" style="accent-color: rgb(218,165,32);">
                             <div>
-                                <p class="text-xs font-bold text-gray-900">Active & Visible</p>
-                                <p class="text-[10px] text-gray-600">Customers can view and purchase</p>
+                                <p class="font-bold text-gray-900 text-base lg:text-lg">Active & Visible</p>
+                                <p class="text-xs lg:text-sm text-gray-600">Customers can view and buy</p>
                             </div>
                         </label>
                     </div>
                 </div>
 
-                <!-- Submit Buttons -->
-                <div class="flex flex-col sm:flex-row gap-3 justify-end pt-2">
-                    <a href="{{ route('products') }}"
-                        class="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-50 transition text-center">
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row gap-4 lg:gap-5 justify-end pt-6 lg:pt-8">
+                    <a href="{{ route('indexProduct') }}"
+                        class="px-8 lg:px-10 py-3 lg:py-4 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-lg lg:rounded-xl hover:bg-gray-50 transition text-center text-sm lg:text-base">
                         Cancel
                     </a>
                     <button type="submit"
-                        class="px-8 py-2.5 bg-gradient-to-r from-primary to-primary-dark text-white text-xs font-bold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all flex items-center space-x-2 justify-center">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        <span>Create Product</span>
+                        class="px-10 lg:px-12 py-3 lg:py-4 text-white font-bold rounded-lg lg:rounded-xl shadow-lg hover:shadow-2xl hover-lift transition flex items-center gap-2 lg:gap-3 justify-center text-sm lg:text-base" style="background: #002147;">
+                        <i class="fa-solid fa-plus text-lg lg:text-xl"></i>
+                        Create Product
                     </button>
                 </div>
             </form>
         </div>
     </main>
 
-    <footer class="ml-64 bg-white border-t border-orange-100 py-4">
-        <div class="px-6 flex items-center justify-between">
-            <p class="text-[10px] text-gray-500">© 2024 Weru Hardware. All rights reserved.</p>
-            <div class="flex space-x-4">
-                <a href="#" class="text-[10px] text-gray-500 hover:text-primary transition-colors font-medium">Help Center</a>
-                <a href="#" class="text-[10px] text-gray-500 hover:text-primary transition-colors font-medium">Documentation</a>
-            </div>
-        </div>
-    </footer>
-
+    <!-- Scripts -->
     <script>
-        // Auto slug generation
-        document.getElementById('name').addEventListener('input', function() {
+        // Mobile menu
+        document.getElementById('menu-btn')?.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('mobile-overlay').classList.toggle('hidden');
+        });
+        document.getElementById('mobile-overlay')?.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('mobile-overlay').classList.add('hidden');
+        });
+
+        // Auto slug
+        document.getElementById('name')?.addEventListener('input', function() {
             const slug = this.value.toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-|-$/g, '');
+                .replace(/[^a-z0-9\s-]/g, '')
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-');
             document.getElementById('slug').value = slug;
         });
 
         // Image preview
-        document.getElementById('image').addEventListener('change', function(e) {
+        document.getElementById('image')?.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -387,25 +388,24 @@
             document.getElementById('imagePreview').classList.add('hidden');
         }
 
-        // Live discount calculator
+        // Live discount preview
         function updateDiscount() {
             const price = parseFloat(document.getElementById('price').value) || 0;
             const oldPrice = parseFloat(document.getElementById('old_price').value) || 0;
 
+            const preview = document.getElementById('discountPreview');
             if (oldPrice > price && price > 0) {
                 const discount = Math.round(((oldPrice - price) / oldPrice) * 100);
                 const saved = oldPrice - price;
-
                 document.getElementById('discountText').textContent = `Save ${discount}%`;
                 document.getElementById('saveAmount').textContent = `TZS ${saved.toLocaleString()}`;
-                document.getElementById('discountPreview').classList.remove('hidden');
+                preview.classList.remove('hidden');
             } else {
-                document.getElementById('discountPreview').classList.add('hidden');
+                preview.classList.add('hidden');
             }
         }
-
-        document.getElementById('price').addEventListener('input', updateDiscount);
-        document.getElementById('old_price').addEventListener('input', updateDiscount);
+        document.getElementById('price')?.addEventListener('input', updateDiscount);
+        document.getElementById('old_price')?.addEventListener('input', updateDiscount);
     </script>
 </body>
 </html>

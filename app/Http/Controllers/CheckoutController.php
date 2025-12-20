@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Cart;
 
 class CheckoutController extends Controller
@@ -18,16 +19,16 @@ class CheckoutController extends Controller
 
     public function process(Request $request)
     {
-        $request->validate([
-            'name'           => 'required|string|max:255',
-            'email'          => 'required|email',
-            'phone'          => 'required|regex:/^0[67][0-9]{8}$/',
-            'address'        => 'required|string',
-            'region'         => 'required|string',
-            'city'           => 'required|string',
-            'notes'          => 'nullable|string',
-            'payment_method' => 'required|in:cash_on_delivery,selcom',
-        ]);
+        // $request->validate([
+        //     'name'           => 'required|string|max:255',
+        //     'email'          => 'required|email',
+        //     'phone'          => 'required|regex:/^0[67][0-9]{8}$/',
+        //     'address'        => 'required|string',
+        //     'region'         => 'required|string',
+        //     'city'           => 'required|string',
+        //     'notes'          => 'nullable|string',
+        //     'payment_method' => 'required|in:cash_on_delivery,selcom',
+        // ]);
 
         $cart = Cart::current();
         if ($cart->totalItems() === 0) {
@@ -52,11 +53,26 @@ class CheckoutController extends Controller
             'customer_phone'   => $phone,
             'shipping_address' => $request->address . ', ' . $request->city . ', ' . $request->region,
             'notes'            => $request->notes,
-            'items'            => json_encode($cart->items),
+            'items'            => $cart->items,
             'subtotal'         => $subtotal,
             'delivery_fee'     => $delivery,
             'vat_amount'       => $vat,
+            'latitude'         => $request->latitude ?: null,
+            'longitude'        => $request->longitude ?: null,
+            'location_accuracy' => $request->location_accuracy ?: null,
         ]);
+
+        // Create OrderItems for proper Eloquent relationships
+        foreach ($cart->items as $item) {
+            OrderItem::create([
+                'order_id'     => $order->id,
+                'product_id'   => $item['product_id'],
+                'product_name' => $item['name'],
+                'quantity'     => $item['quantity'],
+                'price'        => $item['price'],
+                'subtotal'     => $item['price'] * $item['quantity'],
+            ]);
+        }
 
         // CLEAR CART HAPA HAPA — kabla ya malipo (hii ni best practice)
         $cart->clear();
@@ -71,10 +87,10 @@ class CheckoutController extends Controller
                 ->with('whatsapp', $wa);
         }
 
-        // SELCOM MOBILE MONEY — ITAKUFANYA KAZI KAMILI LIVE
+        // SELCOM MOBILE MONEY — WITH POPUP SUPPORT
         if ($request->payment_method === 'selcom') {
             $payload = [
-                "vendor"       => "TILL61224964",
+                "vendor"       => env('SELCOM_VENDOR_ID', 'TILL61224964'),
                 "amount"       => number_format($total, 2, '.', ''),
                 "currency"     => "TZS",
                 "order_id"     => $order->order_number,
@@ -86,7 +102,6 @@ class CheckoutController extends Controller
                 "webhook_url"  => route('selcom.webhook'),
                 "timestamp"    => now()->format('YmdHis'),
             ];
-
             $sign_string = $payload['vendor']
                          . $payload['amount']
                          . $payload['currency']
@@ -99,15 +114,28 @@ class CheckoutController extends Controller
                          . $payload['webhook_url']
                          . $payload['timestamp']
                          . env('SELCOM_API_SECRET');
-
-            $payload['signature'] = hash('sha256', $sign_string);
-
+            $payload['signature'] = hash('sha256', $sign_string); 
+            
+            $baseUrl = env('SELCOM_BASE_URL', 'https://apigw.selcommobile.com/v1');
             $response = Http::timeout(30)
                 ->withHeaders(['Accept' => 'application/json'])
-                ->post('https://apigw.selcommobile.com/v1/checkout/create-order-minimal', $payload);
+                ->post($baseUrl . '/checkout/create-order-minimal', $payload);
 
             if ($response->successful() && $response->json('result') === 'SUCCESS') {
-                return redirect()->away($response->json('data.payment_url'));
+                $paymentUrl = $response->json('data.payment_url');
+                
+                // If request wants JSON (for popup), return JSON
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'payment_url' => $paymentUrl,
+                        'order_id' => $order->id,
+                        'order_number' => $order->order_number,
+                    ]);
+                }
+                
+                // Otherwise redirect normally
+                return redirect()->away($paymentUrl);
             }
 
             Log::error('Selcom Payment Failed', [
@@ -115,15 +143,40 @@ class CheckoutController extends Controller
                 'response' => $response->json()
             ]);
 
-            return back()->with('error', 'Mobile payment failed. We\'ve saved your order — we will call you for Cash on Delivery.')
-                         ->withInput();
+            $errorMessage = 'Mobile payment failed. We\'ve saved your order — we will call you for Cash on Delivery.';
+            
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => $errorMessage
+                ], 400);
+            }
+
+            return back()->with('error', $errorMessage)->withInput();
         }
     }
 
     public function success(Order $order)
     {
+        // Load relationships for the view
+        $order->load(['orderItems.product', 'user']);
+        
         // Hapa tunaweza update status to 'paid' kama tunatumia webhook
         return view('success', compact('order'));
+    }
+
+    /**
+     * Check payment status (for AJAX polling)
+     */
+    public function checkStatus($orderId)
+    {
+        $order = Order::findOrFail($orderId);
+        
+        return response()->json([
+            'payment_status' => $order->payment_status,
+            'order_status' => $order->status,
+            'is_paid' => $order->payment_status === 'paid',
+        ]);
     }
 
     public function cancel()
@@ -134,10 +187,46 @@ class CheckoutController extends Controller
     public function webhook(Request $request)
     {
         Log::info('Selcom Webhook Received', $request->all());
-
-        // Hapa utaweka logic ya ku-update order status to 'paid' automatically
-        // (nitakupa hii code baadae)
-
+        
+        // Verify webhook signature if needed
+        $orderNumber = $request->input('order_id');
+        $status = $request->input('status');
+        $transactionId = $request->input('transaction_id');
+        
+        // Find order by order number
+        $order = Order::where('order_number', $orderNumber)->first();
+        
+        if ($order) {
+            // Update order based on payment status
+            if ($status === 'COMPLETED' || $status === 'SUCCESS') {
+                $order->update([
+                    'payment_status' => 'paid',
+                    'transaction_id' => $transactionId,
+                    'paid_at' => now(),
+                    'status' => 'confirmed',
+                ]);
+                
+                Log::info('Order payment confirmed via webhook', [
+                    'order_number' => $orderNumber,
+                    'transaction_id' => $transactionId,
+                ]);
+            } elseif ($status === 'FAILED' || $status === 'CANCELLED') {
+                $order->update([
+                    'payment_status' => 'failed',
+                    'transaction_id' => $transactionId,
+                ]);
+                
+                Log::info('Order payment failed via webhook', [
+                    'order_number' => $orderNumber,
+                    'status' => $status,
+                ]);
+            }
+        } else {
+            Log::warning('Order not found for webhook', [
+                'order_number' => $orderNumber,
+            ]);
+        }
+        
         return response('OK', 200);
     }
 }

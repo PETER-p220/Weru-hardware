@@ -127,4 +127,12 @@ class Cart extends Model
             $guestCart->delete(); // clean up
         }
     }
+
+    /**
+     * Relationships
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -43,13 +43,57 @@ class AdvertisementController extends Controller
         return redirect()->route('ads')->with('success', 'Advertisement added!');
     }
 
-    // ... edit, update, destroy methods (similar logic)
-
-    public function destroy(Advertisement $id)
+    /**
+     * Show the form for editing the specified advertisement
+     */
+    public function edit(Advertisement $ad)
     {
-        Storage::disk('public')->delete($id->media_path);
-        $id->delete();
-        return back()->with('success', 'Deleted!');
+        return view('editAdvertisement', compact('ad'));
+    }
+
+    /**
+     * Update the specified advertisement
+     */
+    public function update(Request $request, Advertisement $ad)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'media' => 'nullable|file|mimes:jpg,jpeg,png,webp,mp4,mov,avi|max:51200', // 50MB max, nullable for updates
+            'link' => 'nullable|url',
+            'description' => 'nullable|string',
+            'sort_order' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        $data = [
+            'title' => $request->title,
+            'description' => $request->description,
+            'link' => $request->link,
+            'sort_order' => $request->sort_order ?? $ad->sort_order,
+            'is_active' => $request->has('is_active') ? 1 : 0,
+        ];
+
+        // Only update media if a new file is uploaded
+        if ($request->hasFile('media')) {
+            // Delete old media file
+            Storage::disk('public')->delete($ad->media_path);
+            
+            // Store new media
+            $path = $request->file('media')->store('ads', 'public');
+            $data['media_path'] = $path;
+            $data['media_type'] = str_contains($request->file('media')->getMimeType(), 'video') ? 'video' : 'image';
+        }
+
+        $ad->update($data);
+
+        return redirect()->route('ads')->with('success', 'Advertisement updated successfully!');
+    }
+
+    public function destroy(Advertisement $ad)
+    {
+        Storage::disk('public')->delete($ad->media_path);
+        $ad->delete();
+        return back()->with('success', 'Advertisement deleted successfully!');
     }
     
 }

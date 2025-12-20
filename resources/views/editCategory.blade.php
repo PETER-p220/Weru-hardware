@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Category - Weru Hardware</title>
+    <title>Edit Category - Oweru Hardware</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
@@ -29,12 +29,12 @@
                             <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
                         </svg>
                     </div>
-                    <span class="text-lg font-bold text-gray-900">Weru Hardware Admin</span>
+                    <span class="text-lg font-bold text-gray-900">Oweru Hardware Admin</span>
                 </div>
 
                 <nav class="hidden md:flex items-center gap-6">
-                    <a href="{{ route('products.index') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Products</a>
-                    <a href="{{ route('categories.index') }}" class="text-sm font-semibold text-blue-600">Categories</a>
+                    <a href="{{ route('createProduct') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Products</a>
+                    <a href="{{ route('createCategory') }}" class="text-sm font-semibold text-blue-600">Categories</a>
                 </nav>
 
                 <div class="flex items-center gap-3">
@@ -50,7 +50,7 @@
         
         <div class="mb-8">
             <div class="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                <a href="{{ route('categories.index') }}" class="hover:text-blue-600">Categories</a>
+                <a href="{{ route('indexCategory') }}" class="hover:text-blue-600">Categories</a>
                 <span>/</span>
                 <span class="text-gray-900">Edit: {{ $category->name }}</span>
             </div>
@@ -63,16 +63,14 @@
             {{ session('success') }}
         </div>
         @endif
-
         @if(session('error'))
         <div class="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
             {{ session('error') }}
         </div>
         @endif
-
-        <form method="POST" action="{{ route('categories.update', $category) }}" class="space-y-6">
+        <form method="POST" action="{{ route('updateCategory', $category) }}" class="space-y-6">
             @csrf
-            @method('PUT')
+            @method('PATCH')
             
             <!-- Category Information -->
             <div class="bg-white rounded-xl border border-gray-200 p-6">
@@ -176,7 +174,7 @@
                         Delete Category
                     </button>
                     <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="{{ route('categories.index') }}"
+                        <a href="{{ route('indexCategory') }}"
                             class="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors text-center">
                             Cancel
                         </a>
@@ -196,7 +194,7 @@
         </form>
 
         <!-- Delete Form (Hidden) -->
-        <form id="deleteForm" method="POST" action="{{ route('categories.destroy', $category) }}" class="hidden">
+        <form id="deleteForm" method="POST" action="{{ route('indexCategory', $category) }}" class="hidden">
             @csrf
             @method('DELETE')
         </form>

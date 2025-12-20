@@ -12,6 +12,8 @@ class CartController extends Controller
     public function index()
     {
         $cart = Cart::current();
+        // Load product relationships if needed
+        $cart->load('user');
         return view('cart', compact('cart'));
     }
 

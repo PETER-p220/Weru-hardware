@@ -12,6 +12,7 @@ class Order extends Model
         'user_id',
         'order_number',
         'transaction_id',
+        'product_id',
         'status',
         'total_amount',
         'payment_method',
@@ -22,11 +23,17 @@ class Order extends Model
         'customer_phone',
         'notes',
         'paid_at',
+        'latitude',
+        'longitude',
+        'location_accuracy',
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
         'paid_at' => 'datetime',
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
+        'location_accuracy' => 'decimal:2',
     ];
 
     /**
@@ -40,6 +47,24 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Get all products in this order
+     */
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'order_items')
+                    ->withPivot('quantity', 'price', 'subtotal', 'product_name')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get the checkout associated with this order
+     */
+    public function checkout()
+    {
+        return $this->belongsTo(Checkout::class);
     }
 
     /**
@@ -120,5 +145,4 @@ class Order extends Model
     {
         return in_array($this->status, ['pending']) && $this->payment_status === 'unpaid';
     }
-    
 }

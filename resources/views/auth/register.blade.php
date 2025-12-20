@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weru Hardware - Register Account</title>
+    <title>Oweru Hardware - Register Account</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load Alpine.js and Alpine Mask for interactivity -->
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
+     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <script>
@@ -17,7 +16,7 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        'primary': '#f97316', // orange-600 (Weru Hardware primary color)
+                        'primary': '#d97706', // amber-600 (Weru Hardware primary color)
                     }
                 }
             }
@@ -47,10 +46,7 @@
 
             <div class="text-center mb-10">
                 <div class="flex items-center justify-center gap-3 mb-2">
-                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fa-solid fa-hard-hat text-white text-xl"></i>
-                    </div>
-                    <span class="text-3xl font-extrabold text-gray-900">Weru<span class="text-primary">Hardware</span></span>
+                    <span class="text-3xl font-extrabold text-gray-900">Oweru<span class="text-primary">Hardware</span></span>
                 </div>
                 <h2 class="mt-4 text-2xl font-bold tracking-tight text-gray-900">
                     Create Your Account
@@ -63,17 +59,45 @@
             <!-- Form -->
             <form action="/register" method="POST" x-data="{ showRole: false, errors: {} }">
                 @csrf
+                
+                <!-- Display general errors -->
+                @if ($errors->any())
+                    <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+                                <div class="mt-2 text-sm text-red-700">
+                                    <ul class="list-disc list-inside space-y-1">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <div>
                     <label for="name" class="block font-medium text-sm text-gray-700 mb-1">Full Name</label>
                     <input
                         id="name"
-                        class="custom-input block mt-1 w-full"
+                        class="custom-input block mt-1 w-full @error('name') border-red-500 @enderror"
                         type="text"
                         name="name"
+                        value="{{ old('name') }}"
                         required
                         autofocus
                         placeholder="John Doe"
                     />
+                    @error('name')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Email Address -->
@@ -81,12 +105,16 @@
                     <label for="email" class="block font-medium text-sm text-gray-700 mb-1">Email Address</label>
                     <input
                         id="email"
-                        class="custom-input block mt-1 w-full"
+                        class="custom-input block mt-1 w-full @error('email') border-red-500 @enderror"
                         type="email"
                         name="email"
+                        value="{{ old('email') }}"
                         required
                         placeholder="you@example.com"
                     />
+                    @error('email')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Phone Number -->
@@ -98,15 +126,19 @@
                         </span>
                         <input
                             id="tel"
-                            class="custom-input rounded-l-none block w-full"
+                            class="custom-input rounded-l-none block w-full @error('tel') border-red-500 @enderror"
                             type="text"
                             name="tel"
+                            value="{{ old('tel') }}"
                             required
-                            placeholder="712 345 678"
-                            x-mask="999 999 999"
+                            placeholder="712345678"
+                            maxlength="11"
                         />
                     </div>
-                    <p class="mt-1 text-xs text-gray-500">Format: 712 345 678</p>
+                    <p class="mt-1 text-xs text-gray-500">Format: 712345678 or 712 345 678 (9 digits)</p>
+                    @error('tel')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Password -->
@@ -114,11 +146,14 @@
                     <label for="password" class="block font-medium text-sm text-gray-700 mb-1">Password</label>
                     <input
                         id="password"
-                        class="custom-input block mt-1 w-full"
+                        class="custom-input block mt-1 w-full @error('password') border-red-500 @enderror"
                         type="password"
                         name="password"
                         required
                     />
+                    @error('password')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Confirm Password -->
@@ -139,7 +174,7 @@
                         Already registered?
                     </a>
 
-                    <button type="submit" class="ms-4 inline-flex items-center px-6 py-3 bg-primary border border-transparent rounded-xl font-bold text-sm text-white uppercase tracking-wider hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition ease-in-out duration-150 shadow-lg">
+                    <button type="submit" class="ms-4 inline-flex items-center px-6 py-3 bg-primary border border-transparent rounded-xl font-bold text-sm text-white uppercase tracking-wider hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition ease-in-out duration-150 shadow-lg">
                         Create Account
                     </button>
                 </div>

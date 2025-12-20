@@ -6,19 +6,27 @@ use Illuminate\Database\Eloquent\Model;
 
 class Checkout extends Model
 {
-    // ← ADD THIS LINE (this fixes the error forever!)
+    protected $table = 'checkouts';
+    
     protected $fillable = [
         'user_id',
         'cart_id',
         'order_number',
         'status',
         'total_amount',
+        'payment_method',
     ];
 
-    // Your relationships if you have any
+    protected $casts = [
+        'total_amount' => 'decimal:2',
+    ];
+
+    /**
+     * Relationships
+     */
     public function order()
     {
-        return $this->hasOne(Order::class);
+        return $this->hasOne(Order::class, 'checkout_id');
     }
 
     public function cart()

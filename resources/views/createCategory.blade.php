@@ -3,298 +3,299 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Category - Weru Hardware</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Add New Category • Oweru Hardware</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        primary: '#ff6b35',
-                        'primary-dark': '#e85a2a',
-                        'primary-light': '#ff8c5f',
+                        primary: 'rgb(218,165,32)',
+                        'primary-dark': '#002147',
+                        'primary-light': '#f5f5f5',
                     }
                 }
             }
         }
     </script>
+
     <style>
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        :root {
+            --primary: rgb(218,165,32);
+            --primary-dark: #002147;
+            --primary-light: #f5f5f5;
         }
-        .animate-slide-in {
-            animation: slideIn 0.3s ease-out;
+        * { -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f5f5f5; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f5f5f5; }
+        ::-webkit-scrollbar-thumb { background: rgb(218,165,32); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d4af37; }
+        .text-2xs { font-size: 0.625rem; line-height: 0.875rem; }
+        .hover-lift:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -10px rgba(218,165,32,0.2); }
+        .toast { animation: slideDown 0.5s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 768px) {
+            .text-2xl { font-size: 1.5rem; }
+            .text-xl { font-size: 1.125rem; }
+            .p-8 { padding: 1.5rem; }
+            .p-5 { padding: 1rem; }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-orange-50 via-white to-orange-50 min-h-screen">
+<body class="bg-slate-50 min-h-screen">
+
+    <!-- Mobile Menu Button -->
+    <button id="menu-btn" class="fixed top-4 left-4 z-50 lg:hidden bg-white rounded-full p-3 shadow-xl" style="border: 1px solid rgba(218,165,32,0.2);">
+        <i class="fa-solid fa-bars text-xl" style="color: #002147;"></i>
+    </button>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+    <!-- Success Toast -->
+    @if(session('success'))
+        <div class="fixed top-4 right-4 z-50 border px-6 py-4 rounded-xl shadow-xl text-sm font-medium flex items-center gap-3 toast" style="background: rgba(76,175,80,0.1); border-color: rgba(76,175,80,0.3); color: #4caf50;">
+            <i class="fa-solid fa-check-circle"></i>
+            {{ session('success') }}
+        </div>
+    @endif
 
     <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-full w-64 bg-white shadow-xl z-40 border-r border-orange-100">
-        <div class="p-5 border-b border-orange-100">
-            <h1 class="text-xl font-bold text-primary">Weru Hardware</h1>
-            <p class="text-[10px] text-gray-500 mt-0.5">Admin Dashboard</p>
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out" style="border-right: 1px solid rgba(218,165,32,0.2);">
+        <div class="p-6" style="border-bottom: 1px solid rgba(218,165,32,0.2);">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style="background: #002147;">
+                    <i class="fa-solid fa-hard-hat text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-900">Oweru<span style="color: rgb(218,165,32);">Hardware</span></h1>
+                    <p class="text-2xs text-gray-500">Admin Panel</p>
+                </div>
+            </div>
         </div>
-        
-        <nav class="p-4">
-            <a href="{{ route('adminDashboard') }}" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 hover:bg-orange-50 hover:text-primary transition-all mb-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                </svg>
-                <span class="text-xs font-medium">Dashboard</span>
+
+        <nav class="p-4 space-y-1">
+            <a href="{{ route('adminDashboard') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-gray-600 transition text-sm font-medium" style="color: #666;" onmouseover="this.style.backgroundColor='rgba(218,165,32,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                <i class="fa-solid fa-gauge-high w-5 h-5"></i> Dashboard
             </a>
-            <a href="{{ route('indexProduct') }}" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 hover:bg-orange-50 hover:text-primary transition-all mb-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                </svg>
-                <span class="text-xs font-medium">Products</span>
+            <a href="{{ route('indexProduct') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-gray-600 transition text-sm font-medium" style="color: #666;" onmouseover="this.style.backgroundColor='rgba(218,165,32,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                <i class="fa-solid fa-boxes-stacked w-5 h-5"></i> Products
             </a>
-            <a href="{{ route('indexCategory') }}" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary-dark text-white mb-1 shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                </svg>
-                <span class="text-xs font-medium">Categories</span>
+            <a href="{{ route('indexCategory') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-white shadow-md text-sm font-medium" style="background: #002147;">
+                <i class="fa-solid fa-tags w-5 h-5"></i> Categories
             </a>
-            <a href="/OrderManagement" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 hover:bg-orange-50 hover:text-primary transition-all mb-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                </svg>
-                <span class="text-xs font-medium">Orders</span>
+            <a href="/OrderManagement" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-gray-600 transition text-sm font-medium" style="color: #666;" onmouseover="this.style.backgroundColor='rgba(218,165,32,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                <i class="fa-solid fa-shopping-bag w-5 h-5"></i> Orders
             </a>
-            <a href="/user" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-gray-600 hover:bg-orange-50 hover:text-primary transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                </svg>
-                <span class="text-xs font-medium">Customers</span>
+            <a href="{{ route('user') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-gray-600 transition text-sm font-medium" style="color: #666;" onmouseover="this.style.backgroundColor='rgba(218,165,32,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                <i class="fa-solid fa-users w-5 h-5"></i> Customers
             </a>
         </nav>
 
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-orange-100">
-            <div class="flex items-center space-x-3 px-3">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white text-xs font-bold">
-                    A
+        <div class="absolute bottom-0 left-0 right-0 p-5 bg-gray-50" style="border-top: 1px solid rgba(218,165,32,0.2);">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow" style="background: #002147;">
+                    {{ auth()->check() ? strtoupper(substr(auth()->user()->name ?? 'A', 0, 2)) : 'AD' }}
                 </div>
-                <div class="flex-1">
-                    <p class="text-xs font-semibold text-gray-800">Admin User</p>
-                    <p class="text-[10px] text-gray-500">Administrator</p>
+                <div>
+                    <p class="font-semibold text-gray-800 text-sm">{{ auth()->check() ? Str::limit(auth()->user()->name, 15) : 'Admin' }}</p>
+                    <p class="text-2xs text-gray-500">Administrator</p>
                 </div>
             </div>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-64 min-h-screen">
-        <!-- Top Bar -->
-        <header class="bg-white shadow-sm border-b border-orange-100 sticky top-0 z-30">
-            <div class="flex items-center justify-between px-6 py-3">
+    <main class="lg:ml-72 min-h-screen">
+        <header class="bg-white sticky top-0 z-40 shadow-sm" style="border-bottom: 1px solid rgba(218,165,32,0.2);">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 lg:px-8 py-4 lg:py-5 gap-4">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-800">Add New Category</h2>
-                    <p class="text-[10px] text-gray-500">Create a new product category</p>
+                    <h2 class="text-lg lg:text-2xl font-bold text-gray-900">Add New Category</h2>
+                    <p class="text-xs lg:text-sm text-gray-500 mt-1">Create a new product category</p>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <a href="{{ route('indexCategory') }}" class="text-[10px] text-gray-600 hover:text-primary transition-colors font-medium">
-                        Back to Categories
+                <div class="flex items-center gap-4 flex-wrap">
+                    <a href="{{ route('indexCategory') }}" class="text-xs lg:text-sm font-medium text-gray-600 hover:text-gray-900">
+                        <i class="fa-solid fa-arrow-left mr-2"></i>Back to Categories
                     </a>
-                    <div class="h-6 w-px bg-gray-200"></div>
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
-                        <button type="submit" class="text-xs text-gray-600 hover:text-primary transition-colors font-medium">
-                            Logout
-                        </button>
+                        <button type="submit" class="text-xs lg:text-sm font-medium text-gray-600 hover:text-gray-900">Logout</button>
                     </form>
                 </div>
             </div>
         </header>
 
-        <div class="p-6 max-w-4xl mx-auto">
+        <div class="p-4 lg:p-8 max-w-4xl mx-auto">
+
             <!-- Breadcrumb -->
-            <div class="mb-6">
-                <div class="flex items-center space-x-2 text-[10px] text-gray-500">
-                    <a href="{{ route('adminDashboard') }}" class="hover:text-primary font-medium">Dashboard</a>
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                    <a href="{{ route('indexCategory') }}" class="hover:text-primary font-medium">Categories</a>
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                    <span class="text-primary font-semibold">Add New</span>
+            <div class="mb-6 lg:mb-8 text-xs lg:text-sm text-gray-500">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <a href="{{ route('adminDashboard') }}" class="hover:text-gray-900 font-medium">Dashboard</a>
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                    <a href="{{ route('indexCategory') }}" class="hover:text-gray-900 font-medium">Categories</a>
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                    <span style="color: #002147; font-weight: bold;">Add New</span>
                 </div>
             </div>
 
-            <!-- Success/Error Messages -->
-            @if(session('success'))
-            <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-xs font-medium animate-slide-in flex items-center space-x-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                <span>{{ session('success') }}</span>
-            </div>
-            @endif
-
+            <!-- Error Messages -->
             @if($errors->any())
-            <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium animate-slide-in">
-                <div class="flex items-center space-x-2 mb-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    <span class="font-bold">Please fix the following errors:</span>
+                <div class="mb-6 lg:mb-8 p-4 lg:p-5 rounded-lg lg:rounded-2xl text-red-700" style="background: rgba(211,47,47,0.1); border: 1px solid rgba(211,47,47,0.3);">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-circle-exclamation text-lg lg:text-xl"></i>
+                        <p class="font-bold text-sm lg:text-base">Please fix the following errors:</p>
+                    </div>
+                    <ul class="list-disc list-inside space-y-1 text-xs lg:text-sm">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
-                <ul class="list-disc list-inside space-y-1 text-[10px]">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
             @endif
 
             <!-- Form -->
-            <form method="POST" action="{{ route('createCategory') }}" class="space-y-4">
+            <form method="POST" action="{{ route('createCategory') }}" class="space-y-8">
                 @csrf
-                
-                <!-- Category Information -->
-                <div class="bg-white rounded-xl shadow-sm border border-orange-100 p-6">
-                    <div class="flex items-center space-x-3 mb-5">
-                        <div class="w-8 h-8 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                            </svg>
+
+                <!-- Category Details Card -->
+                <div class="bg-white rounded-lg lg:rounded-2xl shadow-sm p-5 lg:p-8" style="border: 1px solid rgba(218,165,32,0.2);">
+                    <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
+                        <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center shadow-lg" style="background: #002147;">
+                            <i class="fa-solid fa-tag text-white text-lg lg:text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-gray-900">Category Information</h3>
-                            <p class="text-[10px] text-gray-500">Basic category details</p>
+                            <h3 class="text-base lg:text-xl font-bold text-gray-900">Category Information</h3>
+                            <p class="text-xs lg:text-sm text-gray-500">Fill in the details below</p>
                         </div>
                     </div>
 
-                    <div class="space-y-4">
-                        <!-- Category Name -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                         <div>
-                            <label for="name" class="block text-[11px] font-bold text-gray-700 mb-2">
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">
                                 Category Name <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" id="name" name="name" value="{{ old('name') }}" required 
-                                class="w-full px-4 py-2.5 text-xs border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('name') border-red-300 @enderror"
-                                placeholder="e.g., Cement & Concrete">
+                            <input type="text" id="name" name="name" value="{{ old('name') }}" required
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm transition @error('name') border-red-400 @enderror"
+                                placeholder="e.g., Electrical Tools">
                             @error('name')
-                                <p class="mt-1 text-[10px] text-red-600">{{ $message }}</p>
+                                <p class="mt-2 text-xs text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Slug -->
                         <div>
-                            <label for="slug" class="block text-[11px] font-bold text-gray-700 mb-2">
-                                Category Slug <span class="text-red-500">*</span>
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">
+                                Slug <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" id="slug" name="slug" value="{{ old('slug') }}" required 
-                                class="w-full px-4 py-2.5 text-xs border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('slug') border-red-300 @enderror"
-                                placeholder="e.g., cement-concrete">
-                            <p class="text-[9px] text-gray-500 mt-1">URL-friendly version (auto-generated from name)</p>
-                            @error('slug')
-                                <p class="mt-1 text-[10px] text-red-600">{{ $message }}</p>
-                            @enderror
+                            <input type="text" id="slug" name="slug" value="{{ old('slug') }}" required
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm transition @error('slug') border-red-400 @enderror"
+                                placeholder="electrical-tools">
+                            <p class="text-2xs text-gray-500 mt-2">Auto-generated from name</p>
                         </div>
 
-                        <!-- Icon -->
                         <div>
-                            <label for="icon" class="block text-[11px] font-bold text-gray-700 mb-2">
-                                Icon (Optional)
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">
+                                Icon (Emoji or Class)
                             </label>
-                            <input type="text" id="icon" name="icon" value="{{ old('icon') }}"
-                                class="w-full px-4 py-2.5 text-xs border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('icon') border-red-300 @enderror"
-                                placeholder="e.g., 🏗️ or icon class name">
-                            <p class="text-[9px] text-gray-500 mt-1">Emoji or CSS icon class</p>
-                            @error('icon')
-                                <p class="mt-1 text-[10px] text-red-600">{{ $message }}</p>
-                            @enderror
+                            <input type="text" id="icon" name="icon" value="{{ old('icon', 'folder') }}"
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm transition"
+                                placeholder="e.g., tools or fa-screwdriver-wrench">
                         </div>
 
-                        <!-- Display Order -->
                         <div>
-                            <label for="order" class="block text-[11px] font-bold text-gray-700 mb-2">
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">
                                 Display Order
                             </label>
-                            <input type="number" id="order" name="order" value="{{ old('order', 0) }}" min="0"
-                                class="w-full px-4 py-2.5 text-xs border border-gray-200 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all @error('order') border-red-300 @enderror"
+                            <input type="number" name="order" value="{{ old('order', 0) }}" min="0"
+                                class="w-full px-4 lg:px-5 py-2 lg:py-3.5 rounded-lg lg:rounded-xl border border-gray-200 text-xs lg:text-sm transition"
                                 placeholder="0">
-                            <p class="text-[9px] text-gray-500 mt-1">Lower numbers appear first (default: 0)</p>
-                            @error('order')
-                                <p class="mt-1 text-[10px] text-red-600">{{ $message }}</p>
-                            @enderror
+                            <p class="text-2xs text-gray-500 mt-2">Lower = appears first</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Preview Card -->
-                <div class="bg-white rounded-xl shadow-sm border border-orange-100 p-6">
-                    <div class="flex items-center space-x-3 mb-4">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                            </svg>
+                <!-- Live Preview Card -->
+                <div class="bg-white rounded-lg lg:rounded-2xl shadow-sm p-5 lg:p-8" style="border: 1px solid rgba(218,165,32,0.2);">
+                    <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
+                        <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center shadow-lg" style="background: #002147;">
+                            <i class="fa-solid fa-eye text-white text-lg lg:text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-bold text-gray-900">Live Preview</h3>
-                            <p class="text-[10px] text-gray-500">See how it will look</p>
+                            <h3 class="text-base lg:text-xl font-bold text-gray-900">Live Preview</h3>
+                            <p class="text-xs lg:text-sm text-gray-500">How it will appear in the store</p>
                         </div>
                     </div>
-                    <div class="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center bg-gradient-to-br from-orange-50 to-white">
-                        <div class="inline-flex items-center space-x-3 px-5 py-3 bg-white rounded-lg shadow-sm border border-orange-100">
-                            <span id="previewIcon" class="text-2xl">📦</span>
-                            <span id="previewName" class="text-sm font-bold text-gray-800">Category Name</span>
+
+                    <div class="rounded-lg lg:rounded-2xl p-6 lg:p-12 text-center" style="background: #f5f5f5; border: 2px dashed rgba(218,165,32,0.3);">
+                        <div class="inline-flex items-center gap-3 lg:gap-5 px-6 lg:px-8 py-4 lg:py-6 bg-white rounded-lg lg:rounded-2xl shadow-lg" style="border: 2px solid rgba(218,165,32,0.2);">
+                            <span id="previewIcon" class="text-3xl lg:text-5xl">folder</span>
+                            <div class="text-left">
+                                <p id="previewName" class="text-base lg:text-2xl font-bold text-gray-800">Category Name</p>
+                                <p class="text-xs lg:text-sm text-gray-500 mt-1">0 products</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Form Actions -->
-                <div class="flex flex-col sm:flex-row gap-3 justify-end pt-2">
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row gap-3 lg:gap-4 justify-end pt-6 lg:pt-8">
                     <a href="{{ route('indexCategory') }}"
-                        class="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-50 transition text-center">
+                        class="px-6 lg:px-8 py-2 lg:py-4 bg-white text-gray-700 font-bold rounded-lg lg:rounded-xl transition text-center text-xs lg:text-sm"
+                        style="border: 1px solid rgba(0,33,71,0.2);">
                         Cancel
                     </a>
                     <button type="submit"
-                        class="px-8 py-2.5 bg-gradient-to-r from-primary to-primary-dark text-white text-xs font-bold rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all flex items-center space-x-2 justify-center">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        <span>Create Category</span>
+                        class="px-8 lg:px-10 py-3 lg:py-4 text-white font-bold rounded-lg lg:rounded-xl shadow-lg transition text-xs lg:text-sm flex items-center gap-2 lg:gap-3 justify-center"
+                        style="background: #002147;">
+                        <i class="fa-solid fa-plus"></i>
+                        Create Category
                     </button>
                 </div>
-
             </form>
         </div>
     </main>
 
-    <footer class="ml-64 bg-white border-t border-orange-100 py-4">
-        <div class="px-6 flex items-center justify-between">
-            <p class="text-[10px] text-gray-500">© 2024 Weru Hardware. All rights reserved.</p>
-            <div class="flex space-x-4">
-                <a href="#" class="text-[10px] text-gray-500 hover:text-primary transition-colors font-medium">Help Center</a>
-                <a href="#" class="text-[10px] text-gray-500 hover:text-primary transition-colors font-medium">Documentation</a>
-            </div>
-        </div>
-    </footer>
-
+    <!-- Scripts -->
     <script>
-        // Auto-generate slug from name
+        // Auto-generate slug
         document.getElementById('name').addEventListener('input', function(e) {
             const slug = e.target.value
                 .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-|-$/g, '');
+                .replace(/[^a-z0-9\s-]/g, '')
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-');
             document.getElementById('slug').value = slug;
-            
-            // Update preview
             document.getElementById('previewName').textContent = e.target.value || 'Category Name';
         });
 
         // Update icon preview
         document.getElementById('icon').addEventListener('input', function(e) {
-            const icon = e.target.value;
-            document.getElementById('previewIcon').textContent = icon || '📦';
+            const icon = e.target.value.trim();
+            const preview = document.getElementById('previewIcon');
+            if (icon && !icon.includes('fa-')) {
+                preview.textContent = icon;
+            } else {
+                preview.innerHTML = icon ? `<i class="fa-solid ${icon}"></i>` : 'folder';
+            }
+        });
+
+        // Mobile menu toggle
+        document.getElementById('menu-btn')?.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('mobile-overlay').classList.toggle('hidden');
+        });
+
+        document.getElementById('mobile-overlay')?.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('mobile-overlay').classList.add('hidden');
         });
     </script>
-
 </body>
 </html>

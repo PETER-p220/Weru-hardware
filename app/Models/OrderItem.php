@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderItem extends Model
 {
+    protected $table = 'order_items';
+    
     protected $fillable = [
         'order_id',
         'product_id',
@@ -16,10 +18,14 @@ class OrderItem extends Model
     ];
 
     protected $casts = [
+        'quantity' => 'integer',
         'price' => 'decimal:2',
         'subtotal' => 'decimal:2',
     ];
 
+    /**
+     * Relationships
+     */
     public function order()
     {
         return $this->belongsTo(Order::class);
@@ -30,3 +36,4 @@ class OrderItem extends Model
         return $this->belongsTo(Product::class);
     }
 }
+

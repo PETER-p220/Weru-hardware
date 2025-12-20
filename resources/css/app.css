@@ -1,3 +1,475 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ============================================================================
+   PROFESSIONAL MOBILE-FIRST STYLING SYSTEM
+   ============================================================================ */
+
+/* Professional Base Typography */
+@layer base {
+    /* Hero Typography */
+    h1 { @apply text-sm xs:text-base sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-tight transition-all duration-300; }
+    h2 { @apply text-xs xs:text-sm sm:text-xl md:text-2xl font-bold tracking-tight leading-snug transition-all duration-300; }
+    h3 { @apply text-2xs xs:text-xs sm:text-lg md:text-xl font-bold transition-all duration-300; }
+    h4 { @apply text-2xs xs:text-xs sm:text-base md:text-lg font-semibold transition-all duration-300; }
+    h5, h6 { @apply text-2xs xs:text-xs sm:text-sm md:text-base font-semibold transition-all duration-300; }
+    
+    /* Body Text */
+    p { @apply text-2xs xs:text-xs sm:text-sm md:text-base leading-relaxed transition-all duration-300; }
+    small { @apply text-2xs xs:text-2xs sm:text-xs md:text-sm transition-all duration-300; }
+    
+    /* Professional Link Styling */
+    a { @apply text-primary-600 hover:text-primary-700 font-medium transition-colors duration-200 relative; }
+    a::after { @apply content-[''] absolute bottom-0 left-0 w-0 h-0.5 bg-primary-600 transition-all duration-300 hover:w-full; }
+    
+    /* Code Block Styling */
+    code { @apply font-mono text-2xs xs:text-xs sm:text-sm px-1.5 xs:px-2 py-0.5 bg-gray-100 text-gray-800 rounded border border-gray-200; }
+}
+
+/* Professional Component Styling */
+@layer components {
+    /* Premium Button Variants */
+    .btn-premium { 
+        @apply inline-flex items-center gap-2 xs:gap-2.5 px-3 xs:px-4 sm:px-6 py-2 xs:py-2.5 sm:py-3 
+               text-xs xs:text-sm sm:text-base font-bold rounded-lg xs:rounded-xl sm:rounded-2xl 
+               shadow-md hover:shadow-lg active:shadow-inner transition-all duration-200 
+               touch-target border border-transparent;
+    }
+    
+    .btn-primary-premium {
+        @apply btn-premium bg-gradient-to-br from-primary-600 to-primary-700 text-white
+               hover:from-primary-700 hover:to-primary-800 active:from-primary-800 active:to-primary-900
+               focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 xs:focus:ring-offset-2;
+    }
+    
+    .btn-secondary-premium {
+        @apply btn-premium bg-white text-primary-600 border-2 border-primary-200
+               hover:bg-primary-50 hover:border-primary-300 active:bg-primary-100
+               focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 xs:focus:ring-offset-2;
+    }
+    
+    .btn-outline-premium {
+        @apply btn-premium bg-transparent border-2 border-gray-300 text-gray-700
+               hover:bg-gray-50 hover:border-gray-400 active:bg-gray-100
+               focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 xs:focus:ring-offset-2;
+    }
+    
+    /* Premium Input Styling */
+    .input-premium {
+        @apply w-full px-3 xs:px-4 sm:px-5 py-2 xs:py-2.5 sm:py-3 
+               text-xs xs:text-sm sm:text-base text-gray-900 placeholder-gray-400
+               border-2 border-gray-200 rounded-lg xs:rounded-xl
+               bg-white/80 backdrop-blur-sm
+               transition-all duration-200 touch-target
+               focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 
+               focus:bg-white focus:placeholder-gray-500
+               disabled:bg-gray-50 disabled:border-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed;
+    }
+    
+    /* Premium Textarea */
+    .textarea-premium {
+        @apply input-premium resize-none font-sans;
+    }
+    
+    /* Premium Select */
+    .select-premium {
+        @apply input-premium appearance-none bg-right pr-10 cursor-pointer
+               bg-no-repeat bg-contain;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    }
+    
+    /* Premium Card */
+    .card-premium {
+        @apply relative bg-white rounded-lg xs:rounded-xl sm:rounded-2xl 
+               border border-gray-100 shadow-sm hover:shadow-md
+               transition-all duration-300 overflow-hidden;
+    }
+    
+    .card-premium-elevated {
+        @apply card-premium shadow-md hover:shadow-xl bg-white/95 backdrop-blur-sm;
+    }
+    
+    /* Premium Label */
+    .label-premium {
+        @apply block text-2xs xs:text-xs sm:text-sm font-semibold text-gray-700
+               mb-1 xs:mb-1.5 sm:mb-2 transition-colors duration-200;
+    }
+    
+    /* Premium Badge */
+    .badge-premium {
+        @apply inline-flex items-center px-2 xs:px-2.5 sm:px-3 py-1 xs:py-1.5 sm:py-2
+               text-2xs xs:text-xs sm:text-sm font-bold rounded-full
+               border border-current transition-all duration-200;
+    }
+    
+    .badge-primary-premium {
+        @apply badge-premium bg-primary-100 text-primary-700 border-primary-200;
+    }
+    
+    .badge-success-premium {
+        @apply badge-premium bg-green-100 text-green-700 border-green-200;
+    }
+    
+    .badge-error-premium {
+        @apply badge-premium bg-red-100 text-red-700 border-red-200;
+    }
+    
+    /* Premium Alert */
+    .alert-premium {
+        @apply p-3 xs:p-4 sm:p-5 rounded-lg xs:rounded-xl sm:rounded-2xl
+               border-2 flex gap-3 items-start transition-all duration-200;
+    }
+    
+    .alert-primary-premium {
+        @apply alert-premium bg-blue-50/80 border-blue-200 text-blue-800;
+    }
+    
+    .alert-success-premium {
+        @apply alert-premium bg-green-50/80 border-green-200 text-green-800;
+    }
+    
+    .alert-error-premium {
+        @apply alert-premium bg-red-50/80 border-red-200 text-red-800;
+    }
+    
+    /* Premium Section */
+    .section-premium {
+        @apply px-3 xs:px-4 sm:px-6 lg:px-8 py-6 xs:py-8 sm:py-12 md:py-16;
+    }
+    
+    /* Touch Target Sizes */
+    .touch-target {
+        @apply min-h-11 min-w-11 xs:min-h-12 xs:min-w-12 md:min-h-10 md:min-w-10;
+    }
+    
+    /* Professional Divider */
+    .divider-premium {
+        @apply h-0.5 xs:h-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent;
+    }
+    
+    /* Premium Loading Skeleton */
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+    
+    .skeleton-premium {
+        @apply bg-gray-200 rounded-lg;
+        background: linear-gradient(90deg, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%);
+        background-size: 1000px 100%;
+        animation: shimmer 2s infinite;
+    }
+    
+    /* Professional Dropdown */
+    .dropdown-premium {
+        @apply absolute z-50 mt-2 xs:mt-2.5 sm:mt-3 min-w-max 
+               bg-white border-2 border-gray-200 rounded-lg xs:rounded-xl sm:rounded-2xl
+               shadow-lg opacity-0 invisible scale-95 
+               transition-all duration-200 origin-top
+               group-hover:opacity-100 group-hover:visible group-hover:scale-100;
+    }
+    
+    /* Professional Hover Effects */
+    .hover-lift {
+        @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+    }
+    
+    .hover-grow {
+        @apply transition-all duration-300 hover:scale-105;
+    }
+    
+    .hover-glow {
+        @apply transition-all duration-300 hover:shadow-glow;
+    }
+    
+    /* Professional Focus States */
+    .focus-premium {
+        @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 xs:focus:ring-offset-2
+               transition-all duration-200;
+    }
+    
+    /* Professional Grid */
+    .grid-premium {
+        @apply grid gap-3 xs:gap-4 sm:gap-6 md:gap-8;
+    }
+    
+    .grid-cols-premium {
+        @apply grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+    }
+    
+    /* Professional Container */
+    .container-premium {
+        @apply max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8;
+    }
+    
+    /* Professional Text Utilities */
+    .text-gradient {
+        @apply bg-gradient-to-r from-primary-600 via-blue-600 to-purple-600 bg-clip-text text-transparent;
+    }
+    
+    .text-shadow-premium {
+        @apply drop-shadow-md;
+    }
+}
+
+/* Professional Utilities */
+@layer utilities {
+    /* Responsive Spacing */
+    .px-mobile { @apply px-3 xs:px-4 sm:px-6 lg:px-8; }
+    .py-mobile { @apply py-2 xs:py-3 sm:py-4 md:py-6; }
+    .p-mobile { @apply p-3 xs:p-4 sm:p-6 md:p-8; }
+    .gap-mobile { @apply gap-2 xs:gap-3 sm:gap-4 md:gap-6; }
+    
+    /* Responsive Typography */
+    .text-mobile-sm { @apply text-2xs xs:text-xs sm:text-sm md:text-base; }
+    .text-mobile-base { @apply text-xs xs:text-sm sm:text-base md:text-lg; }
+    .text-mobile-lg { @apply text-sm xs:text-base sm:text-lg md:text-xl; }
+    
+    /* Visibility */
+    .hide-mobile { @apply hidden md:block; }
+    .show-mobile { @apply block md:hidden; }
+    
+    /* Professional Shadows */
+    .shadow-soft { @apply shadow-sm hover:shadow-md transition-shadow duration-200; }
+    .shadow-elevated { @apply shadow-lg hover:shadow-xl transition-shadow duration-200; }
+    .shadow-premium { @apply shadow-2xl hover:shadow-2xl transition-shadow duration-300; }
+    
+    /* Professional Borders */
+    .border-soft { @apply border border-gray-100 hover:border-gray-200 transition-colors duration-200; }
+    .border-premium { @apply border-2 border-primary-200 hover:border-primary-300 transition-colors duration-200; }
+    
+    /* Professional Transitions */
+    .transition-premium { @apply transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1); }
+    
+    /* Professional Opacity */
+    .opacity-hover { @apply opacity-80 hover:opacity-100 transition-opacity duration-200; }
+    
+    /* Professional Cursor */
+    .cursor-interactive { @apply cursor-pointer hover:opacity-80 transition-opacity duration-200; }
+}
+
+/* Professional Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+@layer utilities {
+    .animate-fade-in-up {
+        @apply animation-fade-in-up duration-500 ease-out;
+    }
+    
+    .animate-slide-in-right {
+        @apply animation-slide-in-right duration-500 ease-out;
+    }
+    
+    .animate-pulse-soft {
+        @apply animation-pulse-soft duration-2000 ease-in-out infinite;
+    }
+}
+
+/* ========== MOBILE-FIRST TYPOGRAPHY ========== */
+@layer base {
+    body {
+        @apply text-2xs xs:text-xs sm:text-sm md:text-base leading-tight;
+    }
+
+    h1 {
+        @apply text-sm xs:text-base sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight;
+    }
+
+    h2 {
+        @apply text-xs xs:text-sm sm:text-xl md:text-2xl lg:text-3xl font-bold leading-tight;
+    }
+
+    h3 {
+        @apply text-2xs xs:text-xs sm:text-lg md:text-xl lg:text-2xl font-semibold leading-snug;
+    }
+
+    h4 {
+        @apply text-2xs xs:text-2xs sm:text-base md:text-lg lg:text-xl font-semibold;
+    }
+
+    h5 {
+        @apply text-2xs xs:text-2xs sm:text-sm md:text-base lg:text-lg font-medium;
+    }
+
+    h6 {
+        @apply text-2xs xs:text-2xs sm:text-xs md:text-sm lg:text-base font-medium;
+    }
+
+    p {
+        @apply text-2xs xs:text-xs sm:text-sm md:text-base lg:text-lg;
+    }
+
+    small {
+        @apply text-2xs xs:text-2xs sm:text-xs md:text-sm lg:text-base;
+    }
+
+    strong {
+        @apply font-bold;
+    }
+}
+
+/* ========== MOBILE-OPTIMIZED FORM ELEMENTS ========== */
+@layer components {
+    /* Small screen button sizing */
+    .btn-sm-mobile {
+        @apply px-2 py-1.5 text-xs xs:text-sm sm:text-base md:px-4 md:py-2;
+    }
+
+    .btn-md-mobile {
+        @apply px-3 py-2 text-sm xs:text-base sm:text-base md:px-6 md:py-3 md:text-lg;
+    }
+
+    .btn-lg-mobile {
+        @apply px-4 py-2.5 text-base xs:text-lg sm:text-lg md:px-8 md:py-4 md:text-xl;
+    }
+
+    /* Small screen input sizing */
+    .input-sm-mobile {
+        @apply px-2 py-1.5 text-xs xs:text-sm sm:text-base md:px-3 md:py-2 md:text-base;
+    }
+
+    .input-md-mobile {
+        @apply px-3 py-2 text-sm xs:text-base md:px-4 md:py-2.5 md:text-base;
+    }
+
+    /* Small screen label sizing */
+    .label-sm-mobile {
+        @apply text-2xs xs:text-xs sm:text-sm md:text-base font-medium;
+    }
+
+    .label-md-mobile {
+        @apply text-xs xs:text-sm sm:text-base md:text-lg font-semibold;
+    }
+
+    /* Small screen card spacing */
+    .card-sm-mobile {
+        @apply p-3 xs:p-4 sm:p-6 md:p-8 rounded-lg xs:rounded-xl sm:rounded-2xl;
+    }
+
+    /* Small screen section padding */
+    .section-sm-mobile {
+        @apply px-4 xs:px-6 sm:px-8 md:px-12 py-4 xs:py-6 sm:py-8 md:py-12;
+    }
+
+    /* Small screen gap utilities */
+    .gap-sm-mobile {
+        @apply gap-2 xs:gap-3 sm:gap-4 md:gap-6;
+    }
+
+    /* Small screen grid adjustments */
+    .grid-sm-mobile {
+        @apply grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+    }
+
+    /* Small screen hero text */
+    .hero-sm-mobile {
+        @apply text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black;
+    }
+
+    /* Small screen feature card */
+    .feature-card-mobile {
+        @apply p-4 xs:p-5 sm:p-6 md:p-8 rounded-lg xs:rounded-xl sm:rounded-2xl;
+    }
+
+    /* Responsive touch targets (minimum 44x44 on mobile) */
+    .touch-target {
+        @apply min-h-11 min-w-11 xs:min-h-12 xs:min-w-12 md:min-h-10 md:min-w-10;
+    }
+
+    /* Small screen focus states for better mobile accessibility */
+    .focus-mobile {
+        @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 xs:focus:ring-offset-1;
+    }
+
+    /* Small screen spacing shortcuts */
+    .px-mobile {
+        @apply px-3 xs:px-4 sm:px-6 md:px-8;
+    }
+
+    .py-mobile {
+        @apply py-2 xs:py-3 sm:py-4 md:py-6;
+    }
+
+    .p-mobile {
+        @apply p-3 xs:p-4 sm:p-6 md:p-8;
+    }
+}
+
+/* ========== MOBILE-SPECIFIC BREAKPOINT UTILITIES ========== */
+@layer utilities {
+    /* Hide on small screens */
+    .hide-mobile {
+        @apply md:block hidden;
+    }
+
+    .hide-tablet {
+        @apply lg:block hidden md:block;
+    }
+
+    /* Show only on small screens */
+    .show-mobile {
+        @apply md:hidden block;
+    }
+
+    .show-tablet {
+        @apply md:block lg:hidden;
+    }
+
+    /* Text truncation for mobile */
+    .line-clamp-1-mobile {
+        @apply line-clamp-2 xs:line-clamp-2 md:line-clamp-1;
+    }
+
+    .line-clamp-2-mobile {
+        @apply line-clamp-3 xs:line-clamp-3 md:line-clamp-2;
+    }
+
+    .truncate-mobile {
+        @apply truncate;
+    }
+
+    /* Mobile-friendly spacing */
+    .mx-mobile {
+        @apply mx-2 xs:mx-3 sm:mx-4 md:mx-6;
+    }
+
+    .my-mobile {
+        @apply my-2 xs:my-3 sm:my-4 md:my-6;
+    }
+
+    /* Responsive opacity */
+    .opacity-mobile {
+        @apply opacity-90 xs:opacity-95 md:opacity-100;
+    }
+
+    /* Responsive shadow */
+    .shadow-mobile {
+        @apply shadow-sm xs:shadow md:shadow-lg;
+    }
+}
