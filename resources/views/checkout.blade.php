@@ -218,8 +218,8 @@
                                 <div class="flex items-center gap-3">
                                     <i class="fa-solid fa-map-location-dot text-2xl lg:text-3xl" style="color: rgb(218,165,32);"></i>
                                     <div>
-                                        <h4 class="text-sm lg:text-base font-bold text-gray-900">Select Your Delivery Location</h4>
-                                        <p class="text-xs lg:text-sm text-gray-600">Click on the map or use your current location</p>
+                                        <h4 class="text-sm lg:text-base font-bold text-gray-900">Select Your Delivery Location <span class="text-xs font-normal text-gray-500">(Optional)</span></h4>
+                                        <p class="text-xs lg:text-sm text-gray-600">Click on the map or use your current location for faster delivery</p>
                                     </div>
                                 </div>
                                 <button type="button" id="getLocationBtn" class="px-4 lg:px-6 py-2 lg:py-3 rounded-lg font-bold text-sm lg:text-base transition-all flex items-center gap-2 whitespace-nowrap" style="background: rgb(218,165,32); color: #002147;">
@@ -463,7 +463,7 @@ document.addEventListener('DOMContentLoaded', function() {
             reverseGeocode(event.latLng);
         });
         
-        // Try to get user's current location on load
+        // Try to get user's current location on load (non-blocking)
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 function(position) {
@@ -477,9 +477,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateLocationFields(userLocation.lat, userLocation.lng, position.coords.accuracy);
                     reverseGeocode(userLocation);
                 },
-                function() {
-                    // User denied or error - center on default
+                function(error) {
+                    // User denied or error - center on default (silent fail, not blocking)
                     placeMarker(defaultCenter);
+                    
+                    // Only show error if it's a timeout (user might want to know)
+                    if (error.code === error.TIMEOUT) {
+                        console.log('Location request timed out. You can still select location on the map.');
+                    }
+                },
+                {
+                    enableHighAccuracy: false, // Use faster, less accurate location
+                    timeout: 15000, // 15 seconds timeout
+                    maximumAge: 60000 // Accept cached location up to 1 minute old
                 }
             );
         } else {
@@ -617,9 +627,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Show loading state
-        showLocationStatus('loading', 'Getting your location...');
+        showLocationStatus('loading', 'Getting your location... Please wait, this may take up to 25 seconds.');
         getLocationBtn.disabled = true;
-        getLocationBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Getting Location...</span>';
+        getLocationBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span class="hidden md:inline">Getting Location...</span><span class="md:hidden">Loading...</span>';
 
         navigator.geolocation.getCurrentPosition(
             function(position) {
@@ -653,34 +663,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 locationSection.classList.add('location-success');
             },
             function(error) {
-                // Error
-                let errorMessage = 'Unable to get your location. ';
+                // Error - but location is optional, so don't block the user
+                let errorMessage = '';
+                let suggestion = 'Don\'t worry! You can still complete your order.';
                 
                 switch(error.code) {
                     case error.PERMISSION_DENIED:
-                        errorMessage += 'Please enable location permissions in your browser.';
+                        errorMessage = 'Location access denied. Please enable location permissions in your browser settings if you want automatic location detection.';
+                        suggestion = 'You can manually select your location by clicking anywhere on the map above.';
                         break;
                     case error.POSITION_UNAVAILABLE:
-                        errorMessage += 'Location information is unavailable.';
+                        errorMessage = 'Unable to determine your location. Your device location may be unavailable.';
+                        suggestion = 'You can manually select your location by clicking anywhere on the map above.';
                         break;
                     case error.TIMEOUT:
-                        errorMessage += 'Location request timed out.';
+                        errorMessage = 'Location request timed out. This may happen if your GPS signal is weak or if you\'re indoors.';
+                        suggestion = 'You can manually select your location by clicking anywhere on the map above, or click "Try Again" if you\'re in an area with better GPS signal.';
                         break;
                     default:
-                        errorMessage += 'An unknown error occurred.';
+                        errorMessage = 'Unable to get your location automatically.';
+                        suggestion = 'You can manually select your location by clicking anywhere on the map above.';
                 }
 
-                showLocationStatus('error', errorMessage);
+                // Show friendly error message (not blocking)
+                showLocationStatus('error', 
+                    '<div class="text-left">' +
+                    '<p class="font-semibold mb-2">' + errorMessage + '</p>' +
+                    '<p class="text-xs opacity-90 mt-1">💡 ' + suggestion + '</p>' +
+                    '<p class="text-xs opacity-75 mt-2 italic">Location is optional - you can still proceed with your order.</p>' +
+                    '</div>'
+                );
                 
                 // Reset button
                 getLocationBtn.disabled = false;
                 getLocationBtn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> <span class="hidden md:inline">Try Again</span><span class="md:hidden">Retry</span>';
                 locationSection.classList.add('location-error');
+                
+                // Make sure default location is set if map exists (user can still click to select)
+                if (map && !marker) {
+                    placeMarker(defaultCenter);
+                }
             },
             {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
+                enableHighAccuracy: false, // Use faster, less accurate location first
+                timeout: 25000, // 25 seconds timeout (increased for better success rate)
+                maximumAge: 120000 // Accept cached location up to 2 minutes old (faster response)
             }
         );
     });

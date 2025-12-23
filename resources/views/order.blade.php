@@ -275,10 +275,25 @@ $user = Auth::user();
                 <!-- Right Section -->
                 <div class="flex items-center gap-3 sm:gap-6">
                     <!-- Notification -->
-                    <button class="relative p-2 rounded-full transition hover:scale-110 hidden sm:block" style="background-color: rgba(218,165,32, 0.1);">
-                        <i class="fa-solid fa-bell text-lg" style="color: rgb(218,165,32);"></i>
-                        <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
-                    </button>
+                    <div class="relative hidden sm:inline-block">
+                        <button id="user-notif-bell" class="relative p-2 rounded-full transition inline-flex hover:scale-110" style="background-color: rgba(218,165,32, 0.1); color: rgb(218,165,32);">
+                            <i class="fa-regular fa-bell text-lg"></i>
+                            <span id="user-notif-badge" class="hidden absolute top-1 right-1 w-4 h-4 bg-red-600 text-[10px] text-white rounded-full flex items-center justify-center font-bold"></span>
+                        </button>
+                        <div id="user-notif-panel" class="hidden absolute right-0 mt-3 w-80 max-w-sm z-40">
+                            <div class="bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden">
+                                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                                    <p class="text-sm font-semibold text-gray-900">Notifications</p>
+                                    <button type="button" id="user-notif-clear" class="text-xs text-gray-500 hover:text-gray-700">Clear</button>
+                                </div>
+                                <div id="user-notif-list" class="max-h-72 overflow-y-auto">
+                                    <div class="px-4 py-4 text-sm text-gray-500 text-center">
+                                        No notifications yet.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- User Section -->
                     @if($user)
@@ -504,14 +519,14 @@ $user = Auth::user();
                                     </td>
                                     <td class="px-6 py-5">
                                         <p class="font-bold text-lg" style="color: #002147;">TZS {{ number_format($order->total_amount, 0) }}</p>
-                                        <p class="text-xs text-gray-500">{{ $order->items_count ?? '1' }} item(s)</p>
+                                        <p class="text-xs text-gray-500">{{ $order->orderItems->sum('quantity') ?? $order->orderItems->count() }} item(s)</p>
                                     </td>
                                     <td class="px-6 py-5 text-center">
                                         <div class="flex gap-2 justify-center">
-                                            <a href="#" title="View Details" class="p-2 rounded-lg transition hover:bg-blue-50">
+                                            <a href="{{ route('order.show', $order) }}" title="View Details" class="p-2 rounded-lg transition hover:bg-blue-50">
                                                 <i class="fa-solid fa-eye text-lg" style="color: #002147;"></i>
                                             </a>
-                                            <a href="#" title="Download Invoice" class="p-2 rounded-lg transition hover:bg-blue-50">
+                                            <a href="{{ route('order.invoice', $order) }}" title="Download Invoice" class="p-2 rounded-lg transition hover:bg-blue-50">
                                                 <i class="fa-solid fa-download text-lg" style="color: #666666;"></i>
                                             </a>
                                         </div>
@@ -557,15 +572,15 @@ $user = Auth::user();
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-xs font-bold text-gray-600 uppercase">Items</span>
-                                    <p class="text-sm font-medium text-gray-700">{{ $order->items_count ?? '1' }} item(s)</p>
+                                    <p class="text-sm font-medium text-gray-700">{{ $order->orderItems->sum('quantity') ?? $order->orderItems->count() }} item(s)</p>
                                 </div>
                             </div>
 
                             <div class="flex gap-2">
-                                <a href="#" class="flex-1 py-2 px-4 bg-blue-50 text-center rounded-lg font-medium text-sm transition hover:bg-blue-100" style="color: #002147;">
+                                <a href="{{ route('order.show', $order) }}" class="flex-1 py-2 px-4 bg-blue-50 text-center rounded-lg font-medium text-sm transition hover:bg-blue-100" style="color: #002147;">
                                     <i class="fa-solid fa-eye mr-2"></i>Details
                                 </a>
-                                <a href="#" title="Download" class="py-2 px-4 rounded-lg font-medium text-sm transition hover:bg-gray-100" style="background-color: #f5f5f5; color: #666666;">
+                                <a href="{{ route('order.invoice', $order) }}" title="Download" class="py-2 px-4 rounded-lg font-medium text-sm transition hover:bg-gray-100" style="background-color: #f5f5f5; color: #666666;">
                                     <i class="fa-solid fa-download"></i>
                                 </a>
                             </div>
@@ -777,6 +792,138 @@ $user = Auth::user();
             document.body.style.transition = 'opacity 0.3s ease';
             document.body.style.opacity = '1';
         });
+
+        // =========================================================================
+        // Live Order Status Notification on Orders Page (same as dashboard)
+        // =========================================================================
+        (function() {
+            const bell    = document.getElementById('user-notif-bell');
+            const badge   = document.getElementById('user-notif-badge');
+            const panel   = document.getElementById('user-notif-panel');
+            const listEl  = document.getElementById('user-notif-list');
+            const clearEl = document.getElementById('user-notif-clear');
+
+            if (!bell || !badge || !panel || !listEl || !clearEl) return;
+
+            const seenOrderIds   = new Set();
+            const orderStatusMap = {};
+            let firstLoad = true;
+
+            function statusLabel(str) {
+                if (!str) return '';
+                str = String(str);
+                return str.charAt(0).toUpperCase() + str.slice(1);
+            }
+
+            function addNotification(order, oldStatus) {
+                if (!order) return;
+
+                // Reset "no notifications" placeholder
+                if (listEl.children.length === 1 && listEl.children[0].textContent.includes('No notifications')) {
+                    listEl.innerHTML = '';
+                }
+
+                const item = document.createElement('div');
+                item.className = 'px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition';
+                item.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div class="mt-0.5 text-green-600">
+                            <i class="fa-solid fa-circle text-[8px]"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-semibold text-gray-900">
+                                Order #${order.order_number ?? ('ID ' + order.id)} status updated
+                            </p>
+                            <p class="text-xs text-gray-600 mt-0.5">
+                                ${oldStatus ? statusLabel(oldStatus) + ' → ' : ''}<span class="font-semibold">${statusLabel(order.status)}</span>
+                            </p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">
+                                Total: TZS ${Number(order.total_amount).toLocaleString('en-US')}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                listEl.prepend(item);
+
+                // Show badge
+                badge.textContent = '1';
+                badge.classList.remove('hidden');
+
+                // Auto-open panel on first notification
+                if (panel.classList.contains('hidden')) {
+                    panel.classList.remove('hidden');
+                }
+            }
+
+            async function checkOrderStatus() {
+                try {
+                    const response = await fetch('{{ route('user.orders.latest') }}', {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!response.ok) return;
+
+                    const data = await response.json();
+
+                    if (Array.isArray(data.orders)) {
+                        if (firstLoad) {
+                            // On first load, show ALL orders as notifications
+                            listEl.innerHTML = '';
+                            data.orders.forEach(o => {
+                                if (!o?.id) return;
+                                addNotification(o, null);
+                                seenOrderIds.add(o.id);
+                                orderStatusMap[o.id] = (o.status || '').toLowerCase();
+                            });
+                            firstLoad = false;
+                            return;
+                        }
+
+                        // Subsequent polls: only new orders or status changes
+                        data.orders.forEach(o => {
+                            if (!o?.id) return;
+
+                            if (!seenOrderIds.has(o.id)) {
+                                addNotification(o, null);
+                                seenOrderIds.add(o.id);
+                                orderStatusMap[o.id] = (o.status || '').toLowerCase();
+                                return;
+                            }
+
+                            const currentStatus = (o.status || '').toLowerCase();
+                            const prevStatus    = orderStatusMap[o.id];
+                            if (prevStatus && currentStatus && currentStatus !== prevStatus) {
+                                addNotification(o, prevStatus);
+                                orderStatusMap[o.id] = currentStatus;
+                            }
+                        });
+                    }
+                } catch (e) {
+                    // Silent fail; will retry on next interval
+                }
+            }
+
+            // Toggle panel on bell click
+            bell.addEventListener('click', () => {
+                panel.classList.toggle('hidden');
+                if (!panel.classList.contains('hidden')) {
+                    badge.classList.add('hidden');
+                }
+            });
+
+            // Clear notifications
+            clearEl.addEventListener('click', () => {
+                listEl.innerHTML = `
+                    <div class="px-4 py-4 text-sm text-gray-500 text-center">
+                        No notifications yet.
+                    </div>
+                `;
+                badge.classList.add('hidden');
+            });
+
+            // Initial check and polling every 10 seconds
+            setTimeout(checkOrderStatus, 2000);
+            setInterval(checkOrderStatus, 10000);
+        })();
     </script>
 </body>
 </html>

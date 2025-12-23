@@ -253,7 +253,6 @@
     </style>
 </head>
 <body class="bg-slate-50 antialiased">
-
     <!-- Success Notification -->
     @if(session('success'))
         <div id="cart-notification" class="fixed top-20 right-4 z-50 bg-green-600 text-white px-6 py-4 rounded-lg shadow-2xl transform transition-all duration-300 opacity-100 translate-y-0 animate-fade-in">
@@ -271,7 +270,6 @@
             }, 2500);
         </script>
     @endif
-
     <!-- Navigation -->
     <header class="sticky top-0 z-50 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -307,7 +305,6 @@
                             <i class="fa-solid fa-sign-in-alt"></i>Sign In
                         </a>
                     @endguest
-
                     <!-- Cart Button -->
                     <a href="{{ route('cart') }}" class="relative inline-flex items-center gap-2 px-4 lg:px-5 py-2.5 lg:py-3 rounded-lg font-bold text-xs lg:text-sm transition hover:shadow-lg transform hover:scale-105" style="background: rgb(218,165,32); color: #000000;">
                         <i class="fa-solid fa-shopping-cart"></i>
@@ -316,7 +313,6 @@
                             {{ \App\Models\Cart::current()->totalItems() }}
                         </span>
                     </a>
-
                     <!-- Mobile Menu Toggle -->
                     <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-lg transition hover:scale-110" style="background: rgba(218,165,32, 0.1);">
                         <i class="fa-solid fa-bars text-xl" style="color: rgb(218,165,32);"></i>
@@ -325,7 +321,6 @@
             </div>
         </div>
     </header>
-
     <!-- Hero Section -->
     <div class="hero-section py-12 lg:py-16 text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -349,18 +344,14 @@
             </div>
         </div>
     </div>
-
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-
             <!-- Sidebar -->
             <aside class="lg:col-span-1">
                 <button onclick="toggleSidebar()" class="lg:hidden w-full flex items-center justify-center gap-2 mb-4 px-4 py-3 bg-gold text-white rounded-xl font-bold shadow-lg hover:bg-gold-dark transition">
                     Filter Categories
                 </button>
-
                 <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
-
                 <div id="category-sidebar" class="fixed top-0 right-0 h-full w-80 bg-slate-900 p-6 shadow-2xl transform translate-x-full transition-transform duration-300 z-50 lg:relative lg:translate-x-0 lg:w-full lg:rounded-2xl lg:border lg:border-slate-900 lg:sticky lg:top-24 overflow-y-auto">
                     <div class="flex justify-between items-center mb-8 lg:hidden">
                         <h3 class="text-xl font-bold text-white">Categories</h3>
@@ -368,7 +359,6 @@
                             X
                         </button>
                     </div>
-
                     <div class="space-y-3 bg-slate-900 ">
                         <a href="{{ route('products') }}"
                            class="flex items-center justify-between p-4 rounded-xl transition-all {{ !request('category') ? 'bg-slate-800 text-white shadow-lg font-bold' : 'hover:bg-red-800 text-slate-100' }}">
@@ -379,7 +369,6 @@
                                 {{ $totalProducts ?? 0 }}
                             </span>
                         </a>
-
                         @foreach(\App\Models\Categories::withCount('products')->orderBy('name')->get() as $category)
                             <a href="{{ route('products', ['category' => $category->slug]) }}"
                                class="flex items-center justify-between p-4 rounded-xl transition-all {{ request('category') === $category->slug ? 'bg-amber-600 text-slate-900 shadow-lg font-bold' : 'hover:bg-slate-800 text-slate-100' }}">
@@ -390,7 +379,6 @@
                             </a>
                         @endforeach
                     </div>
-
                     <div class="mt-8 pt-6 border-t border-slate-800">
                         <h4 class="text-sm font-bold text-slate-100 mb-4">Quick Stats</h4>
                         <div class="space-y-3 text-sm">
@@ -406,7 +394,6 @@
                     </div>
                 </div>
             </aside>
-
             <!-- Main Content -->
             <section class="lg:col-span-3">
                 <!-- Search Bar -->
@@ -417,7 +404,9 @@
                         @endif
                         <div class="flex gap-3 search-focus rounded-xl bg-slate">
                             <div class="relative flex-1">
-                               
+                                <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
+                                </div>
                                 <input type="search" name="search" value="{{ request('search') }}"
                                        placeholder="Search cement, steel, paint, roofing..."
                                        class="w-full pl-12 pr-4 py-4 bg-slate-800 border border-slate-700 rounded-xl text-base text-white placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition">
@@ -428,18 +417,16 @@
                         </div>
                     </form>
                 </div>
-
                 <!-- Results Info -->
                 <div class="mb-6 flex items-center justify-between">
                     <p class="text-slate-100">
                         Showing <strong class="text-white">{{ $products->count() }}</strong> of {{ $totalProducts ?? 0 }} products
                     </p>
                 </div>
-
                 <!-- Products Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                     @forelse($products as $product)
-                        <article class="product-card bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 shadow-lg hover:shadow-2xl">
+                        <article class="product-card bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-lg hover:shadow-2xl">
                             <div class="relative aspect-square bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
                                 @if($product->image)
                                     <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
@@ -448,7 +435,6 @@
                                         <i class="fa-solid fa-box text-6xl text-slate-700"></i>
                                     </div>
                                 @endif
-
                                 <!-- Stock Badge -->
                                 <div class="absolute top-4 left-4">
                                     @if($product->stock > 0)
@@ -462,29 +448,24 @@
                                         </span>
                                     @endif
                                 </div>
-
                                 @if($product->min_order > 1)
                                     <div class="absolute top-4 right-4 px-3 py-1.5 bg-yellow-500 text-slate-900 text-xs font-bold rounded-full shadow-lg">
                                         Min: {{ $product->min_order }}
                                     </div>
                                 @endif
                             </div>
-
                             <div class="p-6">
                                 <div class="mb-3">
                                     <span class="inline-block px-3 py-1 bg-slate-800 text-yellow-400 text-xs font-bold rounded-full">
                                         {{ $product->category?->name ?? 'Uncategorized' }}
                                     </span>
                                 </div>
-
                                 <h3 class="text-xl font-black text-white mb-2 line-clamp-2">
                                     {{ $product->name }}
                                 </h3>
-
                                 <p class="text-sm text-slate-200 mb-4 line-clamp-2">
                                     {{ Str::limit($product->description, 90) }}
                                 </p>
-
                                 <!-- Price Section -->
                                 <div class="mb-6">
                                     <div class="flex items-baseline gap-3">
@@ -503,7 +484,6 @@
                                         </span>
                                     @endif
                                 </div>
-
                                 <!-- Add to Cart Button -->
                                 <div class="flex gap-3">
                                     @if($product->stock > 0)
@@ -519,8 +499,7 @@
                                             Out of Stock
                                         </button>
                                     @endif
-
-                                    <a href="{{ route('show', $product->slug ?? $product->id) }}" class="p-4 bg-amber-600 rounded-xl hover:bg-yellow-400 transition text-slate-900 font-bold">
+                                    <a href="{{ route('show', $product) }}" class="p-4 bg-amber-600 rounded-xl hover:bg-yellow-400 transition text-slate-900 font-bold">
                                         View
                                     </a>
                                 </div>
@@ -539,7 +518,6 @@
                         </div>
                     @endforelse
                 </div>
-
                 <!-- Pagination -->
                 @if($products->hasPages())
                     <div class="mt-12">
@@ -549,8 +527,7 @@
             </section>
         </div>
     </main>
-
-    <footer class="bg-slate-950 text-slate-200 py-12 mt-20 border-t border-slate-800">
+    <footer class="bg-slate-900 text-slate-200 py-12 mt-20 border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-6 text-center">
             <p class="text-xl font-bold text-white mb-2">Oweru Hardware</p>
             <p class="text-lg text-slate-300">Tanzania's #1 Building Materials Supplier • Fast Delivery Nationwide</p>

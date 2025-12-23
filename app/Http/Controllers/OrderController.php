@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -77,7 +78,7 @@ public function show()
     // Paginate orders with relationships
     $orders = Order::with(['user', 'orderItems.product'])
         ->orderBy('created_at', 'desc')
-        ->paginate(5);
+        ->paginate(10);
 
     // Stats - Revenue: Sum of total_amount for paid orders only (actual revenue received)
     $revenue = Order::where('payment_status', 'paid')->sum('total_amount') ?? 0;
@@ -138,5 +139,44 @@ public function show()
     {
         $order->delete();
         return back()->with('success', "Order #{$order->id} has been deleted permanently.");
+    }
+
+    /**
+     * Show order details for the authenticated user
+     */
+    public function showUserOrder(Order $order)
+    {
+        // Ensure the order belongs to the authenticated user
+        if ($order->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized access to this order.');
+        }
+
+        // Eager load relationships
+        $order->load(['orderItems.product', 'user']);
+
+        return view('orderDetail', compact('order'));
+    }
+
+    /**
+     * Download/View invoice for an order as PDF
+     */
+    public function downloadInvoice(Order $order)
+    {
+        // Ensure the order belongs to the authenticated user
+        if ($order->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized access to this order.');
+        }
+
+        // Eager load relationships
+        $order->load(['orderItems.product', 'user']);
+
+        // Generate PDF
+        $pdf = Pdf::loadView('invoice', compact('order'));
+        
+        // Set paper size and orientation
+        $pdf->setPaper('a4', 'portrait');
+        
+        // Download the PDF with a proper filename
+        return $pdf->download('invoice-' . $order->order_number . '.pdf');
     }
 }

@@ -119,6 +119,11 @@
             <a href="{{ route('ads') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
                 <i class="fa-solid fa-bullhorn w-5"></i> Advertisements
             </a>
+            <a href="{{ route('contact.messages') }}" class="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100 rounded-xl transition touch-feedback">
+                <i class="fa-solid fa-envelope w-5"></i>
+                <span>Contact Messages</span>
+            </a>
+
         </nav>
 
         <div class="absolute bottom-0 left-0 right-0 p-5 border-t border-slate-200 bg-slate-50">

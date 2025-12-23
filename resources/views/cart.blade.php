@@ -205,6 +205,7 @@
                                     @if($item['image'])
                                         <img src="{{ asset('storage/'.$item['image']) }}" alt="{{ $item['name'] }}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
                                     @else
+                                    
                                         <div class="w-full h-full flex items-center justify-center">
                                             <i class="fa-solid fa-box text-4xl lg:text-5xl text-gray-400"></i>
                                         </div>

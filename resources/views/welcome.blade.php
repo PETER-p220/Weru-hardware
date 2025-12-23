@@ -267,7 +267,7 @@ use App\Models\Categories;
                             </div>
                             <div>
                                 <strong class="text-gray-900 block mb-1">Our Location</strong>
-                                <p class="text-gray-600">Kisutu Street, Dar es Salaam<br>Tanzania</p>
+                                <p class="text-gray-600">Tancot House, Posta-Dar es Salaam<br>Tanzania <br>P.O. Box: 7563,Dar es Salaam</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-4 p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition">
@@ -276,7 +276,7 @@ use App\Models\Categories;
                             </div>
                             <div>
                                 <strong class="text-gray-900 block mb-1">Phone</strong>
-                                <p class="text-gray-600">+255 123 456 789<br>+255 987 654 321</p>
+                                <p class="text-gray-600">+255 711 890 764</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-4 p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition">
@@ -285,8 +285,8 @@ use App\Models\Categories;
                             </div>
                             <div>
                                 <strong class="text-gray-900 block mb-1">Email</strong>
-                                <p class="text-gray-600">info@weruhardware.co.tz<br>sales@weruhardware.co.tz</p>
-                            </div>
+                                <a href="mailto:info@oweru.com" class="text-gray-600">info@oweru.com</a>
+                                </div>
                         </div>
                         <div class="flex items-start gap-4 p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition">
                             <div class="w-12 h-12 bg-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -294,7 +294,7 @@ use App\Models\Categories;
                             </div>
                             <div>
                                 <strong class="text-gray-900 block mb-1">Business Hours</strong>
-                                <p class="text-gray-600">Monday - Friday: 8:00 AM - 6:00 PM<br>Saturday: 8:00 AM - 4:00 PM<br>Sunday: Closed</p>
+                                <p class="text-gray-600">Monday - Saturday: 8:00 AM - 17:00 PM<br>Sunday: Closed</p>
                             </div>
                         </div>
                     </div>
@@ -302,33 +302,56 @@ use App\Models\Categories;
 
                 <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100">
                     <h3 class="text-2xl font-bold text-gray-900 mb-6">Send Us a Message</h3>
-                    <form class="space-y-6">
+
+                    @if(session('success'))
+                        <div class="mb-4 rounded-xl border border-green-200 bg-green-50 text-green-800 px-4 py-3 flex items-start gap-3">
+                            <i class="fa-solid fa-check-circle mt-0.5"></i>
+                            <span class="flex-1 text-sm font-semibold">{{ session('success') }}</span>
+                            <button type="button" onclick="this.parentElement.remove();" class="text-green-500 hover:text-green-700">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 text-red-800 px-4 py-3">
+                            <p class="font-semibold text-sm mb-2">Please fix the errors below:</p>
+                            <ul class="list-disc list-inside text-sm space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form class="space-y-6" method="POST" action="{{ route('contact.submit') }}">
+                        @csrf
                         <div>
                             <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
-                            <input type="text" id="name" required placeholder="Your name" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-600 focus:outline-none transition">
+                            <input type="text" id="name" name="name" required value="{{ old('name') }}" placeholder="Your name" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-600 focus:outline-none transition">
                         </div>
                         <div>
                             <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
-                            <input type="email" id="email" required placeholder="your@email.com" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-600 focus:outline-none transition">
+                            <input type="email" id="email" name="email" required value="{{ old('email') }}" placeholder="your@email.com" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-600 focus:outline-none transition">
                         </div>
                         <div>
                             <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                            <input type="tel" id="phone" placeholder="+255 XXX XXX XXX" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-600 focus:outline-none transition">
+                            <input type="tel" id="phone" name="phone" value="{{ old('phone') }}" placeholder="+255 XXX XXX XXX" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-600 focus:outline-none transition">
                         </div>
                         <div>
                             <label for="subject" class="block text-sm font-semibold text-gray-700 mb-2">Subject *</label>
-                            <select id="subject" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-600 focus:outline-none transition">
+                            <select id="subject" name="subject" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-600 focus:outline-none transition">
                                 <option value="">Select a subject</option>
-                                <option value="quote">Request a Quote</option>
-                                <option value="product">Product Inquiry</option>
-                                <option value="delivery">Delivery Question</option>
-                                <option value="support">Customer Support</option>
-                                <option value="other">Other</option>
+                                <option value="Request a Quote" {{ old('subject') === 'Request a Quote' ? 'selected' : '' }}>Request a Quote</option>
+                                <option value="Product Inquiry" {{ old('subject') === 'Product Inquiry' ? 'selected' : '' }}>Product Inquiry</option>
+                                <option value="Delivery Question" {{ old('subject') === 'Delivery Question' ? 'selected' : '' }}>Delivery Question</option>
+                                <option value="Customer Support" {{ old('subject') === 'Customer Support' ? 'selected' : '' }}>Customer Support</option>
+                                <option value="Other" {{ old('subject') === 'Other' ? 'selected' : '' }}>Other</option>
                             </select>
                         </div>
                         <div>
                             <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">Message *</label>
-                            <textarea id="message" required placeholder="Tell us about your project or inquiry..." rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-600 focus:outline-none transition resize-none"></textarea>
+                            <textarea id="message" name="message" required placeholder="Tell us about your project or inquiry..." rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-amber-600 focus:outline-none transition resize-none">{{ old('message') }}</textarea>
                         </div>
                         <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition transform hover:scale-[1.02]">
                             Send Message <i class="fa-solid fa-paper-plane ml-2"></i>

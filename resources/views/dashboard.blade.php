@@ -22,6 +22,7 @@ $memberSince = $user->created_at?->format('M Y') ?? 'Unknown';
 
 $recentOrders = $userOrders->take(3)->map(function ($order) {
     return [
+        'id' => $order->id,
         'number' => $order->order_number,
         'status' => ucfirst($order->status),
         'amount' => number_format($order->total_amount),
@@ -181,10 +182,25 @@ $savedAddressesCount = 3; // Replace with real count later
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
 
-                <button class="relative p-2 rounded-full transition hidden md:inline-flex" style="background: rgba(218,165,32, 0.1); color: rgb(218,165,32);">
-                    <i class="fa-regular fa-bell text-lg"></i>
-                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-                </button>
+                <div class="relative hidden md:inline-block">
+                    <button id="user-notif-bell" class="relative p-2 rounded-full transition inline-flex" style="background: rgba(218,165,32, 0.1); color: rgb(218,165,32);">
+                        <i class="fa-regular fa-bell text-lg"></i>
+                        <span id="user-notif-badge" class="hidden absolute top-1 right-1 w-4 h-4 bg-red-600 text-[10px] text-white rounded-full flex items-center justify-center font-bold badge-pulse"></span>
+                    </button>
+                    <div id="user-notif-panel" class="hidden absolute right-0 mt-3 w-80 max-w-sm z-40">
+                        <div class="bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden">
+                            <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                                <p class="text-sm font-semibold text-gray-900">Notifications</p>
+                                <button type="button" id="user-notif-clear" class="text-xs text-gray-500 hover:text-gray-700">Clear</button>
+                            </div>
+                            <div id="user-notif-list" class="max-h-72 overflow-y-auto">
+                                <div class="px-4 py-4 text-sm text-gray-500 text-center">
+                                    No notifications yet.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="hidden md:flex items-center gap-2 lg:gap-4 px-3 py-1.5 rounded-lg" style="background: rgba(218,165,32, 0.1);">
                     <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style="background: rgb(218,165,32); color: #000000;">
@@ -285,22 +301,40 @@ $savedAddressesCount = 3; // Replace with real count later
 
                 <div class="divide-y divide-gray-100">
                     @foreach($recentOrders as $order)
-                        <a href="{{ url('order/' . $order['number']) }}" class="block p-6 transition hover:bg-gray-50" style="background: rgba(218,165,32, 0.02);">
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                <div>
-                                    <div class="flex items-center gap-3 mb-1 flex-wrap">
-                                        <span class="font-bold text-lg text-gray-900">#{{ $order['number'] }}</span>
-                                        <span class="px-3 py-1 text-xs font-bold rounded-full {{ $order['statusClass'] }}">
-                                            {{ $order['status'] }}
-                                        </span>
+                        @if(isset($order['id']))
+                            <a href="{{ route('order.show', $order['id']) }}" class="block p-6 transition hover:bg-gray-50" style="background: rgba(218,165,32, 0.02);">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                    <div>
+                                        <div class="flex items-center gap-3 mb-1 flex-wrap">
+                                            <span class="font-bold text-lg text-gray-900">#{{ $order['number'] }}</span>
+                                            <span class="px-3 py-1 text-xs font-bold rounded-full {{ $order['statusClass'] }}">
+                                                {{ $order['status'] }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="text-left sm:text-right">
+                                        <p class="font-bold text-lg sm:text-xl text-gray-900">TZS {{ $order['amount'] }}</p>
+                                        <span class="text-sm font-medium transition hover:scale-105" style="color: rgb(218,165,32);">View Details →</span>
                                     </div>
                                 </div>
-                                <div class="text-left sm:text-right">
-                                    <p class="font-bold text-lg sm:text-xl text-gray-900">TZS {{ $order['amount'] }}</p>
-                                    <span class="text-sm font-medium transition hover:scale-105" style="color: rgb(218,165,32);">View Details →</span>
+                            </a>
+                        @else
+                            <div class="block p-6" style="background: rgba(218,165,32, 0.02);">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                    <div>
+                                        <div class="flex items-center gap-3 mb-1 flex-wrap">
+                                            <span class="font-bold text-lg text-gray-900">#{{ $order['number'] }}</span>
+                                            <span class="px-3 py-1 text-xs font-bold rounded-full {{ $order['statusClass'] }}">
+                                                {{ $order['status'] }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="text-left sm:text-right">
+                                        <p class="font-bold text-lg sm:text-xl text-gray-900">TZS {{ $order['amount'] }}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </a>
+                        @endif
                     @endforeach
                 </div>
             </div>
@@ -358,7 +392,7 @@ $savedAddressesCount = 3; // Replace with real count later
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <h3 class="text-2xl sm:text-3xl font-black text-gray-900">Active Order Tracking</h3>
             @if($latestOrder)
-                <a href="{{ url('order/' . $latestOrderNumber) }}" class="text-sm font-medium transition hover:scale-105 w-fit" style="color: rgb(218,165,32);">
+                <a href="{{ route('order.show', $latestOrder->id) }}" class="text-sm font-medium transition hover:scale-105 w-fit" style="color: rgb(218,165,32);">
                     View Order #{{$latestOrderNumber}} →
                 </a>
             @endif
@@ -523,6 +557,136 @@ $savedAddressesCount = 3; // Replace with real count later
         document.body.style.transition = 'opacity 0.3s ease';
         document.body.style.opacity = '1';
     });
+
+    // =========================================================================
+    // Live Order Status Notification for User Dashboard
+    // =========================================================================
+    (function() {
+        const bell    = document.getElementById('user-notif-bell');
+        const badge   = document.getElementById('user-notif-badge');
+        const panel   = document.getElementById('user-notif-panel');
+        const listEl  = document.getElementById('user-notif-list');
+        const clearEl = document.getElementById('user-notif-clear');
+
+        if (!bell || !badge || !panel || !listEl || !clearEl) return;
+
+        const seenOrderIds   = new Set();
+        const orderStatusMap = {};
+        let firstLoad = true;
+
+        function statusLabel(str) {
+            if (!str) return '';
+            str = String(str);
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function addNotification(order, oldStatus) {
+            if (!order) return;
+
+            // Reset "no notifications" placeholder
+            if (listEl.children.length === 1 && listEl.children[0].textContent.includes('No notifications')) {
+                listEl.innerHTML = '';
+            }
+
+            const item = document.createElement('div');
+            item.className = 'px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition';
+            item.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="mt-0.5 text-green-600">
+                        <i class="fa-solid fa-circle text-[8px]"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold text-gray-900">
+                            Order #${order.order_number ?? ('ID ' + order.id)} status updated
+                        </p>
+                        <p class="text-xs text-gray-600 mt-0.5">
+                            ${oldStatus ? statusLabel(oldStatus) + ' → ' : ''}<span class="font-semibold">${statusLabel(order.status)}</span>
+                        </p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">
+                            Total: TZS ${Number(order.total_amount).toLocaleString('en-US')}
+                        </p>
+                    </div>
+                </div>
+            `;
+            listEl.prepend(item);
+            // Show badge
+            badge.textContent = '1';
+            badge.classList.remove('hidden');
+
+            // Auto-open panel on first notification
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+            }
+        }
+
+        async function checkOrderStatus() {
+            try {
+                const response = await fetch('{{ route('user.orders.latest') }}', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!response.ok) return;
+
+                const data = await response.json();
+                if (Array.isArray(data.orders)) {
+                    if (firstLoad) {
+                        // On first load, show ALL orders as notifications
+                        listEl.innerHTML = '';
+                        data.orders.forEach(o => {
+                            if (!o?.id) return;
+                            addNotification(o, null);
+                            seenOrderIds.add(o.id);
+                            orderStatusMap[o.id] = (o.status || '').toLowerCase();
+                        });
+                        firstLoad = false;
+                        return;
+                    }
+
+                    // Subsequent polls: only new orders or status changes
+                    data.orders.forEach(o => {
+                        if (!o?.id) return;
+
+                        if (!seenOrderIds.has(o.id)) {
+                            addNotification(o, null);
+                            seenOrderIds.add(o.id);
+                            orderStatusMap[o.id] = (o.status || '').toLowerCase();
+                            return;
+                        }
+
+                        const currentStatus = (o.status || '').toLowerCase();
+                        const prevStatus    = orderStatusMap[o.id];
+                        if (prevStatus && currentStatus && currentStatus !== prevStatus) {
+                            addNotification(o, prevStatus);
+                            orderStatusMap[o.id] = currentStatus;
+                        }
+                    });
+                }
+            } catch (e) {
+                // Silent fail; will retry on next interval
+            }
+        }
+
+        // Toggle panel on bell click
+        bell.addEventListener('click', () => {
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                badge.classList.add('hidden');
+            }
+        });
+
+        // Clear notifications
+        clearEl.addEventListener('click', () => {
+            listEl.innerHTML = `
+                <div class="px-4 py-4 text-sm text-gray-500 text-center">
+                    No notifications yet.
+                </div>
+            `;
+            badge.classList.add('hidden');
+        });
+
+        // Initial check shortly after load, then poll every 10 seconds
+        setTimeout(checkOrderStatus, 2000);
+        setInterval(checkOrderStatus, 10000);
+    })();
 </script>
 </body>
 </html>

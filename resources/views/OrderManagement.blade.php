@@ -24,11 +24,8 @@ $orderId = Auth::id();
     </script>
 
     <style>
-        * { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #64748b; border-radius: 4px; }
-        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12 24px rgba(15,23,42,0.12); }
+        .text-2xs { font-size: 0.625rem; line-height: 0.875rem; }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.12); }
 
         @media (max-width: 768px) {
             .orders-table thead { display: none; }
@@ -38,16 +35,15 @@ $orderId = Auth::id();
             .orders-table td:last-child { border: none; }
             .orders-table td::before { content: attr(data-label); font-weight: 600; color: #334155; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; min-width: 70px; }
         }
-        .nav-active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 70%; background: #334155; border-radius: 0 4px 4px 0; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen overflow-x-hidden">
 
-    <!-- Same Sidebar & Header as before (unchanged) -->
-    <button id="menu-toggle" class="fixed top-4 left-4 z-50 bg-white rounded-xl p-3 shadow-lg border border-slate-200 text-slate-700 hover:bg-slate-50">
-        <i class="fa-solid fa-bars text-xl"></i>
+    <!-- Mobile Menu Button -->
+    <button id="menu-btn" class="fixed top-4 left-4 z-50 lg:hidden bg-white/90 rounded-full p-3.5 shadow-xl border border-slate-300 flex items-center justify-center hover:bg-white transition">
+        <i class="fa-solid fa-bars text-slate-800 text-xl"></i>
     </button>
-    <div id="overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden"></div>
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
 
     @if(session('success'))
         <div class="fixed top-4 right-4 z-50 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-slide-down">
@@ -56,37 +52,55 @@ $orderId = Auth::id();
         </div>
     @endif
 
-    <!-- Sidebar (same as yours) -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col border-r border-slate-200">
-        <!-- Your sidebar content here (unchanged) -->
-        <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl border-r border-slate-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div class="p-6 border-b border-slate-200">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center shadow-md">
+                <div class="w-12 h-12 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl flex items-center justify-center shadow-lg">
                     <i class="fa-solid fa-hard-hat text-white text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-slate-900">Oweru<span class="text-slate-600">Hardware</span></h1>
-                    <p class="text-xs text-slate-500">Admin Panel</p>
+                    <h1 class="text-xl font-bold text-slate-900">Oweru<span class="text-slate-700">Hardware</span></h1>
+                    <p class="text-2xs text-slate-500">Admin Panel</p>
                 </div>
             </div>
-            <button id="close-sidebar" class="lg:hidden text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-times text-xl"></i>
-            </button>
         </div>
-        <nav class="p-4 space-y-1 flex-1 overflow-y-auto">
-            <a href="{{ route('adminDashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition font-medium"><i class="fa-solid fa-gauge-high w-5"></i> Dashboard</a>
-            <a href="{{ route('indexProduct') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition font-medium"><i class="fa-solid fa-boxes-stacked w-5"></i> Products</a>
-            <a href="{{ route('indexCategory') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition font-medium"><i class="fa-solid fa-tags w-5"></i> Categories</a>
-            <a href="/OrderManagement" class="flex items-center gap-3 px-4 py-3 bg-slate-800 text-white rounded-xl font-medium nav-active"><i class="fa-solid fa-shopping-bag w-5"></i> Orders</a>
-            <a href="{{ route('user') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition font-medium"><i class="fa-solid fa-users w-5"></i> Customers</a>
-            <a href="{{ route('ads') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition font-medium"><i class="fa-solid fa-bullhorn w-5"></i> Advertisements</a>
+
+        <nav class="p-4 space-y-1">
+            <a href="{{ route('adminDashboard') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
+                <i class="fa-solid fa-gauge-high w-5"></i> Dashboard
+            </a>
+            <a href="{{ route('indexProduct') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
+                <i class="fa-solid fa-boxes-stacked w-5"></i> Products
+            </a>
+            <a href="{{ route('indexCategory') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
+                <i class="fa-solid fa-tags w-5"></i> Categories
+            </a>
+            <a href="/OrderManagement" class="flex items-center gap-4 px-5 py-3.5 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-md text-sm font-medium">
+                <i class="fa-solid fa-shopping-bag w-5"></i> Orders
+            </a>
+            <a href="{{ route('user') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
+                <i class="fa-solid fa-users w-5"></i> Users
+            </a>
+            <a href="{{ route('ads') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
+                <i class="fa-solid fa-bullhorn w-5"></i> Advertisements
+            </a>
+            <a href="{{ route('contact.messages') }}" class="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100 rounded-xl transition touch-feedback">
+                <i class="fa-solid fa-envelope w-5"></i>
+                <span>Contact Messages</span>
+            </a>
+
         </nav>
-        <div class="p-5 bg-slate-50 border-t border-slate-200">
+
+        <div class="absolute bottom-0 left-0 right-0 p-5 border-t border-slate-200 bg-slate-50">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 bg-slate-700 rounded-full flex items-center justify-center text-white font-bold text-lg shadow">
+                <div class="w-10 h-10 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full flex items-center justify-center text-white font-bold shadow">
                     {{ auth()->check() ? strtoupper(substr(auth()->user()->name ?? 'A', 0, 2)) : 'AD' }}
                 </div>
-                <div><p class="font-semibold text-slate-800 text-sm truncate">{{ auth()->user()->name ?? 'Admin' }}</p><p class="text-xs text-slate-500">Administrator</p></div>
+                <div>
+                    <p class="font-semibold text-slate-800 text-sm">{{ auth()->check() ? Str::limit(auth()->user()->name, 15) : 'Admin' }}</p>
+                    <p class="text-2xs text-slate-500">Administrator</p>
+                </div>
             </div>
         </div>
     </aside>
@@ -99,33 +113,53 @@ $orderId = Auth::id();
                     <p class="text-sm text-slate-500 mt-0.5">Monitor and manage all orders</p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <button class="relative p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"><i class="fa-solid fa-bell text-lg"></i></button>
-                    <form method="POST" action="{{ route('logout') }}">@csrf <button class="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg">Logout</button></form>
+                    <button class="relative p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg">
+                        <i class="fa-solid fa-bell text-lg"></i>
+                    </button>
+                    <form method="POST" action="{{ route('logout') }}">@csrf 
+                        <button class="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg">Logout</button>
+                    </form>
                 </div>
             </div>
         </header>
 
         <div class="p-4 lg:p-8">
 
-            <!-- Stats Cards (unchanged) -->
+            <!-- Stats Cards -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
                 <div class="bg-white rounded-xl lg:rounded-2xl p-4 lg:p-6 hover-lift shadow-sm border border-slate-200">
-                    <div class="flex items-start justify-between mb-3"><div class="w-11 h-11 bg-slate-100 rounded-xl flex items-center justify-center"><i class="fa-solid fa-money-bill-wave text-slate-700 text-lg"></i></div></div>
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="w-11 h-11 bg-slate-100 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-money-bill-wave text-slate-700 text-lg"></i>
+                        </div>
+                    </div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Revenue</p>
                     <p class="text-2xl lg:text-3xl font-bold text-slate-900">TZS {{ number_format($revenue) }}</p>
                 </div>
                 <div class="bg-white rounded-xl lg:rounded-2xl p-4 lg:p-6 hover-lift shadow-sm border border-slate-200">
-                    <div class="flex items-start justify-between mb-3"><div class="w-11 h-11 bg-slate-800 rounded-xl flex items-center justify-center"><i class="fa-solid fa-shopping-cart text-white text-lg"></i></div></div>
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="w-11 h-11 bg-slate-800 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-shopping-cart text-white text-lg"></i>
+                        </div>
+                    </div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Total Orders</p>
                     <p class="text-2xl lg:text-3xl font-bold text-slate-900">{{ $totalOrders }}</p>
                 </div>
                 <div class="bg-white rounded-xl lg:rounded-2xl p-4 lg:p-6 hover-lift shadow-sm border border-slate-200">
-                    <div class="flex items-start justify-between mb-3"><div class="w-11 h-11 bg-slate-100 rounded-xl flex items-center justify-center"><i class="fa-solid fa-boxes-stacked text-slate-700 text-lg"></i></div></div>
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="w-11 h-11 bg-slate-100 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-boxes-stacked text-slate-700 text-lg"></i>
+                        </div>
+                    </div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Products</p>
                     <p class="text-2xl lg:text-3xl font-bold text-slate-900">{{ $productsCount }}</p>
                 </div>
                 <div class="bg-white rounded-xl lg:rounded-2xl p-4 lg:p-6 hover-lift shadow-sm border border-slate-200">
-                    <div class="flex items-start justify-between mb-3"><div class="w-11 h-11 bg-slate-100 rounded-xl flex items-center justify-center"><i class="fa-solid fa-users text-slate-700 text-lg"></i></div></div>
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="w-11 h-11 bg-slate-100 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-users text-slate-700 text-lg"></i>
+                        </div>
+                    </div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Customers</p>
                     <p class="text-2xl lg:text-3xl font-bold text-slate-900">{{ $users }}</p>
                 </div>
@@ -150,6 +184,7 @@ $orderId = Auth::id();
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-700 tracking-wide">Amount</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-700 tracking-wide">Payment</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-700 tracking-wide">Status</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-700 tracking-wide">Location</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold uppercase text-slate-700 tracking-wide">Update</th>
                             </tr>
                         </thead>
@@ -218,6 +253,22 @@ $orderId = Auth::id();
                                         </span>
                                     </td>
 
+                                    <td data-label="Location" class="px-6 py-4">
+                                        @if($order->latitude && $order->longitude)
+                                            <a href="https://www.google.com/maps?q={{ $order->latitude }},{{ $order->longitude }}"
+                                               target="_blank"
+                                               class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                                                <i class="fa-solid fa-location-dot text-slate-700"></i>
+                                                <span>View on Map</span>
+                                            </a>
+                                            <p class="mt-1 text-2xs text-slate-500">
+                                                {{ number_format($order->latitude, 5) }}, {{ number_format($order->longitude, 5) }}
+                                            </p>
+                                        @else
+                                            <span class="text-2xs text-slate-400">No location</span>
+                                        @endif
+                                    </td>
+
                                     <td data-label="Update" class="px-6 py-4">
                                         <form action="{{ route('orders.update-status', $order->id) }}" method="POST">
                                             @csrf @method('PATCH')
@@ -252,19 +303,20 @@ $orderId = Auth::id();
     </main>
 
     <script>
-        // Sidebar toggle script (same as before)
-        const toggleBtn = document.getElementById('menu-toggle');
+        // Sidebar toggle
+        const menuBtn = document.getElementById('menu-btn');
         const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('mobile-overlay');
 
-        function openSidebar() { sidebar.classList.remove('-translate-x-full'); overlay.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
-        function closeSidebar() { sidebar.classList.add('-translate-x-full'); overlay.classList.add('hidden'); document.body.style.overflow = ''; }
+        menuBtn?.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        });
 
-        toggleBtn.addEventListener('click', () => sidebar.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar());
-        overlay.addEventListener('click', closeSidebar);
-        closeBtn?.addEventListener('click', closeSidebar);
-        document.addEventListener('keydown', e => e.key === 'Escape' && closeSidebar());
+        overlay?.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
     </script>
 </body>
 </html>

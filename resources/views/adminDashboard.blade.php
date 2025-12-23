@@ -261,6 +261,10 @@
                 <i class="fa-solid fa-bullhorn w-5"></i> 
                 <span>Advertisements</span>
             </a>
+            <a href="{{ route('contact.messages') }}" class="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100 rounded-xl transition touch-feedback">
+                <i class="fa-solid fa-envelope w-5"></i>
+                <span>Contact Messages</span>
+            </a>
 
             <!-- Mobile Quick Actions -->
             <div class="lg:hidden pt-4 mt-4 border-t border-slate-200">
@@ -307,7 +311,11 @@
                     <h2 class="text-xl font-bold text-slate-900">Welcome back, {{ auth()->check() ? explode(' ', auth()->user()->name)[0] : 'Admin' }}!</h2>
                     <p class="text-sm text-slate-500 mt-0.5">{{ now()->format('l, d F Y') }}</p>
                 </div>
-                <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button id="admin-notif-bell" class="relative hidden sm:inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-sm touch-feedback">
+                        <i class="fa-solid fa-bell text-lg"></i>
+                        <span id="admin-notif-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-red-600 text-white text-[10px] rounded-full flex items-center justify-center font-bold"></span>
+                    </button>
                     <a href="{{ route('createProduct') }}" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-800 text-white font-semibold rounded-xl shadow-md hover:bg-slate-700 hover:shadow-lg transition touch-feedback">
                         <i class="fa-solid fa-plus"></i> 
                         <span class="hidden sm:inline">Add Product</span>
@@ -571,6 +579,159 @@
                 this.style.transform = '';
             });
         });
+
+        // =========================================================================
+        // Live New Order Notification (simple polling)
+        // =========================================================================
+        (function() {
+            const seenOrderIds   = new Set();
+            const orderStatusMap = {};
+            let firstLoad = true;
+
+            function showNewOrderToast(order) {
+                if (!order) return;
+
+                const bell = document.getElementById('admin-notif-bell');
+                const badge = document.getElementById('admin-notif-badge');
+
+                if (badge) {
+                    badge.textContent = '1';
+                    badge.classList.remove('hidden');
+                }
+
+                const panelId = 'admin-notif-panel';
+                let panel = document.getElementById(panelId);
+
+                if (!panel) {
+                    panel = document.createElement('div');
+                    panel.id = panelId;
+                    panel.className = 'hidden absolute top-14 right-4 sm:right-8 z-50 w-80 max-w-sm';
+                    panel.innerHTML = `
+                        <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
+                            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                <p class="text-sm font-semibold text-slate-900">Notifications</p>
+                                <button type="button" class="text-xs text-slate-500 hover:text-slate-700" id="admin-notif-clear">Clear</button>
+                            </div>
+                            <div id="admin-notif-list" class="max-h-72 overflow-y-auto">
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(panel);
+
+                    // Position panel relative to header (top-right)
+                    const header = document.querySelector('header');
+                    if (header) {
+                        panel.style.top = (header.offsetTop + header.offsetHeight + 8) + 'px';
+                    }
+                }
+
+                const list = document.getElementById('admin-notif-list');
+                if (list) {
+                    // If first-load seeding, clear placeholder
+                    if (firstLoad && list.children.length === 1) {
+                        list.innerHTML = '';
+                    }
+                    const item = document.createElement('div');
+                    item.className = 'px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition';
+                    item.innerHTML = `
+                        <div class="flex items-start gap-3">
+                            <div class="mt-0.5 text-slate-700">
+                                <i class="fa-solid fa-circle text-[8px]"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-semibold text-slate-900">Order #${order.order_number ?? ('ID ' + order.id)}</p>
+                                <p class="text-xs text-slate-600 mt-0.5">
+                                    <span class="font-semibold">${order.customer_name}</span>
+                                    <span class="text-slate-400">•</span>
+                                    <span class="font-semibold">${order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : ''}</span>
+                                </p>
+                                <p class="text-[11px] text-slate-500 mt-0.5">Total: TZS ${Number(order.total_amount).toLocaleString('en-US')}</p>
+                            </div>
+                        </div>
+                    `;
+                    list.prepend(item);
+                }
+
+                // Open panel automatically on first new order
+                if (panel && panel.classList.contains('hidden')) {
+                    panel.classList.remove('hidden');
+                }
+
+                // Clicking bell toggles panel
+                if (bell && !bell.dataset.bound) {
+                    bell.dataset.bound = '1';
+                    bell.addEventListener('click', () => {
+                        if (!panel) return;
+                        panel.classList.toggle('hidden');
+                        if (!panel.classList.contains('hidden') && badge) {
+                            badge.classList.add('hidden');
+                        }
+                    });
+                }
+
+                // Clear button
+                const clearBtn = document.getElementById('admin-notif-clear');
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        const listEl = document.getElementById('admin-notif-list');
+                        if (listEl) listEl.innerHTML = '';
+                        if (badge) badge.classList.add('hidden');
+                    });
+                }
+
+            }
+
+            async function checkForNewOrders() {
+                try {
+                    const response = await fetch('{{ route('admin.orders.latest') }}', {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!response.ok) return;
+
+                    const data = await response.json();
+                    if (Array.isArray(data.orders)) {
+                        if (firstLoad) {
+                            // Seed all orders once
+                            const list = document.getElementById('admin-notif-list');
+                            if (list) list.innerHTML = '';
+                            data.orders.forEach(o => {
+                                if (!o?.id) return;
+                                showNewOrderToast(o);
+                                seenOrderIds.add(o.id);
+                                orderStatusMap[o.id] = (o.status || '').toLowerCase();
+                            });
+                            firstLoad = false;
+                            return;
+                        }
+
+                        data.orders.forEach(o => {
+                            if (!o?.id) return;
+
+                            if (!seenOrderIds.has(o.id)) {
+                                showNewOrderToast(o);
+                                seenOrderIds.add(o.id);
+                                orderStatusMap[o.id] = (o.status || '').toLowerCase();
+                                return;
+                            }
+
+                            const currentStatus = (o.status || '').toLowerCase();
+                            const prevStatus    = orderStatusMap[o.id];
+                            if (prevStatus && currentStatus && currentStatus !== prevStatus) {
+                                showNewOrderToast(o);
+                                orderStatusMap[o.id] = currentStatus;
+                            }
+                        });
+                    }
+                } catch (e) {
+                    // Fail silently; will retry next interval
+                }
+            }
+
+            // Poll every 10 seconds while on admin dashboard
+            setInterval(checkForNewOrders, 10000);
+            // Initial seed after load
+            setTimeout(checkForNewOrders, 1500);
+        })();
     </script>
 </body>
 </html>

@@ -18,11 +18,8 @@
     </script>
 
     <style>
-        * { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #64748b; border-radius: 4px; }
-        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(15,23,42,0.12); }
+        .text-2xs { font-size: 0.625rem; line-height: 0.875rem; }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.12); }
 
         @media (max-width: 768px) {
             .categories-table thead { display: none; }
@@ -32,16 +29,15 @@
             .categories-table td:last-child { border: none; }
             .categories-table td::before { content: attr(data-label); font-weight: 600; color: #334155; text-transform: uppercase; font-size: 0.65rem; letter-spacing: 0.05em; min-width: 100px; }
         }
-        .nav-active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 70%; background: #334155; border-radius: 0 4px 4px 0; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen overflow-x-hidden">
 
     <!-- Mobile Menu Button -->
-    <button id="menu-toggle" class="fixed top-4 left-4 z-50 bg-white rounded-xl p-3 shadow-lg border border-slate-200 text-slate-700 hover:bg-slate-50">
-        <i class="fa-solid fa-bars text-xl"></i>
+    <button id="menu-btn" class="fixed top-4 left-4 z-50 lg:hidden bg-white/90 rounded-full p-3.5 shadow-xl border border-slate-300 flex items-center justify-center hover:bg-white transition">
+        <i class="fa-solid fa-bars text-slate-800 text-xl"></i>
     </button>
-    <div id="overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden"></div>
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
 
     @if(session('success'))
         <div class="fixed top-4 right-4 z-50 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-slide-down">
@@ -58,47 +54,54 @@
     @endif
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col border-r border-slate-200">
-        <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl border-r border-slate-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div class="p-6 border-b border-slate-200">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center shadow-md">
+                <div class="w-12 h-12 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl flex items-center justify-center shadow-lg">
                     <i class="fa-solid fa-hard-hat text-white text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-slate-900">Oweru<span class="text-slate-600">Hardware</span></h1>
-                    <p class="text-xs text-slate-500">Admin Panel</p>
+                    <h1 class="text-xl font-bold text-slate-900">Oweru<span class="text-slate-700">Hardware</span></h1>
+                    <p class="text-2xs text-slate-500">Admin Panel</p>
                 </div>
             </div>
-            <button id="close-sidebar" class="lg:hidden text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-times text-xl"></i>
-            </button>
         </div>
-        <nav class="p-4 space-y-1 flex-1 overflow-y-auto">
-            <a href="{{ route('adminDashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition font-medium">
+
+        <nav class="p-4 space-y-1">
+            <a href="{{ route('adminDashboard') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
                 <i class="fa-solid fa-gauge-high w-5"></i> Dashboard
             </a>
-            <a href="{{ route('indexProduct') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition font-medium">
+            <a href="{{ route('indexProduct') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
                 <i class="fa-solid fa-boxes-stacked w-5"></i> Products
             </a>
-            <a href="{{ route('indexCategory') }}" class="flex items-center gap-3 px-4 py-3 bg-slate-800 text-white rounded-xl font-medium nav-active">
+            <a href="{{ route('indexCategory') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-md text-sm font-medium">
                 <i class="fa-solid fa-tags w-5"></i> Categories
             </a>
-            <a href="/OrderManagement" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition font-medium">
+            <a href="/OrderManagement" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
                 <i class="fa-solid fa-shopping-bag w-5"></i> Orders
             </a>
-            <a href="{{ route('user') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition font-medium">
-                <i class="fa-solid fa-users w-5"></i> Customers
+            <a href="{{ route('user') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
+                <i class="fa-solid fa-users w-5"></i> Users
             </a>
-            <a href="{{ route('ads') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:bg-slate-100 transition font-medium">
+            <a href="{{ route('ads') }}" class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition text-sm font-medium">
                 <i class="fa-solid fa-bullhorn w-5"></i> Advertisements
             </a>
+            <a href="{{ route('contact.messages') }}" class="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-100 rounded-xl transition touch-feedback">
+                <i class="fa-solid fa-envelope w-5"></i>
+                <span>Contact Messages</span>
+            </a>
+
         </nav>
-        <div class="p-5 bg-slate-50 border-t border-slate-200">
+
+        <div class="absolute bottom-0 left-0 right-0 p-5 border-t border-slate-200 bg-slate-50">
             <div class="flex items-center gap-3">
-                <div class="w-11 h-11 bg-slate-700 rounded-full flex items-center justify-center text-white font-bold text-lg shadow">
+                <div class="w-10 h-10 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full flex items-center justify-center text-white font-bold shadow">
                     {{ auth()->check() ? strtoupper(substr(auth()->user()->name ?? 'A', 0, 2)) : 'AD' }}
                 </div>
-                <div><p class="font-semibold text-slate-800 text-sm truncate">{{ auth()->user()->name ?? 'Admin' }}</p><p class="text-xs text-slate-500">Administrator</p></div>
+                <div>
+                    <p class="font-semibold text-slate-800 text-sm">{{ auth()->check() ? Str::limit(auth()->user()->name, 15) : 'Admin' }}</p>
+                    <p class="text-2xs text-slate-500">Administrator</p>
+                </div>
             </div>
         </div>
     </aside>
@@ -163,17 +166,17 @@
                 <div class="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
                     <div>
                         <h3 class="text-lg lg:text-xl font-bold text-slate-900">All Categories</h3>
-                        @if($categories->count() > 0)
+            @if($categories->count() > 0)
                             <p class="text-sm text-slate-500">Showing {{ $categories->firstItem() }}–{{ $categories->lastItem() }} of {{ $categories->total() }} categories</p>
-                        @else
+                                    @else
                             <p class="text-sm text-slate-500">No categories found</p>
-                        @endif
-                    </div>
+                                    @endif
+                                </div>
                     <a href="{{ route('createCategory') }}" class="hidden sm:flex px-4 py-2 bg-slate-800 text-white font-semibold rounded-lg hover:bg-slate-900 transition items-center gap-2">
                         <i class="fa-solid fa-plus text-sm"></i>
                         Add Category
                     </a>
-                </div>
+                                </div>
 
                 @if($categories->count() > 0)
                     <div class="overflow-x-auto">
@@ -216,7 +219,7 @@
                                             <div class="flex items-center gap-2">
                                                 <span class="font-bold text-slate-900">{{ $category->products_count ?? 0 }}</span>
                                                 <span class="text-xs text-slate-500">products</span>
-                                            </div>
+                                </div>
                                         </td>
                                         <td data-label="Active" class="px-6 py-4">
                                             <span class="px-3 py-1.5 text-xs font-bold rounded-full inline-block bg-emerald-100 text-emerald-800">
@@ -225,7 +228,7 @@
                                         </td>
                                         <td data-label="Actions" class="px-6 py-4">
                                             <div class="flex items-center gap-2">
-                                                <a href="{{ route('editCategory', $category->id) }}"
+                                    <a href="{{ route('editCategory', $category->id) }}"
                                                    class="px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-1.5"
                                                    title="Edit Category">
                                                     <i class="fa-solid fa-pencil text-xs"></i>
@@ -233,20 +236,20 @@
                                                 </a>
                                                 <form action="{{ route('deleteCategory', $category->id) }}" method="POST" class="inline"
                                                       onsubmit="return confirm('Delete category: {{ addslashes($category->name) }}?\\n\\n{{ ($category->products_count ?? 0) > 0 ? '⚠️ This category has products! You must remove all products first.' : 'This action cannot be undone.' }}')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
                                                             class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 {{ ($category->products_count ?? 0) > 0 ? 'text-slate-400 bg-slate-100 cursor-not-allowed' : 'text-red-700 bg-red-50 hover:bg-red-100' }}"
                                                             {{ ($category->products_count ?? 0) > 0 ? 'disabled' : '' }}
                                                             title="{{ ($category->products_count ?? 0) > 0 ? 'Cannot delete category with products' : 'Delete Category' }}">
                                                         <i class="fa-solid fa-trash text-xs"></i>
                                                         <span class="hidden sm:inline">Delete</span>
-                                                    </button>
-                                                </form>
-                                            </div>
+                                        </button>
+                                    </form>
+                                </div>
                                         </td>
                                     </tr>
-                                @endforeach
+                    @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -256,53 +259,46 @@
                         <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                             <div class="text-sm text-slate-600">
                                 Showing {{ $categories->firstItem() }} to {{ $categories->lastItem() }} of {{ $categories->total() }} categories
-                            </div>
+                        </div>
                             <div>
                                 {{ $categories->links() }}
-                            </div>
+                    </div>
                         </div>
                     @endif
-                @else
-                    <!-- Empty State -->
+            @else
+                <!-- Empty State -->
                     <div class="px-6 py-12 text-center">
                         <div class="w-24 h-24 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-6">
                             <i class="fa-solid fa-folder-open text-5xl text-slate-400"></i>
-                        </div>
+                    </div>
                         <h3 class="text-2xl font-bold text-slate-900 mb-3">No Categories Yet</h3>
                         <p class="text-slate-600 mb-8 max-w-md mx-auto">Start organizing your products by creating your first category</p>
-                        <a href="{{ route('createCategory') }}"
+                    <a href="{{ route('createCategory') }}"
                            class="inline-flex items-center gap-3 px-6 py-3 bg-slate-800 text-white font-semibold rounded-xl shadow-lg hover:bg-slate-900 transition">
-                            <i class="fa-solid fa-plus"></i>
-                            Create First Category
-                        </a>
-                    </div>
-                @endif
+                        <i class="fa-solid fa-plus"></i>
+                        Create First Category
+                    </a>
+                </div>
+            @endif
             </div>
         </div>
     </main>
 
     <script>
-        // Sidebar toggle script
-        const toggleBtn = document.getElementById('menu-toggle');
+        // Sidebar toggle
+        const menuBtn = document.getElementById('menu-btn');
         const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        const closeBtn = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('mobile-overlay');
 
-        function openSidebar() { 
-            sidebar.classList.remove('-translate-x-full'); 
-            overlay.classList.remove('hidden'); 
-            document.body.style.overflow = 'hidden'; 
-        }
-        function closeSidebar() { 
-            sidebar.classList.add('-translate-x-full'); 
-            overlay.classList.add('hidden'); 
-            document.body.style.overflow = ''; 
-        }
+        menuBtn?.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        });
 
-        toggleBtn.addEventListener('click', () => sidebar.classList.contains('-translate-x-full') ? openSidebar() : closeSidebar());
-        overlay.addEventListener('click', closeSidebar);
-        closeBtn?.addEventListener('click', closeSidebar);
-        document.addEventListener('keydown', e => e.key === 'Escape' && closeSidebar());
+        overlay?.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
 
         // Auto-hide success/error messages after 5 seconds
         setTimeout(() => {

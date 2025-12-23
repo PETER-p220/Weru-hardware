@@ -41,9 +41,23 @@ class CheckoutController extends Controller
         $total    = $subtotal + $delivery + $vat;
         $phone    = '255' . substr(preg_replace('/\D/', '', $request->phone), -9);
 
+        // ===== Selcom credentials & endpoint =====
+        $vendorId  = env('SELCOM_VENDOR_ID');
+        $apiKey    = env('SELCOM_API_KEY');
+        $apiSecret = env('SELCOM_API_SECRET');
+        $baseUrl   = rtrim(env('SELCOM_BASE_URL', 'https://apigw.selcommobile.com/v1'), '/');
+
+        if (!$vendorId || !$apiKey || !$apiSecret) {
+            Log::error('Selcom Payment Failed - Missing credentials', compact('vendorId', 'apiKey', 'apiSecret'));
+            $errorMessage = 'Payment unavailable: Selcom credentials are not set. Please contact support.';
+            return $request->wantsJson() || $request->ajax()
+                ? response()->json(['success' => false, 'error' => $errorMessage], 400)
+                : back()->with('error', $errorMessage)->withInput();
+        }
+
         $order = Order::create([
             'user_id'          => Auth::id() ?? null,
-            'order_number'     => 'WH-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6)),
+            'order_number'     => 'OH-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6)),
             'total_amount'     => $total,
             'status'           => 'new',
             'payment_status'   => $request->payment_method === 'selcom' ? 'pending' : 'pending',
@@ -90,7 +104,7 @@ class CheckoutController extends Controller
         // SELCOM MOBILE MONEY — WITH POPUP SUPPORT
         if ($request->payment_method === 'selcom') {
             $payload = [
-                "vendor"       => env('SELCOM_VENDOR_ID', 'TILL61224964'),
+                "vendor"       => $vendorId,
                 "amount"       => number_format($total, 2, '.', ''),
                 "currency"     => "TZS",
                 "order_id"     => $order->order_number,
@@ -102,6 +116,8 @@ class CheckoutController extends Controller
                 "webhook_url"  => route('selcom.webhook'),
                 "timestamp"    => now()->format('YmdHis'),
             ];
+
+            // Signature per Selcom docs (concatenate fields + secret)
             $sign_string = $payload['vendor']
                          . $payload['amount']
                          . $payload['currency']
@@ -113,12 +129,18 @@ class CheckoutController extends Controller
                          . $payload['cancel_url']
                          . $payload['webhook_url']
                          . $payload['timestamp']
-                         . env('SELCOM_API_SECRET');
+                         . $apiSecret;
             $payload['signature'] = hash('sha256', $sign_string); 
             
-            $baseUrl = env('SELCOM_BASE_URL', 'https://apigw.selcommobile.com/v1');
             $response = Http::timeout(30)
-                ->withHeaders(['Accept' => 'application/json'])
+                ->withHeaders([
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'apiKey' => $apiKey,
+                    // Some Selcom environments require Authorization header as well
+                    'Authorization' => 'Bearer ' . $apiKey,
+                ])
+                ->asJson()
                 ->post($baseUrl . '/checkout/create-order-minimal', $payload);
 
             if ($response->successful() && $response->json('result') === 'SUCCESS') {
