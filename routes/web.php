@@ -68,9 +68,7 @@ Route::post('/webhook/selcom', [CheckoutController::class, 'webhook'])
     ->withoutMiddleware('csrf');
 
 
-Route::get('/privacy', [SettingController::class, 'index'])->name('privacy');
-Route::get('/about', [SettingController::class, 'about'])->name('about');
-Route::get('/contact', [SettingController::class, 'contact'])->name('contact');
+
 
 
 Route::middleware('auth')->group(function () {
@@ -82,6 +80,10 @@ Route::middleware('auth')->group(function () {
     // Product viewing (browsing) - available to all authenticated users
     Route::get('/products/{product}', [ProductController::class, 'show'])->name('show');
     Route::get('/products', [ProductController::class, 'products'])->name('products');
+
+    Route::get('/privacy', [SettingController::class, 'index'])->name('privacy');
+    Route::get('/about', [SettingController::class, 'about'])->name('about');
+    Route::get('/contact', [SettingController::class, 'contact'])->name('contact');
 
     // Shopping Cart - available to all authenticated users
     Route::get('/cart', [CartController::class, 'index'])->name('cart');
