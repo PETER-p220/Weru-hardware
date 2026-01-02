@@ -420,7 +420,7 @@ use App\Models\Categories;
                         <li><a href="#" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Delivery Information</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Returns Policy</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Terms & Conditions</a></li>
-                        <li><a href="/privacy" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Privacy Policy</a></li>
+                        <li><a href="{{ url('privacy') }}" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Privacy Policy</a></li>
                     </ul>
                 </div>
             </div>
