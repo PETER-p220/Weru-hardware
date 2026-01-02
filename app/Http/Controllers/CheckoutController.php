@@ -26,8 +26,7 @@ class CheckoutController extends Controller
 
         $subtotal = $cart->subtotal();
         $delivery = 25000;
-        $vat      = round($subtotal * 0.18);
-        $total    = $subtotal + $delivery + $vat;
+        $total    = $subtotal + $delivery;
 
         $phone = '255' . substr(preg_replace('/\D/', '', $request->phone), -9);
 
@@ -46,7 +45,6 @@ class CheckoutController extends Controller
             'items'             => $cart->items,
             'subtotal'          => $subtotal,
             'delivery_fee'      => $delivery,
-            'vat_amount'        => $vat,
             'latitude'          => $request->latitude ?: null,
             'longitude'         => $request->longitude ?: null,
             'location_accuracy' => $request->location_accuracy ?: null,

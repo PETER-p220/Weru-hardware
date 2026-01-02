@@ -184,8 +184,7 @@
             $subtotal = $cart->subtotal();
             $totalItems = $cart->totalItems();
             $deliveryFee = $totalItems > 0 ? 25000 : 0;
-            $vat = round($subtotal * 0.18);
-            $grandTotal = $subtotal + $deliveryFee + $vat;
+            $grandTotal = $subtotal + $deliveryFee;
         @endphp
 
         @if($totalItems > 0)
@@ -303,10 +302,7 @@
                                 <span class="text-gray-700" style="color: #666666;">Delivery Fee</span>
                                 <span class="font-bold" style="color: #002147;">TZS {{ number_format($deliveryFee) }}</span>
                             </div>
-                            <div class="flex justify-between items-center p-3 lg:p-4 rounded-lg" style="background: rgba(218,165,32, 0.05);">
-                                <span class="text-gray-700" style="color: #666666;">VAT (18%)</span>
-                                <span class="font-bold" style="color: #002147;">TZS {{ number_format($vat) }}</span>
-                            </div>
+                         
                             <div class="pt-4 lg:pt-5 border-t-2" style="border-color: rgba(218, 165, 32, 0.2);">
                                 <div class="flex justify-between items-baseline">
                                     <span class="font-bold text-gray-900">Total Amount</span>

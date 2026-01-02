@@ -49,8 +49,7 @@
         $subtotal = $cart->subtotal();
         $totalItems = $cart->totalItems();
         $delivery = $totalItems > 0 ? 25000 : 0;
-        $vat = round($subtotal * 0.18);
-        $total = $subtotal + $delivery + $vat;
+        $total = $subtotal + $delivery ;
     @endphp
 
     <!-- Error Messages -->
@@ -194,7 +193,6 @@
                         <div class="pt-4 lg:pt-6 space-y-3 lg:space-y-5 text-sm lg:text-lg" style="border-top: 2px solid rgba(218,165,32,0.3);">
                             <div class="flex justify-between"><span>Subtotal ({{ $totalItems }} items)</span><span class="font-bold">TZS {{ number_format($subtotal) }}</span></div>
                             <div class="flex justify-between"><span>Delivery Fee</span><span class="font-bold">TZS {{ number_format($delivery) }}</span></div>
-                            <div class="flex justify-between"><span>VAT (18%)</span><span class="font-bold">TZS {{ number_format($vat) }}</span></div>
                             <div class="pt-4 lg:pt-6" style="border-top: 2px solid rgba(218,165,32,0.3);">
                                 <div class="flex justify-between items-baseline">
                                     <span class="text-base lg:text-xl font-bold">Total Amount</span>
