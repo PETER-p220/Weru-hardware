@@ -15,6 +15,7 @@ use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\SettingController;
 
 // ============================================================================
 // PUBLIC ROUTES (No authentication required)
@@ -66,10 +67,11 @@ Route::post('/webhook/selcom', [CheckoutController::class, 'webhook'])
     ->name('selcom.webhook.alternative')
     ->withoutMiddleware('csrf');
 
-// ============================================================================
-// SHARED AUTHENTICATED ROUTES (Available to both admins and regular users)
-// Admins can also shop and view their own orders
-// ============================================================================
+
+Route::get('/privacy', [SettingController::class, 'index'])->name('privacy');
+Route::get('/about', [SettingController::class, 'about'])->name('about');
+Route::get('/contact', [SettingController::class, 'contact'])->name('contact');
+
 
 Route::middleware('auth')->group(function () {
     // User Profile (available to all authenticated users)

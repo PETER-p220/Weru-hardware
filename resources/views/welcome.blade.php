@@ -67,8 +67,8 @@ use App\Models\Categories;
                     <div class="hidden md:flex space-x-8">
                         <a href="/" class="text-amber-600 font-bold transition">Home</a>
                         <a href="/products" class="text-gray-600 hover:text-amber-600 font-medium transition">Products</a>
-                        <a href="#about" class="text-gray-600 hover:text-amber-600 font-medium transition">About Us</a>
-                        <a href="#contact" class="text-gray-600 hover:text-amber-600 font-medium transition">Contact</a>
+                        <a href="/about" class="text-gray-600 hover:text-amber-600 font-medium transition">About Us</a>
+                        <a href="/contact" class="text-gray-600 hover:text-amber-600 font-medium transition">Contact</a>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -103,7 +103,7 @@ use App\Models\Categories;
                 <a href="/products" class="bg-gradient-to-r from-secondary to-amber-600 text-gray-900 px-12 py-5 rounded-xl font-bold text-xl shadow-2xl hover:shadow-amber-500/50 transform hover:scale-105 transition duration-300">
                     Browse Our Full Catalogue <i class="fa-solid fa-arrow-right ml-2"></i>
                 </a>
-                <a href="#contact" class="bg-white/20 backdrop-blur-md border-2 border-white/40 text-white px-12 py-5 rounded-xl font-bold text-xl hover:bg-white/30 transition duration-300">
+                <a href="/contact" class="bg-white/20 backdrop-blur-md border-2 border-white/40 text-white px-12 py-5 rounded-xl font-bold text-xl hover:bg-white/30 transition duration-300">
                     Get a Project Quote <i class="fa-solid fa-calculator ml-2"></i>
                 </a>
             </div>
@@ -215,7 +215,7 @@ use App\Models\Categories;
                     <p class="text-lg text-gray-300 mb-8">
                         We understand the demands of construction in Tanzania. We provide more than just materials — we deliver reliability, competitive pricing, and local expertise.
                     </p>
-                    <a href="#contact" class="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg transform hover:scale-[1.02] transition duration-300">
+                    <a href="/contact" class="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg transform hover:scale-[1.02] transition duration-300">
                         Start Your Project Today <i class="fa-solid fa-truck-fast ml-2"></i>
                     </a>
                 </div>
@@ -374,24 +374,19 @@ use App\Models\Categories;
                     <div class="mb-4">
                         <h4 class="text-sm font-bold text-amber-500 mb-3 uppercase tracking-wider">Follow Us</h4>
                         <div class="flex gap-3">
-                            <a href="https://facebook.com/oweruhardware" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition" aria-label="Facebook">
+                            <a href="https://facebook.com/oweruinternational" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition" aria-label="Facebook">
                                 <i class="fab fa-facebook-f text-lg"></i>
                             </a>
-                            <a href="https://instagram.com/oweruhardware" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-pink-600 transition" aria-label="Instagram">
+                            <a href="https://instagram.com/oweru.official" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-pink-600 transition" aria-label="Instagram">
                                 <i class="fab fa-instagram text-lg"></i>
                             </a>
-                            <a href="https://twitter.com/oweruhardware" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-400 transition" aria-label="Twitter">
-                                <i class="fab fa-twitter text-lg"></i>
-                            </a>
-                            <a href="https://linkedin.com/company/oweruhardware" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-700 transition" aria-label="LinkedIn">
+                            <a href="https://linkedin.com/company/oweruinternational" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-700 transition" aria-label="LinkedIn">
                                 <i class="fab fa-linkedin-in text-lg"></i>
                             </a>
                             <a href="https://wa.me/255711890764" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-green-500 transition" aria-label="WhatsApp">
                                 <i class="fab fa-whatsapp text-lg"></i>
                             </a>
-                            <a href="https://youtube.com/@oweruhardware" target="_blank" rel="noopener noreferrer" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-red-600 transition" aria-label="YouTube">
-                                <i class="fab fa-youtube text-lg"></i>
-                            </a>
+                        
                         </div>
                     </div>
                 </div>
@@ -402,8 +397,8 @@ use App\Models\Categories;
                         <li><a href="/" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Home</a></li>
                         <li><a href="createCategory" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Categories</a></li>
                         <li><a href="/products" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Products</a></li>
-                        <li><a href="#about" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> About Us</a></li>
-                        <li><a href="#contact" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Contact</a></li>
+                        <li><a href="/about" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> About Us</a></li>
+                        <li><a href="/contact" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Contact</a></li>
                     </ul>
                 </div>
 
@@ -425,7 +420,7 @@ use App\Models\Categories;
                         <li><a href="#" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Delivery Information</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Returns Policy</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Terms & Conditions</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Privacy Policy</a></li>
+                        <li><a href="{{ route('privacy') }}" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Privacy Policy</a></li>
                     </ul>
                 </div>
             </div>

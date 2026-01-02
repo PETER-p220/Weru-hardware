@@ -66,7 +66,6 @@ $statusMessage = $latestOrder
     }
     : "You don't have any active orders to track at the moment.";
 
-$savedAddressesCount = 3; // Replace with real count later
 ?>
 
 <!DOCTYPE html>
@@ -274,16 +273,7 @@ $savedAddressesCount = 3; // Replace with real count later
             <p class="text-sm text-gray-500 mt-2">Avg: TZS {{ $averageOrderValue }}</p>
         </div>
 
-        <div class="card-hover bg-white rounded-2xl shadow-lg border border-gray-100 p-6 smooth-shadow">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background: rgba(218,165,32, 0.1);">
-                    <i class="fa-solid fa-location-dot text-2xl" style="color: rgb(218,165,32);"></i>
-                </div>
-            </div>
-            <p class="text-gray-600 text-sm font-medium">Saved Addresses</p>
-            <p class="text-4xl font-black text-gray-900 mt-1">{{ $savedAddressesCount }}</p>
-            <a href="{{ url('addresses') }}" class="text-sm font-medium mt-2 inline-block transition hover:scale-105" style="color: rgb(218,165,32);">Manage →</a>
-        </div>
+        
     </div>
 
     <!-- Main Layout -->
@@ -370,12 +360,7 @@ $savedAddressesCount = 3; // Replace with real count later
                         </div>
                         <span class="font-semibold text-gray-900">Continue Shopping</span>
                     </a>
-                    <a href="{{ url('addresses') }}" class="flex items-center gap-4 p-4 rounded-xl transition hover:scale-105" style="background: rgba(218,165,32, 0.1);">
-                        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white" style="background: rgb(218,165,32);">
-                            <i class="fa-solid fa-location-dot text-lg" style="color: #000000;"></i>
-                        </div>
-                        <span class="font-semibold text-gray-900">Manage Addresses ({{ $savedAddressesCount }})</span>
-                    </a>
+                   
                     <a href="#" class="flex items-center gap-4 p-4 rounded-xl transition hover:scale-105" style="background: rgba(218,165,32, 0.1);">
                         <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white" style="background: rgb(218,165,32);">
                             <i class="fa-solid fa-headset text-lg" style="color: #000000;"></i>

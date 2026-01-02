@@ -142,11 +142,15 @@ class ProductController extends Controller
     }
     public function products()
     {
+        $products = Product::where('is_active', 1)->orderBy('created_at', 'desc')->paginate(12);
+    $categories = Categories::withCount('products')->get();
+    
+    $totalProducts = Product::where('is_active', 1)->count();
         $products = Product::where('is_active', true)
             ->with('categories')
             ->latest()
             ->paginate(12);
 
-        return view('products', compact('products'));
+        return view('products', compact('products', 'categories', 'totalProducts'));
     }   
 }

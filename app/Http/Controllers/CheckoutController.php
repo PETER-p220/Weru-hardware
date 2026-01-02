@@ -19,17 +19,6 @@ class CheckoutController extends Controller
 
     public function process(Request $request)
     {
-        // $request->validate([
-        //     'name'           => 'required|string|max:255',
-        //     'email'          => 'required|email',
-        //     'phone'          => 'required|regex:/^0[67][0-9]{8}$/',
-        //     'address'        => 'required|string',
-        //     'region'         => 'required|string',
-        //     'city'           => 'required|string',
-        //     'notes'          => 'nullable|string',
-        //     'payment_method' => 'required|in:cash_on_delivery,selcom',
-        // ]);
-
         $cart = Cart::current();
         if ($cart->totalItems() === 0) {
             return back()->with('error', 'Your cart is empty.');
@@ -39,44 +28,30 @@ class CheckoutController extends Controller
         $delivery = 25000;
         $vat      = round($subtotal * 0.18);
         $total    = $subtotal + $delivery + $vat;
-        $phone    = '255' . substr(preg_replace('/\D/', '', $request->phone), -9);
 
-        // ===== Selcom credentials & endpoint =====
-        $vendorId  = env('SELCOM_VENDOR_ID');
-        $apiKey    = env('SELCOM_API_KEY');
-        $apiSecret = env('SELCOM_API_SECRET');
-        $baseUrl   = rtrim(env('SELCOM_BASE_URL', 'https://apigw.selcommobile.com/v1'), '/');
-
-        if (!$vendorId || !$apiKey || !$apiSecret) {
-            Log::error('Selcom Payment Failed - Missing credentials', compact('vendorId', 'apiKey', 'apiSecret'));
-            $errorMessage = 'Payment unavailable: Selcom credentials are not set. Please contact support.';
-            return $request->wantsJson() || $request->ajax()
-                ? response()->json(['success' => false, 'error' => $errorMessage], 400)
-                : back()->with('error', $errorMessage)->withInput();
-        }
+        $phone = '255' . substr(preg_replace('/\D/', '', $request->phone), -9);
 
         $order = Order::create([
-            'user_id'          => Auth::id() ?? null,
-            'order_number'     => 'OH-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6)),
-            'total_amount'     => $total,
-            'status'           => 'new',
-            'payment_status'   => $request->payment_method === 'selcom' ? 'pending' : 'pending',
-            'payment_method'   => $request->payment_method,
-            'customer_name'    => $request->name,
-            'customer_email'   => $request->email,
-            'customer_phone'   => $phone,
-            'shipping_address' => $request->address . ', ' . $request->city . ', ' . $request->region,
-            'notes'            => $request->notes,
-            'items'            => $cart->items,
-            'subtotal'         => $subtotal,
-            'delivery_fee'     => $delivery,
-            'vat_amount'       => $vat,
-            'latitude'         => $request->latitude ?: null,
-            'longitude'        => $request->longitude ?: null,
+            'user_id'           => Auth::id() ?? null,
+            'order_number'      => 'OH-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6)),
+            'total_amount'      => $total,
+            'status'            => 'new',
+            'payment_status'    => 'pending',
+            'payment_method'    => $request->payment_method,
+            'customer_name'     => $request->name,
+            'customer_email'    => $request->email,
+            'customer_phone'    => $phone,
+            'shipping_address'  => $request->address . ', ' . $request->city . ', ' . $request->region,
+            'notes'             => $request->notes,
+            'items'             => $cart->items,
+            'subtotal'          => $subtotal,
+            'delivery_fee'      => $delivery,
+            'vat_amount'        => $vat,
+            'latitude'          => $request->latitude ?: null,
+            'longitude'         => $request->longitude ?: null,
             'location_accuracy' => $request->location_accuracy ?: null,
         ]);
 
-        // Create OrderItems for proper Eloquent relationships
         foreach ($cart->items as $item) {
             OrderItem::create([
                 'order_id'     => $order->id,
@@ -88,7 +63,6 @@ class CheckoutController extends Controller
             ]);
         }
 
-        // CLEAR CART HAPA HAPA — kabla ya malipo (hii ni best practice)
         $cart->clear();
 
         // CASH ON DELIVERY
@@ -101,103 +75,100 @@ class CheckoutController extends Controller
                 ->with('whatsapp', $wa);
         }
 
-        // SELCOM MOBILE MONEY — WITH POPUP SUPPORT
+        // OWERU SELCOM CONSOLE (Push USSD)
         if ($request->payment_method === 'selcom') {
-            $payload = [
-                "vendor"       => $vendorId,
-                "amount"       => number_format($total, 2, '.', ''),
-                "currency"     => "TZS",
-                "order_id"     => $order->order_number,
-                "buyer_msisdn" => $phone,
-                "buyer_name"   => $request->name,
-                "buyer_email"  => $request->email,
-                "redirect_url" => route('checkout.success', $order->id),
-                "cancel_url"   => route('checkout.cancel'),
-                "webhook_url"  => route('selcom.webhook'),
-                "timestamp"    => now()->format('YmdHis'),
-            ];
+            $baseUrl = 'https://api.selcom.oweru.com/api/checkout'; // From your earlier description
+            $appKey  = env('OWERU_APP_KEY'); // Your X-App-Key from console
 
-            // Signature per Selcom docs (concatenate fields + secret)
-            $sign_string = $payload['vendor']
-                         . $payload['amount']
-                         . $payload['currency']
-                         . $payload['order_id']
-                         . $payload['buyer_msisdn']
-                         . $payload['buyer_name']
-                         . $payload['buyer_email']
-                         . $payload['redirect_url']
-                         . $payload['cancel_url']
-                         . $payload['webhook_url']
-                         . $payload['timestamp']
-                         . $apiSecret;
-            $payload['signature'] = hash('sha256', $sign_string); 
-            
-            $response = Http::timeout(30)
-                ->withHeaders([
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                    'apiKey' => $apiKey,
-                    // Some Selcom environments require Authorization header as well
-                    'Authorization' => 'Bearer ' . $apiKey,
-                ])
-                ->asJson()
-                ->post($baseUrl . '/checkout/create-order-minimal', $payload);
+            if (!$appKey) {
+                Log::error('Missing OWERU_APP_KEY in .env');
+                return back()->with('error', 'Payment service not configured.');
+            }
 
-            if ($response->successful() && $response->json('result') === 'SUCCESS') {
-                $paymentUrl = $response->json('data.payment_url');
-                
-                // If request wants JSON (for popup), return JSON
+            try {
+                // Step 1: Create order
+                $create = Http::withHeaders([
+                    'X-App-Key'     => $appKey,
+                    'Content-Type'  => 'application/json',
+                    'Accept'        => 'application/json',
+                ])->post($baseUrl . '/create-order-minimal', [
+                    'amount'   => number_format($total, 2, '.', ''),
+                    'currency' => 'TZS',
+                    'msisdn'   => $phone,
+                ]);
+
+                $createData = $create->json();
+
+                Log::info('Oweru Create Order Response', $createData);
+
+                if (!$create->successful() || $createData['result'] ?? '' !== 'SUCCESS') {
+                    Log::error('Oweru Create Failed', $createData);
+                    return back()->with('error', 'Payment initiation failed. Use Cash on Delivery.');
+                }
+
+                $selcomOrderId = $createData['data']['order_id'] ?? null;
+
+                if (!$selcomOrderId) {
+                    return back()->with('error', 'No order ID received.');
+                }
+
+                // Step 2: Trigger Push USSD
+                $pay = Http::withHeaders([
+                    'X-App-Key'     => $appKey,
+                    'Content-Type'  => 'application/json',
+                    'Accept'        => 'application/json',
+                ])->post($baseUrl . '/wallet-payment', [
+                    'order_id' => $selcomOrderId,
+                    'msisdn'   => $phone,
+                    'amount'   => number_format($total, 2, '.', ''),
+                ]);
+
+                $payData = $pay->json();
+
+                Log::info('Oweru Wallet Payment Response', $payData);
+
+                $order->update([
+                    'payment_status' => 'pending',
+                    'transaction_id' => $selcomOrderId,
+                ]);
+
+                $message = "Payment request sent to {$request->phone}! Check your phone and approve the prompt from M-Pesa/Tigo Pesa/Airtel Money/HaloPesa.";
+
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json([
-                        'success' => true,
-                        'payment_url' => $paymentUrl,
-                        'order_id' => $order->id,
-                        'order_number' => $order->order_number,
+                        'success'       => true,
+                        'message'       => $message,
+                        'order_id'      => $order->id,
+                        'order_number'  => $order->order_number,
+                        'selcom_order'  => $selcomOrderId,
                     ]);
                 }
-                
-                // Otherwise redirect normally
-                return redirect()->away($paymentUrl);
+
+                return redirect()->route('checkout.success', $order->id)->with('success', $message);
+
+            } catch (\Exception $e) {
+                Log::error('Oweru Console Exception', ['message' => $e->getMessage()]);
+                return back()->with('error', 'Payment service unavailable. Use Cash on Delivery.');
             }
-
-            Log::error('Selcom Payment Failed', [
-                'order' => $order->order_number,
-                'response' => $response->json()
-            ]);
-
-            $errorMessage = 'Mobile payment failed. We\'ve saved your order — we will call you for Cash on Delivery.';
-            
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $errorMessage
-                ], 400);
-            }
-
-            return back()->with('error', $errorMessage)->withInput();
         }
+
+        return back()->with('error', 'Invalid payment method.');
     }
 
     public function success(Order $order)
     {
-        // Load relationships for the view
         $order->load(['orderItems.product', 'user']);
-        
-        // Hapa tunaweza update status to 'paid' kama tunatumia webhook
         return view('success', compact('order'));
     }
 
-    /**
-     * Check payment status (for AJAX polling)
-     */
     public function checkStatus($orderId)
     {
         $order = Order::findOrFail($orderId);
-        
+
         return response()->json([
             'payment_status' => $order->payment_status,
-            'order_status' => $order->status,
-            'is_paid' => $order->payment_status === 'paid',
+            'order_status'   => $order->status,
+            'is_paid'        => $order->payment_status === 'paid',
         ]);
     }
 
@@ -209,46 +180,26 @@ class CheckoutController extends Controller
     public function webhook(Request $request)
     {
         Log::info('Selcom Webhook Received', $request->all());
-        
-        // Verify webhook signature if needed
+
         $orderNumber = $request->input('order_id');
-        $status = $request->input('status');
-        $transactionId = $request->input('transaction_id');
-        
-        // Find order by order number
+        $status      = $request->input('status');
+        $transId     = $request->input('transaction_id');
+
         $order = Order::where('order_number', $orderNumber)->first();
-        
+
         if ($order) {
-            // Update order based on payment status
-            if ($status === 'COMPLETED' || $status === 'SUCCESS') {
+            if (in_array($status, ['COMPLETED', 'SUCCESS'])) {
                 $order->update([
                     'payment_status' => 'paid',
-                    'transaction_id' => $transactionId,
-                    'paid_at' => now(),
-                    'status' => 'confirmed',
+                    'transaction_id' => $transId ?? $order->transaction_id,
+                    'paid_at'        => now(),
+                    'status'         => 'confirmed',
                 ]);
-                
-                Log::info('Order payment confirmed via webhook', [
-                    'order_number' => $orderNumber,
-                    'transaction_id' => $transactionId,
-                ]);
-            } elseif ($status === 'FAILED' || $status === 'CANCELLED') {
-                $order->update([
-                    'payment_status' => 'failed',
-                    'transaction_id' => $transactionId,
-                ]);
-                
-                Log::info('Order payment failed via webhook', [
-                    'order_number' => $orderNumber,
-                    'status' => $status,
-                ]);
+            } elseif (in_array($status, ['FAILED', 'CANCELLED'])) {
+                $order->update(['payment_status' => 'failed']);
             }
-        } else {
-            Log::warning('Order not found for webhook', [
-                'order_number' => $orderNumber,
-            ]);
         }
-        
+
         return response('OK', 200);
     }
 }
