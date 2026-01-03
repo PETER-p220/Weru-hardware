@@ -64,7 +64,7 @@ use App\Models\Categories;
                         <a href="/" class="text-amber-600 font-bold transition">Home</a>
                         <a href="/products" class="text-gray-600 hover:text-amber-600 font-medium transition">Products</a>
                         <a href="/about" class="text-gray-600 hover:text-amber-600 font-medium transition">About Us</a>
-                        <a href="/contact" class="text-gray-600 hover:text-amber-600 font-medium transition">Contact</a>
+                        <a href="/contactUs" class="text-gray-600 hover:text-amber-600 font-medium transition">Contact</a>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -202,7 +202,7 @@ use App\Models\Categories;
                     <p class="text-lg text-gray-300 mb-8">
                         We understand the demands of construction in Tanzania. We provide more than just materials — we deliver reliability, competitive pricing, and local expertise.
                     </p>
-                    <a href="/contact" class="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg transform hover:scale-[1.02] transition duration-300">
+                    <a href="/contactUs" class="bg-amber-600 hover:bg-amber-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg transform hover:scale-[1.02] transition duration-300">
                         Start Your Project Today <i class="fa-solid fa-truck-fast ml-2"></i>
                     </a>
                 </div>
@@ -378,7 +378,7 @@ use App\Models\Categories;
                         <li><a href="createCategory" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Categories</a></li>
                         <li><a href="/products" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Products</a></li>
                         <li><a href="/about" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> About Us</a></li>
-                        <li><a href="/contact" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Contact</a></li>
+                        <li><a href="/contactUs" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Contact</a></li>
                     </ul>
                 </div>
                 <div>
