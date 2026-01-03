@@ -28,7 +28,7 @@ Route::get('/', function () {
 // Public routes section (add these here)
 Route::get('/privacy', [SettingController::class, 'index'])->name('privacy');
 Route::get('/about', [SettingController::class, 'about'])->name('about');
-Route::get('/contact', [SettingController::class, 'contact'])->name('contact');
+Route::get('/contactUs', [SettingController::class, 'contact'])->name('contactUs');
 
 
 // Contact form submission from landing page
