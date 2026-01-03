@@ -25,6 +25,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Public routes section (add these here)
+Route::get('/privacy', [SettingController::class, 'index'])->name('privacy');
+Route::get('/about', [SettingController::class, 'about'])->name('about');
+Route::get('/contact', [SettingController::class, 'contact'])->name('contact');
+
+
 // Contact form submission from landing page
 Route::post('/contact', function (Request $request) {
     $data = $request->validate([
@@ -80,10 +86,6 @@ Route::middleware('auth')->group(function () {
     // Product viewing (browsing) - available to all authenticated users
     Route::get('/products/{product}', [ProductController::class, 'show'])->name('show');
     Route::get('/products', [ProductController::class, 'products'])->name('products');
-
-    Route::get('/privacy', [SettingController::class, 'index'])->name('privacy');
-    Route::get('/about', [SettingController::class, 'about'])->name('about');
-    Route::get('/contact', [SettingController::class, 'contact'])->name('contact');
 
     // Shopping Cart - available to all authenticated users
     Route::get('/cart', [CartController::class, 'index'])->name('cart');

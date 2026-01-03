@@ -245,7 +245,7 @@
                         </div>
 
                         <div>
-                            <label for="message" class="block text-sm font-bold uppercase tracking-widest text-gray-100 dark:text-slate-400 mb-3">Your Message *</label>
+                            <label for="message" class="block text-sm font-bold uppercase tracking-widest text-slate-800 dark:text-slate-400 mb-3">Your Message *</label>
                             <textarea id="message" name="message" required rows="6" placeholder="Tell us how we can help you..." class="form-input resize-none"></textarea>
                         </div>
 

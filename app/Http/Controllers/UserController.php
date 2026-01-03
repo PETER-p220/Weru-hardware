@@ -119,3 +119,6 @@ class UserController extends Controller
         return back()->with('success', "User '{$user->name}' role updated to {$request->role}.");
     }
 }
+
+
+

@@ -13,7 +13,6 @@ use App\Models\Categories;
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <script>
         tailwind.config = {
             theme: {
@@ -37,7 +36,6 @@ use App\Models\Categories;
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         .hero-bg {
             background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)), url('images/hero-construction.jpg') center/cover no-repeat;
             position: relative;
@@ -48,7 +46,6 @@ use App\Models\Categories;
             background: #0f172a;
             animation: float 20s ease-in-out infinite;
         }
-
         .glass-card { background: rgba(255,255,255,0.1); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.15); }
         .gradient-text { background: linear-gradient(to right, #fde047, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .category-card { transition: all 0.3s ease; }
@@ -56,7 +53,6 @@ use App\Models\Categories;
     </style>
 </head>
 <body class="bg-gray-50 antialiased">
-
     <nav class="bg-white/95 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
@@ -83,7 +79,6 @@ use App\Models\Categories;
             </div>
         </div>
     </nav>
-
     <section class="hero-bg min-h-[90vh] flex items-center justify-center text-white relative py-20">
         <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
             <div class="mb-10 animate-slide-up">
@@ -103,9 +98,7 @@ use App\Models\Categories;
                 <a href="/products" class="bg-gradient-to-r from-secondary to-amber-600 text-gray-900 px-12 py-5 rounded-xl font-bold text-xl shadow-2xl hover:shadow-amber-500/50 transform hover:scale-105 transition duration-300">
                     Browse Our Full Catalogue <i class="fa-solid fa-arrow-right ml-2"></i>
                 </a>
-                <a href="/contact" class="bg-white/20 backdrop-blur-md border-2 border-white/40 text-white px-12 py-5 rounded-xl font-bold text-xl hover:bg-white/30 transition duration-300">
-                    Get a Project Quote <i class="fa-solid fa-calculator ml-2"></i>
-                </a>
+
             </div>
         </div>
         <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
@@ -114,7 +107,6 @@ use App\Models\Categories;
             </svg>
         </div>
     </section>
-
     @php
         $ads = Advertisement::where('is_active', true)->orderBy('sort_order')->get();
     @endphp
@@ -158,7 +150,6 @@ use App\Models\Categories;
                     </div>
                     @endforeach
                 </div>
-
                 <div class="swiper-button-next text-white/90 hover:text-secondary drop-shadow-2xl after:text-4xl"></div>
                 <div class="swiper-button-prev text-white/90 hover:text-secondary drop-shadow-2xl after:text-4xl"></div>
                 <div class="swiper-pagination !bottom-6"></div>
@@ -166,11 +157,9 @@ use App\Models\Categories;
         </div>
     </section>
     @endif
-
     @php
         $categories = Categories::orderBy('order')->get();
     @endphp
-
     <section id="categories" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-6 text-center">
             <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
@@ -179,7 +168,6 @@ use App\Models\Categories;
             <p class="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
                 Find exactly what you need for your construction project. Quality assured, from foundation to finish.
             </p>
-
             @if($categories->count() > 0)
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach($categories as $category)
@@ -203,7 +191,6 @@ use App\Models\Categories;
             @endif
         </div>
     </section>
-
     <section class="py-20 bg-gray-900 text-white" id="about">
         <div class="max-w-7xl mx-auto px-6">
             <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
@@ -244,7 +231,6 @@ use App\Models\Categories;
             </div>
         </div>
     </section>
-
     <section class="py-20 bg-gradient-to-br from-gray-50 to-gray-100" id="contact">
         <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-16">
@@ -295,7 +281,6 @@ use App\Models\Categories;
                         </div>
                     </div>
                 </div>
-
                 <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-gray-100">
                     <h3 class="text-2xl font-bold text-gray-900 mb-6">Send Us a Message</h3>
 
@@ -308,7 +293,6 @@ use App\Models\Categories;
                             </button>
                         </div>
                     @endif
-
                     @if ($errors->any())
                         <div class="mb-4 rounded-xl border border-red-200 bg-red-50 text-red-800 px-4 py-3">
                             <p class="font-semibold text-sm mb-2">Please fix the errors below:</p>
@@ -319,7 +303,6 @@ use App\Models\Categories;
                             </ul>
                         </div>
                     @endif
-
                     <form class="space-y-6" method="POST" action="{{ route('contact.submit') }}">
                         @csrf
                         <div>
@@ -357,7 +340,6 @@ use App\Models\Categories;
             </div>
         </div>
     </section>
-
     <footer class="bg-gray-900 text-white pt-16 pb-8">
         <div class="max-w-7xl mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
@@ -368,8 +350,7 @@ use App\Models\Categories;
                         </div>
                         <span class="text-2xl font-extrabold">Oweru<span class="text-amber-500">Hardware</span></span>
                     </div>
-                    <p class="text-gray-400 mb-6">Your trusted partner for quality building materials in Tanzania. We deliver excellence from foundation to finish.</p>
-                    
+                    <p class="text-gray-400 mb-6">Your trusted partner for quality building materials in Tanzania. We deliver excellence from foundation to finish.</p>   
                     <!-- Social Media Links with Icons -->
                     <div class="mb-4">
                         <h4 class="text-sm font-bold text-amber-500 mb-3 uppercase tracking-wider">Follow Us</h4>
@@ -390,7 +371,6 @@ use App\Models\Categories;
                         </div>
                     </div>
                 </div>
-
                 <div>
                     <h3 class="text-xl font-bold mb-6 text-amber-500">Quick Links</h3>
                     <ul class="space-y-3">
@@ -401,7 +381,6 @@ use App\Models\Categories;
                         <li><a href="/contact" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Contact</a></li>
                     </ul>
                 </div>
-
                 <div>
                     <h3 class="text-xl font-bold mb-6 text-amber-500">Product Categories</h3>
                     <ul class="space-y-3">
@@ -413,7 +392,6 @@ use App\Models\Categories;
                         <li><a href="/products" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Electrical Supplies</a></li>
                     </ul>
                 </div>
-
                 <div>
                     <h3 class="text-xl font-bold mb-6 text-amber-500">Customer Service</h3>
                     <ul class="space-y-3">
@@ -424,9 +402,7 @@ use App\Models\Categories;
                     </ul>
                 </div>
             </div>
-
             <hr class="border-gray-800 my-8">
-
             <div class="text-center md:flex md:items-center md:justify-between">
                 <p class="text-gray-500 text-sm">&copy; {{ date('Y') }} Oweru Hardware. All rights reserved.</p>
                 <div class="flex justify-center mt-4 md:mt-0 space-x-6">
@@ -436,7 +412,6 @@ use App\Models\Categories;
             </div>
         </div>
     </footer>
-
     <script src="https://unpkg.com/swiper@11/swiper-bundle.min.js"></script>
     <script>
         // Initialize Swiper for the advertisements slider

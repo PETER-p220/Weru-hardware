@@ -70,9 +70,6 @@ function toggleMobileMenu() {
           </span>
         </a>
 
-        <a href="/login" class="hidden lg:inline bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold">
-          Sign In
-        </a>
 
         <button onclick="toggleMobileMenu()" class="lg:hidden text-xl">
           <i class="fa-solid fa-bars"></i>
