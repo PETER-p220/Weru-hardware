@@ -25,17 +25,7 @@
 
 <div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <!-- Logo -->
-        <div class="flex justify-center">
-            <div class="relative">
-                <div class="w-24 h-24 bg-slate-600 rounded-3xl shadow-2xl flex items-center justify-center transform hover:scale-105 transition">
-                    <i class="fa-solid fa-hard-hat text-white text-4xl"></i>
-                </div>
-                <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-slate-600 rounded-full shadow-lg flex items-center justify-center">
-                    <span class="text-xs font-black text-gray-900">TZ</span>
-                </div>
-            </div>
-        </div>
+     
 
         <h2 class="mt-10 text-center text-2xl font-black tracking-tight text-amber-600">
             Welcome Back!
