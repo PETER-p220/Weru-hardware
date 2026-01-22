@@ -58,7 +58,7 @@ use App\Models\Categories;
             <div class="flex items-center justify-between h-20">
                 <div class="flex items-center gap-8">
                     <div class="flex items-center gap-3">
-                        <span class="text-2xl font-extrabold text-gray-900">Oweru 22<span class="text-amber-600">Hardware</span></span>
+                        <span class="text-2xl font-extrabold text-gray-900">Oweru<span class="text-amber-600">Hardware</span></span>
                     </div>
                     <div class="hidden md:flex space-x-8">
                         <a href="/" class="text-amber-600 font-bold transition">Home</a>
@@ -398,7 +398,7 @@ use App\Models\Categories;
                         <li><a href="#" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Delivery Information</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Returns Policy</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Terms & Conditions</a></li>
-                        <li><a href="{{ url('privacy') }}" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Privacy Policy</a></li>
+                        <li><a href='/privacy" class="text-gray-400 hover:text-amber-500 transition flex items-center gap-2"><i class="fa-solid fa-chevron-right text-xs"></i> Privacy Policy</a></li>
                     </ul>
                 </div>
             </div>
