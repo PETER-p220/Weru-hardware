@@ -161,36 +161,36 @@ use App\Models\Categories;
         $categories = Categories::orderBy('order')->get();
     @endphp
     <section id="categories" class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-6 text-center">
-            <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-                Explore Our <span class="text-amber-600">Top Categories</span>
-            </h2>
-            <p class="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
-                Find exactly what you need for your construction project. Quality assured, from foundation to finish.
-            </p>
-            @if($categories->count() > 0)
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @foreach($categories as $category)
-                        <a href="/products?cat={{ $category->slug }}" 
-                           class="category-card block bg-white border border-gray-100 rounded-2xl p-8 shadow-lg hover:border-amber-600/50 transition duration-300 group">
-                            <div class="w-16 h-16 mb-4 mx-auto bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl group-hover:bg-amber-600 group-hover:text-white transition duration-300">
-                                <i class="{{ $category->icon }}">{{ $category->icon }}</i>
-                            </div>
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ $category->name }}</h3>
-                            @if($category->description)
-                                <p class="text-gray-500 font-medium">{{ Str::limit($category->description, 80) }}</p>
-                            @endif
-                            <span class="mt-4 inline-block text-amber-600 font-semibold group-hover:text-amber-700">
-                                View Products &rarr;
-                            </span>
-                        </a>
-                    @endforeach
-                </div>
-            @else
-                <p class="text-gray-500 text-lg py-10">No categories available at the moment.</p>
-            @endif
-        </div>
-    </section>
+    <div class="max-w-7xl mx-auto px-6 text-center">
+        <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+            Explore Our <span class="text-amber-600">Top Categories</span>
+        </h2>
+        <p class="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
+            Find exactly what you need for your construction project. Quality assured, from foundation to finish.
+        </p>
+        @if($categories->count() > 0)
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                @foreach($categories as $category)
+                    <a href="/products?cat={{ $category->slug }}" 
+                       class="category-card block bg-white border border-gray-100 rounded-2xl p-6 shadow-lg hover:border-amber-600/50 transition duration-300 group">
+                        <div class="w-14 h-14 mb-3 mx-auto bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl group-hover:bg-amber-600 group-hover:text-white transition duration-300">
+                            <i class="{{ $category->icon }}">{{ $category->icon }}</i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">{{ $category->name }}</h3>
+                        @if($category->description)
+                            <p class="text-sm text-gray-500 font-medium mb-3">{{ Str::limit($category->description, 60) }}</p>
+                        @endif
+                        <span class="inline-block text-sm text-amber-600 font-semibold group-hover:text-amber-700">
+                            View Products &rarr;
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+        @else
+            <p class="text-gray-500 text-lg py-10">No categories available at the moment.</p>
+        @endif
+    </div>
+</section>
     <section class="py-20 bg-gray-900 text-white" id="about">
         <div class="max-w-7xl mx-auto px-6">
             <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
