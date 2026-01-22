@@ -18,6 +18,10 @@
         .btn-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,33,71,0.3); }
         .input-focus:focus { outline: none; border-color: rgb(218,165,32); box-shadow: 0 0 0 3px rgba(218,165,32,0.15); }
         .payment-option:checked + label { box-shadow: 0 0 0 4px rgba(218,165,32,0.3); border-color: rgb(218,165,32); background-color: rgba(218,165,32,0.05); }
+        #map { height: 400px; width: 100%; border-radius: 1rem; }
+        @media (max-width: 768px) {
+            #map { height: 300px; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -65,6 +69,8 @@
 
     <form action="{{ route('checkout.process') }}" method="POST" id="checkoutForm">
         @csrf
+        <input type="hidden" name="latitude" id="latitude">
+        <input type="hidden" name="longitude" id="longitude">
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
             <!-- Left: Form -->
@@ -91,16 +97,32 @@
                     </div>
                 </div>
 
-                <!-- Delivery Address -->
+                <!-- Delivery Address with Map -->
                 <div class="bg-white rounded-2xl lg:rounded-3xl shadow-lg border border-gray-200 p-4 lg:p-8">
                     <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
                         <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center text-lg lg:text-xl font-black text-white" style="background: rgb(218,165,32);">2</div>
                         <h3 class="text-lg lg:text-2xl font-black text-gray-900">Delivery Address</h3>
                     </div>
+
+                    <!-- Google Map -->
+                    <div class="mb-6">
+                        <div class="relative">
+                            <div id="map" class="shadow-lg"></div>
+                            <button type="button" onclick="getCurrentLocation()" class="absolute bottom-4 right-4 bg-white px-4 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 font-bold text-sm" style="color: rgb(218,165,32);">
+                                <i class="fa-solid fa-location-crosshairs"></i>
+                                <span>Use My Location</span>
+                            </button>
+                        </div>
+                        <p class="text-xs lg:text-sm text-gray-600 mt-3 flex items-center gap-2">
+                            <i class="fa-solid fa-info-circle" style="color: rgb(218,165,32);"></i>
+                            Click on the map to set your exact delivery location
+                        </p>
+                    </div>
+
                     <div class="space-y-4 lg:space-y-6">
                         <div>
                             <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">Full Address <span class="text-red-600">*</span></label>
-                            <input type="text" name="address" value="{{ old('address') }}" required class="w-full px-3 lg:px-6 py-2 lg:py-4 border-2 border-gray-200 rounded-lg lg:rounded-xl input-focus transition text-sm lg:text-base" placeholder="Plot 123, Mwananyamala">
+                            <input type="text" name="address" id="address" value="{{ old('address') }}" required class="w-full px-3 lg:px-6 py-2 lg:py-4 border-2 border-gray-200 rounded-lg lg:rounded-xl input-focus transition text-sm lg:text-base" placeholder="Plot 123, Mwananyamala">
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                             <div>
@@ -232,8 +254,99 @@
     </div>
 </div>
 
+<!-- Google Maps Script -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
+
 <script>
+let map;
+let marker;
+let geocoder;
+
+function initMap() {
+    // Default to Dar es Salaam coordinates
+    const defaultLocation = { lat: -6.7924, lng: 39.2083 };
+    
+    geocoder = new google.maps.Geocoder();
+    
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: defaultLocation,
+        zoom: 13,
+        mapTypeControl: false,
+        streetViewControl: false,
+        styles: [
+            {
+                featureType: "poi",
+                elementType: "labels",
+                stylers: [{ visibility: "off" }]
+            }
+        ]
+    });
+    
+    marker = new google.maps.Marker({
+        position: defaultLocation,
+        map: map,
+        draggable: true,
+        animation: google.maps.Animation.DROP,
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: 'rgb(218,165,32)',
+            fillOpacity: 1,
+            strokeColor: '#002147',
+            strokeWeight: 3
+        }
+    });
+    
+    // Update coordinates when marker is dragged
+    marker.addListener('dragend', function(event) {
+        updateLocation(event.latLng.lat(), event.latLng.lng());
+    });
+    
+    // Update coordinates when map is clicked
+    map.addListener('click', function(event) {
+        marker.setPosition(event.latLng);
+        updateLocation(event.latLng.lat(), event.latLng.lng());
+    });
+    
+    // Try to get user's current location
+    getCurrentLocation();
+}
+
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                map.setCenter(userLocation);
+                marker.setPosition(userLocation);
+                updateLocation(userLocation.lat, userLocation.lng);
+            },
+            function() {
+                console.log('Error: The Geolocation service failed.');
+            }
+        );
+    }
+}
+
+function updateLocation(lat, lng) {
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lng;
+    
+    // Reverse geocode to get address
+    geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status) {
+        if (status === 'OK' && results[0]) {
+            document.getElementById('address').value = results[0].formatted_address;
+        }
+    });
+}
+
+// Initialize map when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    
     const form = document.getElementById('checkoutForm');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
@@ -245,11 +358,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
 
         if (paymentMethod === 'cash_on_delivery') {
-            // Let normal submit happen
             return;
         }
 
-        // For selcom (mobile money) — use AJAX
         e.preventDefault();
 
         submitBtn.disabled = true;

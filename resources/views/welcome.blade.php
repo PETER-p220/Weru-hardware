@@ -83,7 +83,7 @@ use App\Models\Categories;
         <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
             <div class="mb-10 animate-slide-up">
                 <div class="inline-flex items-center justify-center glass-card rounded-[3rem] p-6 shadow-2xl">
-                    <img src="images/IMG-20251114-WA0007.jpg" alt="Oweru Hardware Logo" class="h-32 w-auto object-contain"/>
+                    <img src="\images\IMG-20251117-WA0002.jpg" alt="Oweru Hardware Logo" class="h-32 w-auto rounded "/>
                 </div>
             </div>
             <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight animate-slide-up animation-delay-200">
