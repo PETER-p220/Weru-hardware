@@ -22,6 +22,14 @@
         @media (max-width: 768px) {
             #map { height: 300px; }
         }
+        .location-card {
+            background: linear-gradient(135deg, rgba(218,165,32,0.1) 0%, rgba(0,33,71,0.05) 100%);
+            border: 2px dashed rgba(218,165,32,0.3);
+        }
+        .location-success {
+            background: linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(22,163,74,0.05) 100%);
+            border: 2px solid rgba(34,197,94,0.3);
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -97,25 +105,67 @@
                     </div>
                 </div>
 
-                <!-- Delivery Address with Map -->
+                <!-- Delivery Address with Geolocation -->
                 <div class="bg-white rounded-2xl lg:rounded-3xl shadow-lg border border-gray-200 p-4 lg:p-8">
                     <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
                         <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center text-lg lg:text-xl font-black text-white" style="background: rgb(218,165,32);">2</div>
                         <h3 class="text-lg lg:text-2xl font-black text-gray-900">Delivery Address</h3>
                     </div>
 
-                    <!-- Google Map -->
+                    <!-- Geolocation Component -->
                     <div class="mb-6">
-                        <div class="relative">
-                            <div id="map" class="shadow-lg"></div>
-                            <button type="button" onclick="getCurrentLocation()" class="absolute bottom-4 right-4 bg-white px-4 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 font-bold text-sm" style="color: rgb(218,165,32);">
-                                <i class="fa-solid fa-location-crosshairs"></i>
-                                <span>Use My Location</span>
+                        <geolocation 
+                            id="geolocator"
+                            onlocation="handleLocation(event)" 
+                            autolocate 
+                            accuracymode="precise"
+                            style="display: none;">
+                        </geolocation>
+
+                        <div id="locationCard" class="location-card rounded-xl p-6 text-center transition-all duration-300">
+                            <i class="fa-solid fa-location-crosshairs text-4xl mb-3" style="color: rgb(218,165,32);"></i>
+                            <h4 class="text-lg font-bold text-gray-800 mb-2">Get Your Location</h4>
+                            <p class="text-sm text-gray-600 mb-4">Click below to automatically detect your delivery location</p>
+                            <button 
+                                type="button" 
+                                id="getLocationBtn"
+                                onclick="requestLocation()"
+                                class="bg-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center gap-2 mx-auto" 
+                                style="color: rgb(218,165,32); border: 2px solid rgb(218,165,32);">
+                                <i class="fa-solid fa-crosshairs"></i>
+                                <span>Use My Current Location</span>
                             </button>
                         </div>
+
+                        <div id="locationDisplay" class="hidden location-success rounded-xl p-6">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-check text-green-600 text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-lg font-bold text-gray-800 mb-2">Location Detected</h4>
+                                    <div class="space-y-1 text-sm text-gray-700">
+                                        <p><strong>Latitude:</strong> <span id="displayLat">-</span></p>
+                                        <p><strong>Longitude:</strong> <span id="displayLng">-</span></p>
+                                        <p class="text-xs text-gray-500 mt-2">
+                                            <i class="fa-solid fa-info-circle"></i> 
+                                            Accuracy: <span id="displayAccuracy">-</span>m
+                                        </p>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onclick="requestLocation()"
+                                        class="mt-3 text-sm font-semibold hover:underline" 
+                                        style="color: rgb(218,165,32);">
+                                        <i class="fa-solid fa-rotate"></i> Update Location
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <p class="text-xs lg:text-sm text-gray-600 mt-3 flex items-center gap-2">
                             <i class="fa-solid fa-info-circle" style="color: rgb(218,165,32);"></i>
-                            Click on the map to set your exact delivery location
+                            Your precise location helps us deliver faster and more accurately
                         </p>
                     </div>
 
@@ -169,7 +219,7 @@
                             </div>
                         </label>
 
-                        <!-- Pay Now with Mobile Money (Push USSD) -->
+                        <!-- Pay Now with Mobile Money -->
                         <label class="flex items-start gap-3 lg:gap-5 p-3 lg:p-6 rounded-lg lg:rounded-2xl border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-all">
                             <input type="radio" name="payment_method" value="selcom" class="mt-1 lg:mt-1 w-5 lg:w-6 h-5 lg:h-6" style="accent-color: rgb(218,165,32);">
                             <div class="flex-1">
@@ -254,99 +304,98 @@
     </div>
 </div>
 
-<!-- Google Maps Script -->
-<script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
-
 <script>
-let map;
-let marker;
-let geocoder;
-
-function initMap() {
-    // Default to Dar es Salaam coordinates
-    const defaultLocation = { lat: -6.7924, lng: 39.2083 };
+// Geolocation handler
+function handleLocation(event) {
+    const geoElement = event.target;
     
-    geocoder = new google.maps.Geocoder();
-    
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: defaultLocation,
-        zoom: 13,
-        mapTypeControl: false,
-        streetViewControl: false,
-        styles: [
-            {
-                featureType: "poi",
-                elementType: "labels",
-                stylers: [{ visibility: "off" }]
-            }
-        ]
-    });
-    
-    marker = new google.maps.Marker({
-        position: defaultLocation,
-        map: map,
-        draggable: true,
-        animation: google.maps.Animation.DROP,
-        icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: 'rgb(218,165,32)',
-            fillOpacity: 1,
-            strokeColor: '#002147',
-            strokeWeight: 3
-        }
-    });
-    
-    // Update coordinates when marker is dragged
-    marker.addListener('dragend', function(event) {
-        updateLocation(event.latLng.lat(), event.latLng.lng());
-    });
-    
-    // Update coordinates when map is clicked
-    map.addListener('click', function(event) {
-        marker.setPosition(event.latLng);
-        updateLocation(event.latLng.lat(), event.latLng.lng());
-    });
-    
-    // Try to get user's current location
-    getCurrentLocation();
-}
-
-function getCurrentLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                const userLocation = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
-                map.setCenter(userLocation);
-                marker.setPosition(userLocation);
-                updateLocation(userLocation.lat, userLocation.lng);
-            },
-            function() {
-                console.log('Error: The Geolocation service failed.');
-            }
-        );
+    if (geoElement.position) {
+        const { latitude, longitude, accuracy } = geoElement.position.coords;
+        
+        // Update hidden form fields
+        document.getElementById('latitude').value = latitude;
+        document.getElementById('longitude').value = longitude;
+        
+        // Update display
+        document.getElementById('displayLat').textContent = latitude.toFixed(6);
+        document.getElementById('displayLng').textContent = longitude.toFixed(6);
+        document.getElementById('displayAccuracy').textContent = accuracy.toFixed(0);
+        
+        // Show success display, hide request card
+        document.getElementById('locationCard').classList.add('hidden');
+        document.getElementById('locationDisplay').classList.remove('hidden');
+        
+        // Reverse geocode to get address (optional - using Nominatim API)
+        reverseGeocode(latitude, longitude);
+        
+        console.log("Location retrieved:", latitude, longitude, "Accuracy:", accuracy);
+    } else if (geoElement.error) {
+        console.error("Geolocation Error:", geoElement.error.message);
+        showLocationError(geoElement.error.message);
     }
 }
 
-function updateLocation(lat, lng) {
-    document.getElementById('latitude').value = lat;
-    document.getElementById('longitude').value = lng;
+// Request location
+function requestLocation() {
+    const geoElement = document.getElementById('geolocator');
+    const btn = document.getElementById('getLocationBtn');
     
-    // Reverse geocode to get address
-    geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status) {
-        if (status === 'OK' && results[0]) {
-            document.getElementById('address').value = results[0].formatted_address;
-        }
-    });
+    // Update button state
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Getting Location...</span>';
+    btn.disabled = true;
+    
+    // Trigger geolocation
+    geoElement.requestLocation();
+    
+    // Reset button after 3 seconds if no response
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> <span>Use My Current Location</span>';
+        btn.disabled = false;
+    }, 3000);
 }
 
-// Initialize map when page loads
+// Reverse geocode using Nominatim (OpenStreetMap)
+async function reverseGeocode(lat, lng) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+        const data = await response.json();
+        
+        if (data && data.display_name) {
+            document.getElementById('address').value = data.display_name;
+            
+            // Try to extract region/city
+            if (data.address) {
+                if (data.address.state) {
+                    const regionSelect = document.querySelector('select[name="region"]');
+                    const regionOption = Array.from(regionSelect.options).find(opt => 
+                        opt.value.toLowerCase().includes(data.address.state.toLowerCase())
+                    );
+                    if (regionOption) regionSelect.value = regionOption.value;
+                }
+                if (data.address.city || data.address.town || data.address.suburb) {
+                    document.querySelector('input[name="city"]').value = 
+                        data.address.city || data.address.town || data.address.suburb;
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Reverse geocoding failed:", error);
+    }
+}
+
+// Show location error
+function showLocationError(message) {
+    const locationCard = document.getElementById('locationCard');
+    locationCard.innerHTML = `
+        <i class="fa-solid fa-exclamation-triangle text-4xl mb-3 text-red-500"></i>
+        <h4 class="text-lg font-bold text-gray-800 mb-2">Location Access Denied</h4>
+        <p class="text-sm text-gray-600 mb-4">${message}</p>
+        <p class="text-xs text-gray-500">Please enter your address manually below</p>
+    `;
+}
+
+// Form submission handler
 document.addEventListener('DOMContentLoaded', function() {
-    initMap();
-    
     const form = document.getElementById('checkoutForm');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
@@ -385,49 +434,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fa-solid fa-mobile-alt text-5xl mb-6" style="color: rgb(218,165,32);"></i>
                     <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Request Sent!</h3>
                     <p class="text-lg text-gray-700 mb-2">Check your phone now</p>
-                    <p class="text-base text-gray-600 mb-6">
-                        Approve the payment prompt from:<br>
-                        <strong>M-Pesa • Tigo Pesa • Airtel Money • HaloPesa</strong>
-                    </p>
-                    <p class="text-sm text-gray-500 mb-8">Order: ${data.order_number}</p>
-                    <button onclick="window.location.href='/checkout/success/${data.order_id}'" 
-                            class="w-full py-4 rounded-xl font-black text-lg"
-                            style="background: rgb(218,165,32); color: #002147;">
-                        View Order Confirmation
-                    </button>
+                    <p class="text-base text-gray-600 mb-6">Follow the instructions to complete your payment.</p>
+                    <a href="${data.redirect_url}" class="inline-block px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">Continue</a>
                 `;
             } else {
                 modalContent.innerHTML = `
-                    <i class="fa-solid fa-exclamation-triangle text-4xl mb-4 text-red-500"></i>
-                    <p class="text-xl font-bold text-gray-800 mb-4">Payment Failed</p>
-                    <p class="text-base text-gray-600 mb-6">${data.error || 'Please try again or use Cash on Delivery.'}</p>
-                    <button onclick="modal.classList.add('hidden')" 
-                            class="w-full py-3 rounded-xl font-bold"
-                            style="background: #e11d48; color: white;">
-                        Close
-                    </button>
-                `;
-                submitBtn.disabled = false;
-                submitText.classList.remove('hidden');
-                submitLoader.classList.add('hidden');
+                    <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
+                    <p class="text-lg text-gray-700 mb-6">${data.message || 'An error occurred while processing your payment.'}</p>
+                    <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
+                `;  
+                document.getElementById('modalCloseBtn').addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                    submitBtn.disabled = false;
+                    submitText.classList.remove('hidden');
+                    submitLoader.classList.add('hidden');
+                });
             }
         })
         .catch(error => {
             console.error('Error:', error);
             modalContent.innerHTML = `
-                <i class="fa-solid fa-exclamation-triangle text-4xl mb-4 text-red-500"></i>
-                <p class="text-xl font-bold text-gray-800 mb-4">Connection Error</p>
-                <p class="text-base text-gray-600 mb-6">Please check your internet and try again.</p>
-                <button onclick="location.reload()" 
-                        class="w-full py-3 rounded-xl font-bold"
-                        style="background: rgb(218,165,32); color: #002147;">
-                    Try Again
-                </button>
-            `;
+                <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
+                <p class="text-lg text-gray-700 mb-6">An unexpected error occurred. Please try again.</p>
+                <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
+            `;  
+            document.getElementById('modalCloseBtn').addEventListener('click', () => {
+                modal.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitText.classList.remove('hidden');
+                submitLoader.classList.add('hidden');
+            });
         });
     });
 });
 </script>
-
 </body>
 </html>

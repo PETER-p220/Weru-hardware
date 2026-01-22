@@ -239,7 +239,7 @@ $statusMessage = $latestOrder
     </div>
 
     <!-- Stats Grid -->
-    <div class="stats-grid gap-6 mb-10 animate-slide-in" style="display: grid;">
+    <div class="stats-grid-4 gap-6 mb-10 animate-slide-in" style="display: grid;">
         <div class="card-hover bg-white rounded-2xl shadow-lg border border-gray-100 p-6 smooth-shadow">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background: rgba(218,165,32, 0.1);">

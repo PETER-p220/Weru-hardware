@@ -44,7 +44,7 @@
                         <a href="/" class="text-amber-600 font-bold transition">Home</a>
                         <a href="/products" class="text-gray-600 hover:text-amber-600 font-medium transition">Products</a>
                         <a href="/about" class="text-gray-600 hover:text-amber-600 font-medium transition">About Us</a>
-                        <a href="/contact" class="text-gray-600 hover:text-amber-600 font-medium transition">Contact</a>
+                        <a href="/contactUs" class="text-gray-600 hover:text-amber-600 font-medium transition">Contact</a>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -180,7 +180,7 @@
             <span class="text-2xl font-black text-brand-dark dark:text-white">OWERU</span>
             <div class="flex gap-8 text-sm text-slate-500">
                 <a href="#" class="hover:text-brand-gold transition">Terms of Use</a>
-                <a href="#" class="hover:text-brand-gold transition">Privacy Policy</a>
+                <a href="/privacy" class="hover:text-brand-gold transition">Privacy Policy</a>
             </div>
             <p class="text-sm text-slate-500">© 2026 Oweru. All rights reserved.</p>
         </div>
