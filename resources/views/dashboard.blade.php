@@ -108,11 +108,6 @@ $statusMessage = $latestOrder
             50% { opacity: 0.7; }
         }
         
-        .animate-slide-in { animation: slideInUp 0.5s ease-out forwards; }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        .animate-scale-in { animation: scaleIn 0.3s ease-out forwards; }
-        .badge-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -5px rgba(0, 33, 71, 0.15); }
         .progress-bar { height: 6px; background: #e5e7eb; }
@@ -137,19 +132,8 @@ $statusMessage = $latestOrder
         @media (max-width: 640px) {
             button, a { min-height: 44px; min-width: 44px; }
         }
-        
-        @media (max-width: 768px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        
-        @media (min-width: 769px) {
-            .dashboard-grid { grid-template-columns: 2fr 1fr; }
-            .stats-grid { grid-template-columns: repeat(4, 1fr); }
-        }
     </style>
 </head>
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
 <body class="bg-gray-50 text-gray-800">
 
 <!-- Header -->
@@ -230,60 +214,73 @@ $statusMessage = $latestOrder
     </div>
 </header>
 
-<main class="max-w-7xl mx-auto px-6 py-10">
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
 
     <!-- Welcome -->
-    <div class="mb-10">
-        <h2 class="text-4xl font-black text-gray-900 mb-2">Welcome back, {{ $user->name }}!</h2>
-        <p class="text-lg text-gray-600">Here's what's happening with your account today.</p>
+    <div class="mb-8 md:mb-10">
+        <h2 class="text-3xl md:text-4xl font-black text-gray-900 mb-2">Welcome back, {{ $user->name }}!</h2>
+        <p class="text-base md:text-lg text-gray-600">Here's what's happening with your account today.</p>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid-4 gap-6 mb-10 animate-slide-in" style="display: grid;">
-        <div class="card-hover bg-white rounded-2xl shadow-lg border border-gray-100 p-6 smooth-shadow">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background: rgba(218,165,32, 0.1);">
-                    <i class="fa-solid fa-shopping-bag text-2xl" style="color: rgb(218,165,32);"></i>
+    <!-- Stats Cards – responsive layout -->
+    <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10 animate-slide-in">
+        
+        <!-- Total Orders -->
+        <div class="card-hover bg-white rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 smooth-shadow">
+            <div class="flex items-center justify-between mb-3 md:mb-4">
+                <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center" style="background: rgba(218,165,32, 0.1);">
+                    <i class="fa-solid fa-shopping-bag text-xl md:text-2xl" style="color: rgb(218,165,32);"></i>
                 </div>
             </div>
             <p class="text-gray-600 text-sm font-medium">Total Orders</p>
-            <p class="text-4xl font-black text-gray-900 mt-1">{{ $totalOrders }}</p>
-            <p class="text-sm text-gray-500 mt-2">{{ $processingOrdersCount }} in progress</p>
+            <p class="text-3xl md:text-4xl font-black text-gray-900 mt-1">{{ $totalOrders }}</p>
+            <p class="text-xs md:text-sm text-gray-500 mt-1.5">{{ $processingOrdersCount }} in progress</p>
         </div>
 
-        <div class="card-hover bg-white rounded-2xl shadow-lg border border-gray-100 p-6 smooth-shadow">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background: rgba(218,165,32, 0.1);">
-                    <i class="fa-solid fa-clock text-2xl" style="color: rgb(218,165,32);"></i>
+        <!-- Pending Orders -->
+        <div class="card-hover bg-white rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 smooth-shadow">
+            <div class="flex items-center justify-between mb-3 md:mb-4">
+                <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center" style="background: rgba(218,165,32, 0.1);">
+                    <i class="fa-solid fa-clock text-xl md:text-2xl" style="color: rgb(218,165,32);"></i>
                 </div>
             </div>
             <p class="text-gray-600 text-sm font-medium">Pending Orders</p>
-            <p class="text-4xl font-black text-gray-900 mt-1">{{ $pendingOrdersCount }}</p>
-            <p class="text-sm text-gray-500 mt-2">Awaiting confirmation</p>
+            <p class="text-3xl md:text-4xl font-black text-gray-900 mt-1">{{ $pendingOrdersCount }}</p>
+            <p class="text-xs md:text-sm text-gray-500 mt-1.5">Awaiting confirmation</p>
         </div>
 
-        <div class="card-hover bg-white rounded-2xl shadow-lg border border-gray-100 p-6 smooth-shadow">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-14 h-14 rounded-xl flex items-center justify-center" style="background: rgba(76,175,80, 0.1);">
-                    <i class="fa-solid fa-sack-dollar text-2xl" style="color: #4caf50;"></i>
+        <!-- Total Spent -->
+        <div class="card-hover bg-white rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 smooth-shadow">
+            <div class="flex items-center justify-between mb-3 md:mb-4">
+                <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center" style="background: rgba(76,175,80, 0.1);">
+                    <i class="fa-solid fa-sack-dollar text-xl md:text-2xl" style="color: #4caf50;"></i>
                 </div>
             </div>
             <p class="text-gray-600 text-sm font-medium">Total Spent</p>
-            <p class="text-xl font-black text-gray-900 mt-1">TZS {{ $totalSpent }}</p>
-            <p class="text-sm text-gray-500 mt-2">Avg: TZS {{ $averageOrderValue }}</p>
+            <p class="text-3xl md:text-4xl font-black text-gray-900 mt-1">TZS {{ $totalSpent }}</p>
+            <p class="text-xs md:text-sm text-gray-500 mt-1.5">Avg: TZS {{ $averageOrderValue }}</p>
         </div>
 
-        
+        <!-- You can add a fourth card here later if needed -->
+        <!-- 
+        <div class="card-hover bg-white rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 smooth-shadow">
+            <div class="flex items-center justify-between mb-4">
+                ...
+            </div>
+            ...
+        </div>
+        -->
+
     </div>
 
     <!-- Main Layout -->
-    <div class="dashboard-grid gap-8" style="display: grid;">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
 
-        <!-- Recent Orders -->
-        <div class="animate-scale-in">
+        <!-- Recent Orders – takes more space -->
+        <div class="lg:col-span-2 animate-scale-in">
             <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden smooth-shadow">
-                <div class="px-6 py-5 text-white flex items-center justify-between" style="background: linear-gradient(135deg, #002147, #001a33);">
-                    <h3 class="text-xl font-bold">Recent Orders</h3>
+                <div class="px-5 sm:px-6 py-4 md:py-5 text-white flex items-center justify-between" style="background: linear-gradient(135deg, #002147, #001a33);">
+                    <h3 class="text-lg md:text-xl font-bold">Recent Orders</h3>
                     <a href="{{ url('order') }}" class="text-sm font-medium flex items-center gap-1 transition hover:scale-105" style="color: rgba(218,165,32, 0.9);">
                         View All <i class="fa-solid fa-arrow-right"></i>
                     </a>
@@ -292,35 +289,35 @@ $statusMessage = $latestOrder
                 <div class="divide-y divide-gray-100">
                     @foreach($recentOrders as $order)
                         @if(isset($order['id']))
-                            <a href="{{ route('order.show', $order['id']) }}" class="block p-6 transition hover:bg-gray-50" style="background: rgba(218,165,32, 0.02);">
+                            <a href="{{ route('order.show', $order['id']) }}" class="block p-5 sm:p-6 transition hover:bg-gray-50" style="background: rgba(218,165,32, 0.02);">
                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                     <div>
                                         <div class="flex items-center gap-3 mb-1 flex-wrap">
-                                            <span class="font-bold text-lg text-gray-900">#{{ $order['number'] }}</span>
+                                            <span class="font-bold text-base md:text-lg text-gray-900">#{{ $order['number'] }}</span>
                                             <span class="px-3 py-1 text-xs font-bold rounded-full {{ $order['statusClass'] }}">
                                                 {{ $order['status'] }}
                                             </span>
                                         </div>
                                     </div>
                                     <div class="text-left sm:text-right">
-                                        <p class="font-bold text-lg sm:text-xl text-gray-900">TZS {{ $order['amount'] }}</p>
+                                        <p class="font-bold text-base md:text-lg lg:text-xl text-gray-900">TZS {{ $order['amount'] }}</p>
                                         <span class="text-sm font-medium transition hover:scale-105" style="color: rgb(218,165,32);">View Details →</span>
                                     </div>
                                 </div>
                             </a>
                         @else
-                            <div class="block p-6" style="background: rgba(218,165,32, 0.02);">
+                            <div class="block p-5 sm:p-6" style="background: rgba(218,165,32, 0.02);">
                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                     <div>
                                         <div class="flex items-center gap-3 mb-1 flex-wrap">
-                                            <span class="font-bold text-lg text-gray-900">#{{ $order['number'] }}</span>
+                                            <span class="font-bold text-base md:text-lg text-gray-900">#{{ $order['number'] }}</span>
                                             <span class="px-3 py-1 text-xs font-bold rounded-full {{ $order['statusClass'] }}">
                                                 {{ $order['status'] }}
                                             </span>
                                         </div>
                                     </div>
                                     <div class="text-left sm:text-right">
-                                        <p class="font-bold text-lg sm:text-xl text-gray-900">TZS {{ $order['amount'] }}</p>
+                                        <p class="font-bold text-base md:text-lg lg:text-xl text-gray-900">TZS {{ $order['amount'] }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -334,7 +331,7 @@ $statusMessage = $latestOrder
         <div class="space-y-6 animate-fade-in">
 
             <!-- Profile Card -->
-            <div class="rounded-2xl shadow-xl p-6 text-white smooth-shadow" style="background: linear-gradient(135deg, #002147, #001a33);">
+            <div class="rounded-2xl shadow-xl p-5 sm:p-6 text-white smooth-shadow" style="background: linear-gradient(135deg, #002147, #001a33);">
                 <div class="flex items-center gap-4 mb-5">
                     <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold" style="background: rgb(218,165,32); color: #000000;">
                         {{ $userInitial }}
@@ -351,7 +348,7 @@ $statusMessage = $latestOrder
             </div>
 
             <!-- Quick Actions -->
-            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 smooth-shadow">
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 smooth-shadow">
                 <h3 class="font-bold text-lg mb-5 text-gray-900">Quick Actions</h3>
                 <div class="space-y-3">
                     <a href="{{ url('products') }}" class="flex items-center gap-4 p-4 rounded-xl transition hover:scale-105" style="background: rgba(218,165,32, 0.1);">
@@ -373,9 +370,9 @@ $statusMessage = $latestOrder
     </div>
 
     <!-- Active Order Tracking -->
-    <div class="mt-8 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 smooth-shadow animate-slide-in">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <h3 class="text-2xl sm:text-3xl font-black text-gray-900">Active Order Tracking</h3>
+    <div class="mt-8 md:mt-10 bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 smooth-shadow animate-slide-in">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
+            <h3 class="text-2xl md:text-3xl font-black text-gray-900">Active Order Tracking</h3>
             @if($latestOrder)
                 <a href="{{ route('order.show', $latestOrder->id) }}" class="text-sm font-medium transition hover:scale-105 w-fit" style="color: rgb(218,165,32);">
                     View Order #{{$latestOrderNumber}} →
@@ -384,18 +381,18 @@ $statusMessage = $latestOrder
         </div>
 
         @if($latestOrder)
-            <div class="mb-8 p-5 rounded-xl" style="background: linear-gradient(135deg, rgba(218,165,32, 0.1), rgba(218,165,32, 0.05)); border: 2px solid rgba(218,165,32, 0.2);">
+            <div class="mb-6 md:mb-8 p-5 rounded-xl" style="background: linear-gradient(135deg, rgba(218,165,32, 0.1), rgba(218,165,32, 0.05)); border: 2px solid rgba(218,165,32, 0.2);">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <span class="font-bold text-xl text-gray-900">#{{ $latestOrderNumber }}</span>
-                        <span class="text-gray-600 ml-4">• Placed on {{ $latestOrderDate }}</span>
+                        <span class="font-bold text-lg md:text-xl text-gray-900">#{{ $latestOrderNumber }}</span>
+                        <span class="text-gray-600 ml-3 md:ml-4">• Placed on {{ $latestOrderDate }}</span>
                     </div>
-                    <span class="font-bold text-xl text-gray-900">TZS {{ $latestOrderAmount }}</span>
+                    <span class="font-bold text-lg md:text-xl text-gray-900">TZS {{ $latestOrderAmount }}</span>
                 </div>
             </div>
 
             <!-- Progress Steps -->
-            <div class="relative mb-8">
+            <div class="relative mb-6 md:mb-8">
                 <div class="flex justify-between items-center">
                     @php
                         $steps = ['Pending', 'Processing', 'Shipped', 'Delivered'];
@@ -408,7 +405,7 @@ $statusMessage = $latestOrder
                             $isDone = $stepNum < $currentStep;
                         @endphp
                         <div class="flex flex-col items-center z-10 flex-1">
-                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg transition
+                            <div class="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg transition
                                 {{ $isDone || $isActive ? 'ring-4' : '' }}"
                                 style="background: {{ $isDone || $isActive ? 'rgb(218,165,32)' : '#d1d5db' }}; ring-color: rgba(218,165,32, 0.3);">
                                 @if($isDone)
@@ -417,13 +414,13 @@ $statusMessage = $latestOrder
                                     <i class="fa-solid {{ $stepIcons[$index] }}"></i>
                                 @endif
                             </div>
-                            <span class="mt-2 sm:mt-3 text-xs sm:text-sm font-medium text-center" style="color: {{ $isActive || $isDone ? 'rgb(218,165,32)' : '#6b7280' }};">
+                            <span class="mt-2 text-xs sm:text-sm font-medium text-center" style="color: {{ $isActive || $isDone ? 'rgb(218,165,32)' : '#6b7280' }};">
                                 {{ $step }}
                             </span>
                         </div>
 
                         @if($index < 3)
-                            <div class="progress-bar absolute top-5 sm:top-7 left-14 right-14 -z-10">
+                            <div class="progress-bar absolute top-[18px] sm:top-[22px] md:top-[26px] left-10 sm:left-14 md:left-16 right-10 sm:right-14 md:right-16 -z-10">
                                 <div class="progress-fill" style="width: {{ $stepNum <= $currentStep ? '100%' : '0%' }}"></div>
                             </div>
                         @endif
@@ -432,14 +429,14 @@ $statusMessage = $latestOrder
             </div>
 
             <div class="p-5 sm:p-6 rounded-xl" style="background: linear-gradient(135deg, rgba(218,165,32, 0.1), rgba(218,165,32, 0.05)); border: 2px solid rgba(218,165,32, 0.2);">
-                <p class="text-gray-800 leading-relaxed">{!! $statusMessage !!}</p>
+                <p class="text-gray-800 leading-relaxed text-sm md:text-base">{!! $statusMessage !!}</p>
             </div>
         @else
-            <div class="text-center py-12">
-                <i class="fa-solid fa-inbox text-6xl text-gray-300 mb-4"></i>
-                <p class="text-xl font-semibold text-gray-700 mb-2">No Active Orders</p>
-                <p class="text-gray-600 mb-6">When you place an order, track its status here in real-time.</p>
-                <a href="{{ url('products') }}" class="inline-flex items-center gap-3 text-white font-bold px-8 py-4 rounded-xl shadow-lg transition hover:scale-105" style="background: rgb(218,165,32); color: #000000;">
+            <div class="text-center py-10 md:py-12">
+                <i class="fa-solid fa-inbox text-5xl md:text-6xl text-gray-300 mb-4"></i>
+                <p class="text-lg md:text-xl font-semibold text-gray-700 mb-2">No Active Orders</p>
+                <p class="text-sm md:text-base text-gray-600 mb-6">When you place an order, track its status here in real-time.</p>
+                <a href="{{ url('products') }}" class="inline-flex items-center gap-3 text-white font-bold px-6 py-3 md:px-8 md:py-4 rounded-xl shadow-lg transition hover:scale-105" style="background: rgb(218,165,32); color: #000000;">
                     Start Shopping Now <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
