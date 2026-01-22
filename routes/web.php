@@ -25,6 +25,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Public routes section (add these here)
+Route::get('/privacy', [SettingController::class, 'index'])->name('privacy');
+Route::get('/about', [SettingController::class, 'about'])->name('about');
+Route::get('/contactUs', [SettingController::class, 'contact'])->name('contactUs');
+
+
 // Contact form submission from landing page
 Route::post('/contact', function (Request $request) {
     $data = $request->validate([
@@ -72,14 +78,6 @@ Route::post('/webhook/selcom', [CheckoutController::class, 'webhook'])
 
 
 Route::middleware('auth')->group(function () {
-
-
-// Public routes section (add these here)
-Route::get('/privacy', [SettingController::class, 'index'])->name('privacy');
-Route::get('/about', [SettingController::class, 'about'])->name('about');
-Route::get('/contact', [SettingController::class, 'contact'])->name('contactUs');
-
-
     // User Profile (available to all authenticated users)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
