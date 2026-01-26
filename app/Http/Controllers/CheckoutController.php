@@ -20,16 +20,13 @@ class CheckoutController extends Controller
 
     public function process(Request $request)
     {
-        // ────────────────────────────────────────────────
-        // FORCE JSON MODE FOR AJAX / FETCH REQUESTS
-        // ────────────────────────────────────────────────
+        // Force JSON mode for AJAX/fetch requests
         if ($request->header('X-Requested-With') === 'XMLHttpRequest' ||
             str_contains($request->header('Accept', ''), 'application/json')) {
             $request->headers->set('Accept', 'application/json');
             $request->setRequestFormat('json');
         }
 
-        // Debug log - remove this after confirming it works
         Log::debug('Checkout::process - request detection', [
             'is_ajax'          => $request->ajax(),
             'expects_json'     => $request->expectsJson(),
@@ -37,7 +34,6 @@ class CheckoutController extends Controller
             'accept_header'    => $request->header('Accept'),
             'x_requested_with' => $request->header('X-Requested-With'),
             'content_type'     => $request->header('Content-Type'),
-            'forced_json'      => $request->expectsJson(),
         ]);
 
         $cart = Cart::current();
@@ -52,7 +48,7 @@ class CheckoutController extends Controller
         $delivery  = 25000;
         $total     = $subtotal + $delivery;
 
-        // Normalize Tanzanian phone number
+        // Normalize phone number
         $rawPhone = preg_replace('/\D/', '', $request->phone);
         $phone    = '255' . substr($rawPhone, -9);
 
@@ -64,7 +60,7 @@ class CheckoutController extends Controller
         }
 
         // Generate unique order number
-        $orderNumber = 'OH-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+        $orderNumber     = 'OH-' . date('Ymd') . '-' . strtoupper(Str::random(6));
         $merchantOrderId = $orderNumber;
 
         $order = Order::create([
@@ -100,9 +96,7 @@ class CheckoutController extends Controller
 
         $cart->clear();
 
-        // ────────────────────────────────────────────────
         // CASH ON DELIVERY
-        // ────────────────────────────────────────────────
         if ($request->payment_method === 'cash_on_delivery') {
             $msg = "NEW ORDER (COD)%0A%0AOrder: {$order->order_number}%0AName: {$request->name}%0APhone: {$request->phone}%0ATotal: TZS " . number_format($total) . "%0AAddress: {$request->address}, {$request->city}, {$request->region}%0A%0ACall customer now!";
             $wa  = "https://wa.me/255616012915?text=" . $msg;
@@ -121,80 +115,117 @@ class CheckoutController extends Controller
                 ->with('whatsapp', $wa);
         }
 
-        // ────────────────────────────────────────────────
-        // SELCOM via OWERU WRAPPER – Push USSD
-        // ────────────────────────────────────────────────
+        // SELCOM via OWERU – Push USSD
         if ($request->payment_method === 'selcom') {
             $baseUrl = 'https://api.selcom.oweru.com/api/checkout';
             $appKey  = env('OWERU_APP_KEY');
 
+            Log::debug('OWERU_APP_KEY check', [
+                'exists'   => !empty($appKey),
+                'length'   => strlen($appKey ?? ''),
+                'prefix'   => $appKey ? substr($appKey, 0, 10) . '...' : 'MISSING',
+            ]);
+
             if (!$appKey) {
                 Log::error('Missing OWERU_APP_KEY in .env');
                 if ($request->expectsJson()) {
-                    return response()->json(['success' => false, 'message' => 'Payment service not configured. Please use Cash on Delivery.'], 503);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Payment service not configured. Please use Cash on Delivery.'
+                    ], 503);
                 }
                 return back()->with('error', 'Payment service not configured. Please use Cash on Delivery.');
             }
 
             try {
-                // Step 1: Create order
-                $createResponse = Http::withHeaders([
-                    'X-App-Key'     => $appKey,
-                    'Content-Type'  => 'application/json',
-                    'Accept'        => 'application/json',
-                ])->post($baseUrl . '/create-order-minimal', [
+                // Step 1: Create minimal order
+                $payload = [
                     'order_id'         => $merchantOrderId,
-                    'buyer_name'       => $request->name,
-                    'buyer_email'      => $request->email,
+                    'buyer_name'       => trim($request->name ?? ''),
+                    'buyer_email'      => trim($request->email ?? ''),
                     'buyer_phone'      => $phone,
                     'amount'           => number_format($total, 0, '.', ''),
                     'currency'         => 'TZS',
                     'buyer_remarks'    => 'Hardware purchase via website',
                     'merchant_remarks' => 'Order #' . $order->id,
                     'no_of_items'      => $cart->totalItems(),
+                ];
+
+                $createResponse = Http::withHeaders([
+                    'X-App-Key'     => $appKey,
+                    'Content-Type'  => 'application/json',
+                    'Accept'        => 'application/json',
+                ])->post($baseUrl . '/create-order-minimal', $payload);
+
+                Log::info('Oweru Create Order FULL Response', [
+                    'http_status'  => $createResponse->status(),
+                    'sent_payload' => $payload,
+                    'raw_body'     => $createResponse->body(),
+                    'parsed'       => $createResponse->json(),
+                    'headers'      => $createResponse->headers(),
                 ]);
 
                 $createData = $createResponse->json();
 
-                Log::info('Oweru Create Order Response', [
-                    'status' => $createResponse->status(),
-                    'body'   => $createData,
-                ]);
-
                 if (!$createResponse->successful() || ($createData['result'] ?? '') !== 'SUCCESS') {
-                    $errorMsg = $createData['message'] ?? $createData['error'] ?? 'Unknown error from Oweru';
-                    Log::error('Oweru Create Order Failed', $createData);
+                    $errorDetail = $createData['detail'] ?? $createData['message'] ?? $createData['error'] ?? $createResponse->body() ?: 'Unknown error from Oweru';
+                    $httpStatus  = $createResponse->status();
+
+                    Log::error('Oweru Create Order Failed', [
+                        'http_status' => $httpStatus,
+                        'detail'      => $errorDetail,
+                        'response'    => $createData,
+                        'raw_body'    => $createResponse->body(),
+                    ]);
+
                     if ($request->expectsJson()) {
-                        return response()->json(['success' => false, 'message' => "Could not initiate payment: $errorMsg"], 400);
+                        return response()->json([
+                            'success' => false,
+                            'message' => "Could not initiate payment ($httpStatus): $errorDetail"
+                        ], $httpStatus ?: 400);
                     }
-                    return back()->with('error', "Could not initiate payment: $errorMsg. Please try Cash on Delivery.");
+
+                    return back()->with('error', "Could not initiate payment ($httpStatus): $errorDetail. Please try Cash on Delivery.");
                 }
 
                 // Step 2: Trigger wallet payment (Push USSD)
+                $payPayload = [
+                    'order_id' => $merchantOrderId,
+                    'transid'  => $merchantOrderId,
+                    'msisdn'   => $phone,
+                ];
+
                 $payResponse = Http::withHeaders([
                     'X-App-Key'     => $appKey,
                     'Content-Type'  => 'application/json',
                     'Accept'        => 'application/json',
-                ])->post($baseUrl . '/wallet-payment', [
-                    'order_id' => $merchantOrderId,
-                    'transid'  => $merchantOrderId,
-                    'msisdn'   => $phone,
+                ])->post($baseUrl . '/wallet-payment', $payPayload);
+
+                Log::info('Oweru Wallet Payment FULL Response', [
+                    'http_status'  => $payResponse->status(),
+                    'sent_payload' => $payPayload,
+                    'raw_body'     => $payResponse->body(),
+                    'parsed'       => $payResponse->json(),
                 ]);
 
                 $payData = $payResponse->json();
 
-                Log::info('Oweru Wallet Payment Response', [
-                    'status' => $payResponse->status(),
-                    'body'   => $payData,
-                ]);
-
                 if (!$payResponse->successful()) {
-                    $errorMsg = $payData['message'] ?? 'Payment trigger failed';
-                    Log::error('Oweru Wallet Payment Failed', $payData);
+                    $errorDetail = $payData['detail'] ?? $payData['message'] ?? $payData['error'] ?? $payResponse->body() ?: 'Payment trigger failed';
+                    Log::error('Oweru Wallet Payment Failed', [
+                        'http_status' => $payResponse->status(),
+                        'detail'      => $errorDetail,
+                        'response'    => $payData,
+                    ]);
+
                     if ($request->expectsJson()) {
-                        return response()->json(['success' => false, 'message' => "Payment request could not be sent: $errorMsg"], 400);
+                        return response()->json([
+                            'success' => false,
+                            'message' => "Payment request could not be sent: $errorDetail"
+                        ], 400);
                     }
-                    return back()->with('error', "Payment request could not be sent: $errorMsg");
+
+                    return back()->with('error', "Payment request could not be sent: $errorDetail");
                 }
 
                 // Update order
