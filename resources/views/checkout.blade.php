@@ -8,9 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Leaflet for map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5nQ9nXqV8=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         :root {
@@ -19,40 +18,33 @@
         }
         body { font-family: 'Inter', sans-serif; background-color: #f5f5f5; }
         .btn-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,33,71,0.3); }
-        .input-focus:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(218,165,32,0.15); }
-        .payment-option:checked + label { box-shadow: 0 0 0 4px rgba(218,165,32,0.3); border-color: var(--primary); background-color: rgba(218,165,32,0.05); }
-        
-        #map-container { 
-            transition: max-height 0.5s ease, opacity 0.5s ease; 
-            overflow: hidden; 
-        }
+        .input-focus:focus { outline: none; border-color: rgb(218,165,32); box-shadow: 0 0 0 3px rgba(218,165,32,0.15); }
+        .payment-option:checked + label { box-shadow: 0 0 0 4px rgba(218,165,32,0.3); border-color: rgb(218,165,32); background-color: rgba(218,165,32,0.05); }
         #map { 
-            height: 350px; 
+            height: 400px; 
+            width: 100%; 
             border-radius: 1rem; 
-            border: 1px solid rgba(218,165,32,0.3); 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            border: 3px solid rgba(218,165,32,0.3);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         @media (max-width: 768px) {
-            #map { height: 250px; }
+            #map { height: 300px; }
         }
-        .map-toggle-btn {
-            background: white;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            transition: all 0.3s ease;
+        .location-card {
+            background: linear-gradient(135deg, rgba(218,165,32,0.1) 0%, rgba(0,33,71,0.05) 100%);
+            border: 2px dashed rgba(218,165,32,0.3);
         }
-        .map-toggle-btn:hover {
-            background: var(--primary);
-            color: white;
+        .location-success {
+            background: linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(22,163,74,0.05) 100%);
+            border: 2px solid rgba(34,197,94,0.3);
         }
-        .location-status {
-            background: rgba(218,165,32,0.08);
-            border: 1px solid rgba(218,165,32,0.3);
-            border-radius: 0.75rem;
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        .coord-display {
-            font-size: 0.875rem;
-            color: #4b5563;
+        .leaflet-popup-content {
+            margin: 16px;
+            font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
@@ -101,13 +93,13 @@
 
     <form action="{{ route('checkout.process') }}" method="POST" id="checkoutForm">
         @csrf
-        <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
-        <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
+        <input type="hidden" name="latitude" id="latitude">
+        <input type="hidden" name="longitude" id="longitude">
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            <!-- Left Column -->
+            <!-- Left: Form -->
             <div class="lg:col-span-8 space-y-8">
-                <!-- 1. Contact Information -->
+                <!-- Contact Information -->
                 <div class="bg-white rounded-2xl lg:rounded-3xl shadow-lg border border-gray-200 p-4 lg:p-8">
                     <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
                         <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center text-lg lg:text-xl font-black text-white" style="background: rgb(218,165,32);">1</div>
@@ -129,60 +121,101 @@
                     </div>
                 </div>
 
-                <!-- 2. Delivery Address with Collapsible Map -->
+                <!-- Delivery Address with Geolocation & Live Map -->
                 <div class="bg-white rounded-2xl lg:rounded-3xl shadow-lg border border-gray-200 p-4 lg:p-8">
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center gap-3 lg:gap-4">
-                            <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center text-lg lg:text-xl font-black text-white" style="background: rgb(218,165,32);">2</div>
-                            <h3 class="text-lg lg:text-2xl font-black text-gray-900">Delivery Address</h3>
-                        </div>
-                        <button 
-                            type="button" 
-                            id="toggleMapBtn"
-                            class="map-toggle-btn px-5 py-2.5 rounded-lg font-medium text-sm flex items-center gap-2 shadow-sm hover:shadow transition-all">
-                            <i class="fa-solid fa-map-location-dot"></i>
-                            <span id="toggleText">Show Map</span>
-                        </button>
+                    <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
+                        <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center text-lg lg:text-xl font-black text-white" style="background: rgb(218,165,32);">2</div>
+                        <h3 class="text-lg lg:text-2xl font-black text-gray-900">Delivery Address</h3>
                     </div>
 
-                    <!-- Collapsible Map Section -->
-                    <div id="map-container" class="max-h-0 opacity-0 overflow-hidden transition-all duration-500 ease-in-out">
+                    <!-- Geolocation Component -->
+                    <div class="mb-6">
+                        <geolocation 
+                            id="geolocator"
+                            onlocation="handleLocation(event)" 
+                            autolocate 
+                            accuracymode="precise"
+                            style="display: none;">
+                        </geolocation>
+
+                        <div id="locationCard" class="location-card rounded-xl p-6 text-center transition-all duration-300">
+                            <i class="fa-solid fa-location-crosshairs text-4xl mb-3" style="color: rgb(218,165,32);"></i>
+                            <h4 class="text-lg font-bold text-gray-800 mb-2">Get Your Location</h4>
+                            <p class="text-sm text-gray-600 mb-4">Click below to automatically detect your delivery location</p>
+                            <button 
+                                type="button" 
+                                id="getLocationBtn"
+                                onclick="requestLocation()"
+                                class="bg-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center gap-2 mx-auto" 
+                                style="color: rgb(218,165,32); border: 2px solid rgb(218,165,32);">
+                                <i class="fa-solid fa-crosshairs"></i>
+                                <span>Use My Current Location</span>
+                            </button>
+                        </div>
+
+                        <div id="locationDisplay" class="hidden location-success rounded-xl p-6">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-check text-green-600 text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-lg font-bold text-gray-800 mb-2">Location Detected</h4>
+                                    <div class="space-y-1 text-sm text-gray-700">
+                                        <p><strong>Latitude:</strong> <span id="displayLat">-</span></p>
+                                        <p><strong>Longitude:</strong> <span id="displayLng">-</span></p>
+                                        <p class="text-xs text-gray-500 mt-2">
+                                            <i class="fa-solid fa-info-circle"></i> 
+                                            Accuracy: <span id="displayAccuracy">-</span>m
+                                        </p>
+                                    </div>
+                                    <button 
+                                        type="button" 
+                                        onclick="requestLocation()"
+                                        class="mt-3 text-sm font-semibold hover:underline" 
+                                        style="color: rgb(218,165,32);">
+                                        <i class="fa-solid fa-rotate"></i> Update Location
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-xs lg:text-sm text-gray-600 mt-3 flex items-center gap-2">
+                            <i class="fa-solid fa-info-circle" style="color: rgb(218,165,32);"></i>
+                            Your precise location helps us deliver faster and more accurately
+                        </p>
+                    </div>
+
+                    <!-- Live Map -->
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-sm lg:text-base font-bold text-gray-800 flex items-center gap-2">
+                                <i class="fa-solid fa-map-location-dot" style="color: rgb(218,165,32);"></i>
+                                Delivery Location Map
+                            </h4>
+                            <button 
+                                type="button" 
+                                onclick="map.setView([currentLat, currentLng], 15)"
+                                class="text-xs font-semibold px-3 py-1 rounded-lg border-2 hover:bg-gray-50 transition"
+                                style="color: rgb(218,165,32); border-color: rgb(218,165,32);">
+                                <i class="fa-solid fa-crosshairs"></i> Center Map
+                            </button>
+                        </div>
                         <div id="map"></div>
-
-                        <!-- Status & Controls -->
-                        <div class="mt-4 p-4 rounded-xl location-status flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div class="flex items-center gap-3">
-                                <i id="statusIcon" class="fa-solid fa-location-crosshairs text-xl min-w-[24px]" style="color: var(--primary);"></i>
-                                <span id="statusText" class="font-medium">Click "Use Current Location" or drag the marker to set delivery point</span>
-                            </div>
-                            <div class="flex gap-3 flex-wrap">
-                                <button type="button" id="getLocationBtn" class="px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm" style="background: white; border: 2px solid var(--primary); color: var(--primary);">
-                                    <i class="fa-solid fa-crosshairs"></i> Use Current Location
-                                </button>
-                                <button type="button" id="resetMapBtn" class="px-4 py-2.5 rounded-lg text-sm text-gray-600 hover:text-gray-800 flex items-center gap-2">
-                                    <i class="fa-solid fa-rotate-left"></i> Reset
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Small coordinates display -->
-                        <div class="mt-3 coord-display flex flex-wrap gap-6 text-xs">
-                            <span>Latitude: <span id="displayLat" class="font-medium">—</span></span>
-                            <span>Longitude: <span id="displayLng" class="font-medium">—</span></span>
-                            <span>Accuracy: <span id="displayAccuracy" class="font-medium">—</span></span>
-                        </div>
+                        <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                            <i class="fa-solid fa-hand-pointer"></i>
+                            Click and drag the marker to adjust your exact delivery location
+                        </p>
                     </div>
 
-                    <!-- Always-visible address fields -->
-                    <div class="space-y-6 mt-8">
+                    <div class="space-y-4 lg:space-y-6">
                         <div>
                             <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">Full Address <span class="text-red-600">*</span></label>
-                            <input type="text" name="address" id="address" value="{{ old('address') }}" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus transition text-base" placeholder="Plot 123, Mwananyamala">
+                            <input type="text" name="address" id="address" value="{{ old('address') }}" required class="w-full px-3 lg:px-6 py-2 lg:py-4 border-2 border-gray-200 rounded-lg lg:rounded-xl input-focus transition text-sm lg:text-base" placeholder="Plot 123, Mwananyamala">
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                             <div>
                                 <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">Region <span class="text-red-600">*</span></label>
-                                <select name="region" id="region" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus transition text-base">
+                                <select name="region" required class="w-full px-3 lg:px-6 py-2 lg:py-4 border-2 border-gray-200 rounded-lg lg:rounded-xl input-focus transition text-sm lg:text-base">
                                     <option value="">Select Region</option>
                                     @foreach(['Dar es Salaam','Arusha','Mwanza','Dodoma','Mbeya','Morogoro','Tanga','Kilimanjaro','Zanzibar','Other'] as $region)
                                         <option value="{{ $region }}" {{ old('region') == $region ? 'selected' : '' }}>{{ $region }}</option>
@@ -191,12 +224,12 @@
                             </div>
                             <div>
                                 <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">City / District <span class="text-red-600">*</span></label>
-                                <input type="text" name="city" id="city" value="{{ old('city') }}" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus transition text-base" placeholder="Ilala">
+                                <input type="text" name="city" value="{{ old('city') }}" required class="w-full px-3 lg:px-6 py-2 lg:py-4 border-2 border-gray-200 rounded-lg lg:rounded-xl input-focus transition text-sm lg:text-base" placeholder="Ilala">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">Delivery Notes (Optional)</label>
-                            <textarea name="notes" rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus transition resize-none text-base" placeholder="Near mosque, red gate, call when close...">{{ old('notes') }}</textarea>
+                            <textarea name="notes" rows="3" class="w-full px-3 lg:px-6 py-2 lg:py-4 border-2 border-gray-200 rounded-lg lg:rounded-xl input-focus transition resize-none text-sm lg:text-base" placeholder="Near mosque, red gate, call when close...">{{ old('notes') }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -208,22 +241,34 @@
                         <h3 class="text-lg lg:text-2xl font-black text-gray-900">Payment Method</h3>
                     </div>
 
-                    <div class="space-y-4">
-                        <label class="flex items-start gap-4 p-5 rounded-xl border-2 border-gray-200 hover:border-[var(--primary)] cursor-pointer transition-all">
-                            <input type="radio" name="payment_method" value="cash_on_delivery" checked class="mt-1.5 w-5 h-5" style="accent-color: var(--primary);">
-                            <div>
-                                <p class="text-lg font-bold text-gray-900">Cash on Delivery (Recommended)</p>
-                                <p class="text-sm text-gray-600 mt-1">Pay with cash, M-Pesa, or bank transfer when you receive your items</p>
-                                <p class="text-xs text-gray-500 mt-2">Most popular • No online payment needed • We call you to confirm</p>
+                    <div class="space-y-3 lg:space-y-5">
+                        <!-- Cash on Delivery -->
+                        <label class="flex items-start gap-3 lg:gap-5 p-3 lg:p-6 rounded-lg lg:rounded-2xl border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-all">
+                            <input type="radio" name="payment_method" value="cash_on_delivery" checked class="mt-1 lg:mt-1 w-5 lg:w-6 h-5 lg:h-6" style="accent-color: rgb(218,165,32);">
+                            <div class="flex-1">
+                                <div class="flex items-start gap-2 lg:gap-3">
+                                    <i class="fa-solid fa-truck text-2xl lg:text-3xl text-green-600 mt-0.5"></i>
+                                    <div>
+                                        <p class="text-base lg:text-xl font-bold text-gray-900">Cash on Delivery (Recommended)</p>
+                                        <p class="text-sm lg:text-base text-gray-600">Pay with cash, M-Pesa, or bank transfer when you receive your items</p>
+                                    </div>
+                                </div>
+                                <p class="text-xs lg:text-sm text-gray-500 mt-2 lg:mt-3">Most popular • No online payment needed • We call you to confirm</p>
                             </div>
                         </label>
 
-                        <label class="flex items-start gap-4 p-5 rounded-xl border-2 border-gray-200 hover:border-[var(--primary)] cursor-pointer transition-all">
-                            <input type="radio" name="payment_method" value="selcom" class="mt-1.5 w-5 h-5" style="accent-color: var(--primary);">
-                            <div>
-                                <p class="text-lg font-bold text-gray-900">Pay Now with Mobile Money</p>
-                                <p class="text-sm text-gray-600 mt-1">Instant payment via M-Pesa, Tigo Pesa, Airtel Money, HaloPesa</p>
-                                <p class="text-xs font-bold mt-2" style="color: var(--primary);">Get your order faster • Receive payment prompt on your phone • Powered by Selcom</p>
+                        <!-- Pay Now with Mobile Money -->
+                        <label class="flex items-start gap-3 lg:gap-5 p-3 lg:p-6 rounded-lg lg:rounded-2xl border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-all">
+                            <input type="radio" name="payment_method" value="selcom" class="mt-1 lg:mt-1 w-5 lg:w-6 h-5 lg:h-6" style="accent-color: rgb(218,165,32);">
+                            <div class="flex-1">
+                                <div class="flex items-start gap-2 lg:gap-3">
+                                    <i class="fa-solid fa-mobile-alt text-2xl lg:text-3xl text-blue-600 mt-0.5"></i>
+                                    <div>
+                                        <p class="text-base lg:text-xl font-bold text-gray-900">Pay Now with Mobile Money</p>
+                                        <p class="text-sm lg:text-base text-gray-600">Instant payment via M-Pesa, Tigo Pesa, Airtel Money, HaloPesa</p>
+                                    </div>
+                                </div>
+                                <p class="text-xs lg:text-sm font-bold mt-2 lg:mt-3" style="color: rgb(218,165,32);">Get your order faster • Receive payment prompt on your phone • Powered by Selcom</p>
                             </div>
                         </label>
                     </div>
@@ -232,50 +277,50 @@
 
             <!-- Right: Order Summary -->
             <div class="lg:col-span-4">
-                <div class="rounded-2xl lg:rounded-3xl shadow-lg p-6 lg:p-8 text-white sticky top-8" style="background: #002147;">
-                    <h3 class="text-xl lg:text-2xl font-black mb-6">Order Summary</h3>
+                <div class="rounded-2xl lg:rounded-3xl shadow-lg p-4 lg:p-8 text-white sticky top-4 lg:top-6" style="background: #002147;">
+                    <h3 class="text-lg lg:text-2xl font-black mb-6 lg:mb-8">Order Summary</h3>
 
                     @if($totalItems > 0)
-                        <div class="mb-6 max-h-64 overflow-y-auto space-y-4 pr-2">
+                        <div class="mb-4 lg:mb-6 max-h-48 lg:max-h-64 overflow-y-auto space-y-2 lg:space-y-3">
                             @foreach($cart->items as $id => $item)
-                                <div class="flex gap-4 bg-white/10 p-4 rounded-xl border border-white/10">
-                                    <div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0" style="background: rgba(255,255,255,0.1);">
-                                        @if($item['image'])
-                                            <img src="{{ asset('storage/'.$item['image']) }}" class="w-full h-full object-cover">
-                                        @else
-                                            <div class="w-full h-full flex items-center justify-center"><i class="fa-solid fa-box text-white text-lg"></i></div>
-                                        @endif
-                                    </div>
-                                    <div class="flex-1">
-                                        <h4 class="font-bold text-base truncate">{{ $item['name'] }}</h4>
-                                        <p class="text-sm opacity-90 mt-1">{{ $item['quantity'] }} × TZS {{ number_format($item['price']) }}</p>
-                                        <p class="text-base font-bold mt-2">TZS {{ number_format($item['price'] * $item['quantity']) }}</p>
+                                <div class="rounded-lg lg:rounded-xl p-2 lg:p-4" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(218,165,32,0.2);">
+                                    <div class="flex gap-2 lg:gap-3">
+                                        <div class="w-12 lg:w-16 h-12 lg:h-16 rounded-lg overflow-hidden" style="background: rgba(255,255,255,0.1);">
+                                            @if($item['image'])<img src="{{ asset('storage/'.$item['image']) }}" class="w-full h-full object-cover">@else
+                                                <div class="w-full h-full flex items-center justify-center"><i class="fa-solid fa-box text-white text-lg"></i></div>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="font-bold text-xs lg:text-sm truncate">{{ $item['name'] }}</h4>
+                                            <p class="text-2xs lg:text-xs opacity-90 mt-0.5 lg:mt-1">{{ $item['quantity'] }} × TZS {{ number_format($item['price']) }}</p>
+                                            <p class="text-sm lg:text-base font-bold mt-0.5 lg:mt-1">TZS {{ number_format($item['price'] * $item['quantity']) }}</p>
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
 
-                        <div class="pt-6 space-y-4 text-base border-t border-white/20">
+                        <div class="pt-4 lg:pt-6 space-y-3 lg:space-y-5 text-sm lg:text-lg" style="border-top: 2px solid rgba(218,165,32,0.3);">
                             <div class="flex justify-between"><span>Subtotal ({{ $totalItems }} items)</span><span class="font-bold">TZS {{ number_format($subtotal) }}</span></div>
                             <div class="flex justify-between"><span>Delivery Fee</span><span class="font-bold">TZS {{ number_format($delivery) }}</span></div>
-                            <div class="pt-4 border-t border-white/20">
+                            <div class="pt-4 lg:pt-6" style="border-top: 2px solid rgba(218,165,32,0.3);">
                                 <div class="flex justify-between items-baseline">
-                                    <span class="text-lg font-bold">Total Amount</span>
-                                    <span class="text-3xl font-black" style="color: var(--primary);">TZS {{ number_format($total) }}</span>
+                                    <span class="text-base lg:text-xl font-bold">Total Amount</span>
+                                    <span class="text-2xl lg:text-4xl font-black" style="color: rgb(218,165,32);">TZS {{ number_format($total) }}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <button type="submit" id="submitBtn" class="btn-hover w-full mt-8 py-5 text-white font-black text-lg rounded-xl shadow-xl transition-all duration-300 flex items-center justify-center gap-3" style="background: var(--primary); color: #002147;">
-                            <i class="fa-solid fa-check-circle text-xl"></i>
+                        <button type="submit" id="submitBtn" class="btn-hover w-full mt-6 lg:mt-10 py-3 lg:py-6 text-white font-black text-base lg:text-xl rounded-lg lg:rounded-2xl shadow-lg transition-all duration-300 flex items-center justify-center gap-2 lg:gap-3" style="background: rgb(218,165,32); color: #002147;">
+                            <i class="fa-solid fa-check-circle text-lg lg:text-2xl"></i>
                             <span id="submitText">Complete Order</span>
                             <span id="submitLoader" class="hidden"><i class="fa-solid fa-spinner fa-spin"></i> Processing...</span>
                         </button>
                     @else
-                        <div class="text-center py-12">
-                            <i class="fa-solid fa-cart-shopping text-6xl opacity-50 mb-4"></i>
-                            <p class="text-xl font-bold">Your cart is empty</p>
-                            <a href="{{ route('products') }}" class="mt-6 inline-block px-8 py-4 text-white font-bold rounded-xl shadow-lg" style="background: var(--primary); color: #002147;">Browse Products</a>
+                        <div class="text-center py-8 lg:py-10">
+                            <i class="fa-solid fa-cart-shopping text-4xl lg:text-6xl opacity-50 mb-3 lg:mb-4"></i>
+                            <p class="text-base lg:text-xl font-bold">Your cart is empty</p>
+                            <a href="{{ route('products') }}" class="mt-4 lg:mt-6 inline-block px-6 lg:px-8 py-2 lg:py-4 text-white font-bold rounded-lg lg:rounded-xl" style="background: rgb(218,165,32); color: #002147;">Browse Products</a>
                         </div>
                     @endif
                 </div>
@@ -284,276 +329,147 @@
     </form>
 </div>
 
-<!-- Success Modal -->
-<div id="paymentModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-60 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
-        <div class="p-8 text-center">
+<!-- Success Modal for Mobile Money -->
+<div id="paymentModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+        <div class="p-6 text-center">
             <div id="modalContent">
-                <i class="fa-solid fa-spinner fa-spin text-5xl mb-6" style="color: var(--primary);"></i>
-                <p class="text-xl font-bold text-gray-800 mb-3">Processing your order...</p>
-                <p class="text-gray-600">Please wait a moment</p>
+                <i class="fa-solid fa-spinner fa-spin text-4xl mb-4" style="color: rgb(218,165,32);"></i>
+                <p class="text-lg font-semibold text-gray-700 mb-2">Processing your order...</p>
+                <p class="text-sm text-gray-500">Please wait</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Geolocation component (hidden) -->
-<geolocation 
-    id="geolocator"
-    onlocation="handleLocation(event)" 
-    autolocate 
-    accuracymode="precise"
-    style="display: none;">
-</geolocation>
-
 <script>
-// ────────────────────────────────────────────────
-// PROFESSIONAL COLLAPSIBLE MAP LOGIC
-// ────────────────────────────────────────────────
-let map = null;
-let marker = null;
-const defaultLat = -6.7924;   // Dar es Salaam center
-const defaultLng = 39.2083;
-let isMapVisible = false;
+// Map variables
+let map;
+let marker;
+let currentLat = -6.7924;
+let currentLng = 39.2083;
 
-function initMap(lat = defaultLat, lng = defaultLng) {
-    if (map) return;
+// Initialize map on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMap();
+});
 
-    map = L.map('map', {
-        zoomControl: false,           // We add custom control below
-        attributionControl: true
-    }).setView([lat, lng], 15);
-
+function initializeMap() {
+    // Initialize Leaflet map centered on Dar es Salaam
+    map = L.map('map').setView([currentLat, currentLng], 13);
+    
+    // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(map);
-
-    // Custom marker
-    marker = L.marker([lat, lng], { 
-        draggable: true,
-        icon: L.divIcon({
-            className: 'custom-marker',
-            html: '<i class="fa-solid fa-location-pin text-5xl drop-shadow-xl" style="color: var(--primary);"></i>',
-            iconSize: [50, 60],
-            iconAnchor: [25, 60]
-        })
-    }).addTo(map);
-
-    marker.on('dragend', (e) => {
-        const pos = e.target.getLatLng();
-        updateLocationFields(pos.lat, pos.lng, 'Marker adjusted');
-        reverseGeocode(pos.lat, pos.lng);
-    });
-
-    // Add zoom control in top-right
-    L.control.zoom({ position: 'topright' }).addTo(map);
-}
-
-function updateLocationFields(lat, lng, source = '') {
-    document.getElementById('latitude').value = lat.toFixed(6);
-    document.getElementById('longitude').value = lng.toFixed(6);
     
-    document.getElementById('displayLat').textContent = lat.toFixed(6);
-    document.getElementById('displayLng').textContent = lng.toFixed(6);
-    document.getElementById('displayAccuracy').textContent = source || '—';
+    // Custom icon for the marker
+    const customIcon = L.divIcon({
+        className: 'custom-marker',
+        html: '<div style="background: rgb(218,165,32); width: 40px; height: 40px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-location-dot" style="transform: rotate(45deg); color: #002147; font-size: 20px;"></i></div>',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40]
+    });
+    
+    // Add draggable marker
+    marker = L.marker([currentLat, currentLng], {
+        draggable: true,
+        icon: customIcon
+    }).addTo(map);
+    
+    marker.bindPopup('<b>Your Delivery Location</b><br>Drag to adjust').openPopup();
+    
+    // Update coordinates when marker is dragged
+    marker.on('dragend', function(e) {
+        const position = marker.getLatLng();
+        currentLat = position.lat;
+        currentLng = position.lng;
+        
+        document.getElementById('latitude').value = currentLat;
+        document.getElementById('longitude').value = currentLng;
+        
+        document.getElementById('displayLat').textContent = currentLat.toFixed(6);
+        document.getElementById('displayLng').textContent = currentLng.toFixed(6);
+        
+        reverseGeocode(currentLat, currentLng);
+    });
 }
 
-function toggleMap() {
-    const container = document.getElementById('map-container');
-    const btn = document.getElementById('toggleMapBtn');
-    const text = document.getElementById('toggleText');
-
-    isMapVisible = !isMapVisible;
-
-    if (isMapVisible) {
-        container.style.maxHeight = '500px';
-        container.style.opacity = '1';
-        btn.classList.add('bg-[var(--primary)]', 'text-white');
-        btn.classList.remove('text-[var(--primary)]');
-        text.textContent = 'Hide Map';
-
-        // Initialize map only when first shown
-        if (!map) {
-            initMap();
-            // Auto-geolocate on first expand if no coords
-            if (!document.getElementById('latitude').value.trim()) {
-                requestLocation();
-            }
-        }
-    } else {
-        container.style.maxHeight = '0';
-        container.style.opacity = '0';
-        btn.classList.remove('bg-[var(--primary)]', 'text-white');
-        btn.classList.add('text-[var(--primary)]');
-        text.textContent = 'Show Map';
-    }
+function updateMapLocation(lat, lng) {
+    currentLat = lat;
+    currentLng = lng;
+    
+    // Update map view and marker position
+    map.setView([lat, lng], 15);
+    marker.setLatLng([lat, lng]);
+    marker.bindPopup('<b>Your Delivery Location</b><br>Drag to adjust position').openPopup();
 }
 
+// Geolocation handler
 function handleLocation(event) {
     const geoElement = event.target;
     
     if (geoElement.position) {
         const { latitude, longitude, accuracy } = geoElement.position.coords;
         
-        updateLocationFields(latitude, longitude, accuracy.toFixed(0) + 'm');
+        document.getElementById('latitude').value = latitude;
+        document.getElementById('longitude').value = longitude;
         
-        if (map && marker) {
-            map.setView([latitude, longitude], 16);
-            marker.setLatLng([latitude, longitude]);
-        }
+        document.getElementById('displayLat').textContent = latitude.toFixed(6);
+        document.getElementById('displayLng').textContent = longitude.toFixed(6);
+        document.getElementById('displayAccuracy').textContent = accuracy.toFixed(0);
         
+        document.getElementById('locationCard').classList.add('hidden');
+        document.getElementById('locationDisplay').classList.remove('hidden');  
+        updateMapLocation(latitude, longitude);
         reverseGeocode(latitude, longitude);
-        
-        document.getElementById('statusText').textContent = 'Location acquired successfully';
-        document.getElementById('statusIcon').className = 'fa-solid fa-check-circle text-xl text-green-600';
     } else if (geoElement.error) {
-        document.getElementById('statusText').textContent = geoElement.error.message || 'Could not get location';
-        document.getElementById('statusIcon').className = 'fa-solid fa-exclamation-triangle text-xl text-red-500';
+        alert('Error obtaining location: ' + geoElement.error.message);
     }
 }
-
 function requestLocation() {
     const geoElement = document.getElementById('geolocator');
-    const btn = document.getElementById('getLocationBtn');
-    
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Locating...';
-    
-    document.getElementById('statusText').textContent = 'Requesting your location...';
-    document.getElementById('statusIcon').className = 'fa-solid fa-spinner fa-spin text-xl';
-    
     geoElement.requestLocation();
-    
-    setTimeout(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-crosshairs mr-2"></i> Use Current Location';
-    }, 10000);
 }
-
-async function reverseGeocode(lat, lng) {
-    try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
-        const data = await response.json();
-        
-        if (data && data.display_name) {
-            document.getElementById('address').value = data.display_name;
-            
-            if (data.address) {
-                const regionSelect = document.getElementById('region');
-                const regionText = (data.address.state || data.address.region || '').toLowerCase();
-                const option = Array.from(regionSelect.options).find(opt => 
-                    opt.value.toLowerCase().includes(regionText)
-                );
-                if (option) regionSelect.value = option.value;
-
-                document.getElementById('city').value = 
-                    data.address.city || data.address.town || data.address.village || data.address.suburb || '';
+function reverseGeocode(lat, lng) {
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.display_name) {
+                document.getElementById('address').value = data.display_name;
             }
-        }
-    } catch (err) {
-        console.error('Reverse geocoding failed:', err);
-    }
+        })
+        .catch(error => {
+            console.error('Error during reverse geocoding:', error);
+        });
 }
-
-// ────────────────────────────────────────────────
-// DOM Ready + Event Listeners
-// ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-    // Toggle map
-    document.getElementById('toggleMapBtn')?.addEventListener('click', toggleMap);
-
-    // Reset map
-    document.getElementById('resetMapBtn')?.addEventListener('click', () => {
-        if (map && marker) {
-            map.setView([defaultLat, defaultLng], 13);
-            marker.setLatLng([defaultLat, defaultLng]);
-            updateLocationFields(defaultLat, defaultLng, 'Reset to default');
-        }
-    });
-
-    // Form submission handler (your existing logic)
-    const form = document.getElementById('checkoutForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const submitText = document.getElementById('submitText');
-    const submitLoader = document.getElementById('submitLoader');
+// Form submission handler
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+    if (paymentMethod === 'selcom') {
+        e.preventDefault();
+        showPaymentModal();
+        setTimeout(() => {
+            this.submit();
+        }, 2000);
+    } else {
+        document.getElementById('submitText').classList.add('hidden');
+        document.getElementById('submitLoader').classList.remove('hidden');
+    }
+});
+function showPaymentModal() {
     const modal = document.getElementById('paymentModal');
     const modalContent = document.getElementById('modalContent');
-
-    form.addEventListener('submit', async function(e) {
-        const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
-
-        if (paymentMethod === 'cash_on_delivery') {
-            return;
-        }
-
-        e.preventDefault();
-
-        if (!paymentMethod) {
-            alert('Please select a payment method');
-            return;
-        }
-
-        submitBtn.disabled = true;
-        submitText.classList.add('hidden');
-        submitLoader.classList.remove('hidden');
-        modal.classList.remove('hidden');
-
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                    'Accept': 'application/json'
-                },
-                body: formData,
-                credentials: 'same-origin'
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.log('Error response:', errorText.substring(0, 400));
-                throw new Error(`Server error ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
-                modalContent.innerHTML = `
-                    <i class="fa-solid fa-mobile-alt text-5xl mb-6" style="color: var(--primary);"></i>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Request Sent!</h3>
-                    <p class="text-lg text-gray-700 mb-2">Check your phone now</p>
-                    <p class="text-base text-gray-600 mb-6">Follow the instructions to complete your payment.</p>
-                    ${data.redirect_url ? `<a href="${data.redirect_url}" class="inline-block px-8 py-4 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition">Continue</a>` : ''}
-                `;
-            } else {
-                modalContent.innerHTML = `
-                    <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
-                    <p class="text-lg text-gray-700 mb-6">${data.message || 'An error occurred while processing your payment.'}</p>
-                    <button id="modalCloseBtn" class="inline-block px-8 py-4 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition">Close</button>
-                `;
-                document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
-            }
-        } catch (error) {
-            console.error('Fetch error:', error);
-            modalContent.innerHTML = `
-                <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Error</h3>
-                <p class="text-lg text-gray-700 mb-6">${error.message || 'An unexpected error occurred. Please try again.'}</p>
-                <button id="modalCloseBtn" class="inline-block px-8 py-4 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition">Close</button>
-            `;
-            document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
-        } finally {
-            submitBtn.disabled = false;
-            submitText.classList.remove('hidden');
-            submitLoader.classList.add('hidden');
-        }
-    });
-});
+    
+    modalContent.innerHTML = `
+        <i class="fa-solid fa-spinner fa-spin text-4xl mb-4" style="color: rgb(218,165,32);"></i>
+        <p class="text-lg font-semibold text-gray-700 mb-2">Processing your order...</p>
+        <p class="text-sm text-gray-500">Please wait</p>
+    `;
+    
+    modal.classList.remove('hidden');
+}
 </script>
 </body>
 </html>
