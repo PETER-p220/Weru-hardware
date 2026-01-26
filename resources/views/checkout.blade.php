@@ -76,7 +76,7 @@
         $cart = \App\Models\Cart::current();
         $subtotal = $cart->subtotal();
         $totalItems = $cart->totalItems();
-        $delivery = $totalItems > 0 ? 25000 : 0;
+        $delivery = $totalItems > 0 ? 20 : 0;
         $total = $subtotal + $delivery ;
     @endphp
 
@@ -332,7 +332,6 @@
         </div>
     </div>
 </div>
-
 <script>
 // Map variables
 let map;
@@ -343,19 +342,139 @@ let currentLng = 39.2083;
 // Initialize map on page load
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
+
+    // ────────────────────────────────────────────────
+    // IMPROVED FORM SUBMISSION WITH DETAILED CONSOLE LOGGING
+    // ────────────────────────────────────────────────
+    const form = document.getElementById('checkoutForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitLoader = document.getElementById('submitLoader');
+    const modal = document.getElementById('paymentModal');
+    const modalContent = document.getElementById('modalContent');
+
+    form.addEventListener('submit', async function(e) {
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+
+        // Let COD submit normally (full page reload)
+        if (paymentMethod === 'cash_on_delivery') {
+            console.log('[Checkout] Cash on Delivery selected → normal form submit');
+            return;
+        }
+
+        e.preventDefault();
+
+        if (!paymentMethod) {
+            alert('Please select a payment method');
+            console.warn('[Checkout] No payment method selected');
+            return;
+        }
+
+        console.log(`[Checkout] Starting submission with payment method: ${paymentMethod}`);
+
+        submitBtn.disabled = true;
+        submitText.classList.add('hidden');
+        submitLoader.classList.remove('hidden');
+        modal.classList.remove('hidden');
+
+        const formData = new FormData(form);
+
+        // Log what is being sent (for debugging)
+        console.group('Request Payload');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        console.groupEnd();
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'Accept': 'application/json'
+                },
+                body: formData,
+                credentials: 'same-origin'
+            });
+
+            console.group('Response Info');
+            console.log('Status:', response.status);
+            console.log('Status Text:', response.statusText);
+            console.log('OK:', response.ok);
+            console.log('Headers:', Object.fromEntries(response.headers.entries()));
+            console.groupEnd();
+
+            let data;
+            const contentType = response.headers.get('content-type') || '';
+
+            if (contentType.includes('application/json')) {
+                data = await response.json();
+                console.group('JSON Response Body');
+                console.log('Full JSON:', data);
+                console.table(data); // nice table view in console
+                console.groupEnd();
+            } else {
+                const text = await response.text();
+                console.group('Non-JSON Response');
+                console.log('Raw text (first 800 chars):', text.substring(0, 800));
+                console.log('Full length:', text.length);
+                console.groupEnd();
+                throw new Error('Server did not return JSON');
+            }
+
+            if (!response.ok) {
+                console.error(`Server error ${response.status}:`, data?.message || 'No message provided');
+                throw new Error(data?.message || `Server error ${response.status}`);
+            }
+
+            if (data.success) {
+                console.log('[Success] Payment request sent successfully');
+                modalContent.innerHTML = `
+                    <i class="fa-solid fa-mobile-alt text-5xl mb-6" style="color: rgb(218,165,32);"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Request Sent!</h3>
+                    <p class="text-lg text-gray-700 mb-2">Check your phone now</p>
+                    <p class="text-base text-gray-600 mb-6">Follow the instructions to complete your payment.</p>
+                    ${data.redirect_url ? `<a href="${data.redirect_url}" class="inline-block px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">Continue</a>` : ''}
+                `;
+            } else {
+                console.warn('[Error from server]:', data.message);
+                modalContent.innerHTML = `
+                    <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
+                    <p class="text-lg text-gray-700 mb-6">${data.message || 'An error occurred while processing your payment.'}</p>
+                    <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
+                `;
+                document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
+            }
+        } catch (error) {
+            console.error('[Fetch / Processing Error]:', error);
+            console.trace(); // shows full call stack
+
+            modalContent.innerHTML = `
+                <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Error</h3>
+                <p class="text-lg text-gray-700 mb-6">${error.message || 'An unexpected error occurred. Please try again.'}</p>
+                <p class="text-sm text-gray-500">Check browser console (F12 → Console tab) for detailed logs.</p>
+                <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
+            `;
+            document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
+        } finally {
+            submitBtn.disabled = false;
+            submitText.classList.remove('hidden');
+            submitLoader.classList.add('hidden');
+        }
+    });
 });
 
 function initializeMap() {
-    // Initialize Leaflet map centered on Dar es Salaam
     map = L.map('map').setView([currentLat, currentLng], 13);
     
-    // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(map);
     
-    // Custom icon for the marker
     const customIcon = L.divIcon({
         className: 'custom-marker',
         html: '<div style="background: rgb(218,165,32); width: 40px; height: 40px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 3px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-location-dot" style="transform: rotate(45deg); color: #002147; font-size: 20px;"></i></div>',
@@ -363,7 +482,6 @@ function initializeMap() {
         iconAnchor: [20, 40]
     });
     
-    // Add draggable marker
     marker = L.marker([currentLat, currentLng], {
         draggable: true,
         icon: customIcon
@@ -371,7 +489,6 @@ function initializeMap() {
     
     marker.bindPopup('<b>Your Delivery Location</b><br>Drag to adjust').openPopup();
     
-    // Update coordinates when marker is dragged
     marker.on('dragend', function(e) {
         const position = marker.getLatLng();
         currentLat = position.lat;
@@ -390,14 +507,11 @@ function initializeMap() {
 function updateMapLocation(lat, lng) {
     currentLat = lat;
     currentLng = lng;
-    
-    // Update map view and marker position
     map.setView([lat, lng], 15);
     marker.setLatLng([lat, lng]);
     marker.bindPopup('<b>Your Delivery Location</b><br>Drag to adjust position').openPopup();
 }
 
-// Geolocation handler
 function handleLocation(event) {
     const geoElement = event.target;
     
@@ -419,10 +533,12 @@ function handleLocation(event) {
         alert('Error obtaining location: ' + geoElement.error.message);
     }
 }
+
 function requestLocation() {
     const geoElement = document.getElementById('geolocator');
     geoElement.requestLocation();
 }
+
 function reverseGeocode(lat, lng) {
     fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
         .then(response => response.json())
@@ -435,20 +551,7 @@ function reverseGeocode(lat, lng) {
             console.error('Error during reverse geocoding:', error);
         });
 }
-// Form submission handler
-document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-    if (paymentMethod === 'selcom') {
-        e.preventDefault();
-        showPaymentModal();
-        setTimeout(() => {
-            this.submit();
-        }, 2000);
-    } else {
-        document.getElementById('submitText').classList.add('hidden');
-        document.getElementById('submitLoader').classList.remove('hidden');
-    }
-});
+
 function showPaymentModal() {
     const modal = document.getElementById('paymentModal');
     const modalContent = document.getElementById('modalContent');

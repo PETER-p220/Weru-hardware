@@ -45,7 +45,7 @@ class CheckoutController extends Controller
         }
 
         $subtotal  = $cart->subtotal();
-        $delivery  = 25000;
+        $delivery  = 20;
         $total     = $subtotal + $delivery;
 
         // Normalize phone number
