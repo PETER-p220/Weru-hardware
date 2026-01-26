@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Leaflet -->
+    <!-- Leaflet CSS + JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5nQ9nXqV8=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -22,39 +22,45 @@
         .input-focus:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(218,165,32,0.15); }
         .payment-option:checked + label { box-shadow: 0 0 0 4px rgba(218,165,32,0.3); border-color: var(--primary); background-color: rgba(218,165,32,0.05); }
 
-        /* Compact map container */
-        .map-box {
-            border: 1px solid rgba(218,165,32,0.3);
+        /* Professional map container */
+        .map-container {
+            margin-top: 1.25rem;
             border-radius: 1rem;
             overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            margin-top: 1rem;
+            border: 1px solid rgba(218,165,32,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             background: white;
+            transition: all 0.4s ease;
         }
         #map {
             height: 0;
-            transition: height 0.4s ease;
+            transition: height 0.5s ease;
         }
         #map.expanded {
-            height: 320px;
+            height: 350px;
         }
         @media (max-width: 768px) {
-            #map.expanded { height: 240px; }
+            #map.expanded { height: 250px; }
         }
         .map-toggle-btn {
             background: white;
             border: 2px solid var(--primary);
             color: var(--primary);
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
         .map-toggle-btn:hover {
             background: var(--primary);
             color: white;
         }
-        .status-box {
-            background: rgba(218,165,32,0.06);
+        .status-pill {
+            background: rgba(218,165,32,0.08);
             border: 1px solid rgba(218,165,32,0.25);
-            border-radius: 0.75rem;
+            border-radius: 9999px;
+            padding: 0.5rem 1.25rem;
+        }
+        .coord-info {
+            font-size: 0.875rem;
+            color: #4b5563;
         }
     </style>
 </head>
@@ -109,7 +115,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
             <!-- Left Column -->
             <div class="lg:col-span-8 space-y-8">
-                <!-- 1. Contact Information -->
+                <!-- Contact Information -->
                 <div class="bg-white rounded-2xl lg:rounded-3xl shadow-lg border border-gray-200 p-4 lg:p-8">
                     <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
                         <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center text-lg lg:text-xl font-black text-white" style="background: rgb(218,165,32);">1</div>
@@ -131,7 +137,7 @@
                     </div>
                 </div>
 
-                <!-- 2. Delivery Address with Compact Map -->
+                <!-- Delivery Address with Professional Compact Map -->
                 <div class="bg-white rounded-2xl lg:rounded-3xl shadow-lg border border-gray-200 p-4 lg:p-8">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3 lg:gap-4">
@@ -147,16 +153,16 @@
                         </button>
                     </div>
 
-                    <!-- Map Container (small & contained) -->
+                    <!-- Compact Map Area -->
                     <div id="map-wrapper" class="map-box">
                         <div id="map"></div>
                     </div>
 
                     <!-- Status & Controls -->
-                    <div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm">
-                        <div class="status-box flex items-center gap-3 px-4 py-2.5">
+                    <div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="status-box flex items-center gap-3 px-4 py-2.5 text-sm">
                             <i id="statusIcon" class="fa-solid fa-location-crosshairs text-xl" style="color: var(--primary);"></i>
-                            <span id="statusText">Click "Use Location" or drag pin to set exact spot</span>
+                            <span id="statusText">Click "Use Current Location" or drag the marker</span>
                         </div>
                         <div class="flex gap-3 flex-wrap">
                             <button type="button" id="getLocationBtn" class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm" style="border: 2px solid var(--primary); color: var(--primary);">
@@ -168,13 +174,13 @@
                         </div>
                     </div>
 
-                    <!-- Coordinates display -->
-                    <div class="mt-3 text-xs text-gray-500 flex gap-6 justify-center sm:justify-start">
+                    <!-- Coordinates -->
+                    <div class="mt-3 text-xs coord-info flex gap-6 justify-center sm:justify-start">
                         <span>Lat: <span id="displayLat">—</span></span>
                         <span>Lng: <span id="displayLng">—</span></span>
                     </div>
 
-                    <!-- Manual address fields -->
+                    <!-- Manual fields -->
                     <div class="space-y-6 mt-8">
                         <div>
                             <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Full Address <span class="text-red-600">*</span></label>
@@ -307,7 +313,7 @@
 
 <script>
 // ────────────────────────────────────────────────
-// COMPACT COLLAPSIBLE MAP LOGIC
+// PROFESSIONAL COLLAPSIBLE MAP (small box, auto-center on show)
 // ────────────────────────────────────────────────
 let map = null;
 let marker = null;
@@ -345,6 +351,7 @@ function initMap(lat = defaultLat, lng = defaultLng) {
         reverseGeocode(pos.lat, pos.lng);
     });
 
+    // Add zoom control
     L.control.zoom({ position: 'topright' }).addTo(map);
 }
 
@@ -363,11 +370,15 @@ function toggleMap() {
         btn.classList.add('bg-[var(--primary)]', 'text-white');
         btn.classList.remove('text-[var(--primary)]');
 
+        // Initialize map if not already
         if (!map) {
             initMap();
-            if (!document.getElementById('latitude').value.trim()) {
-                requestLocation();
-            }
+        }
+
+        // Automatically try to get current location when showing map
+        if (!document.getElementById('latitude').value.trim() || 
+            document.getElementById('latitude').value === defaultLat.toFixed(6)) {
+            requestLocation();
         }
     } else {
         mapDiv.classList.remove('expanded');
@@ -391,6 +402,7 @@ function handleLocation(event) {
         document.getElementById('displayLng').textContent = longitude.toFixed(6);
         document.getElementById('statusText').textContent = 'Location acquired (' + accuracy.toFixed(0) + 'm)';
         
+        // Center map and marker on current location
         if (map && marker) {
             map.setView([latitude, longitude], 16);
             marker.setLatLng([latitude, longitude]);
@@ -411,6 +423,8 @@ function requestLocation() {
     
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Locating...';
+    
+    document.getElementById('statusText').textContent = 'Requesting your location...';
     
     geo.requestLocation();
     
@@ -443,12 +457,14 @@ async function reverseGeocode(lat, lng) {
     }
 }
 
-// Form submission handler (your original logic)
-document.addEventListener('DOMContentLoaded', function() {
-    // Toggle map button
+// ────────────────────────────────────────────────
+// Initialize
+// ────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    // Toggle map
     document.getElementById('toggleMapBtn')?.addEventListener('click', toggleMap);
 
-    // Reset button
+    // Reset
     document.getElementById('resetMapBtn')?.addEventListener('click', () => {
         if (map && marker) {
             map.setView([defaultLat, defaultLng], 13);
@@ -461,6 +477,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Form submission (your original logic)
     const form = document.getElementById('checkoutForm');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
@@ -501,12 +518,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 credentials: 'same-origin'
             });
 
-            console.log('Response status:', response.status);
-            console.log('Content-Type:', response.headers.get('content-type'));
-
             if (!response.ok) {
-                let errorText = await response.text();
-                console.log('Error response (first 400 chars):', errorText.substring(0, 400));
+                const errorText = await response.text();
+                console.log('Error response:', errorText.substring(0, 400));
                 throw new Error(`Server error ${response.status}`);
             }
 
