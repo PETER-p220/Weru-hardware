@@ -305,27 +305,23 @@
 </div>
 
 <script>
-// Geolocation handler
+// Geolocation handler (unchanged)
 function handleLocation(event) {
     const geoElement = event.target;
     
     if (geoElement.position) {
         const { latitude, longitude, accuracy } = geoElement.position.coords;
         
-        // Update hidden form fields
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
         
-        // Update display
         document.getElementById('displayLat').textContent = latitude.toFixed(6);
         document.getElementById('displayLng').textContent = longitude.toFixed(6);
         document.getElementById('displayAccuracy').textContent = accuracy.toFixed(0);
         
-        // Show success display, hide request card
         document.getElementById('locationCard').classList.add('hidden');
         document.getElementById('locationDisplay').classList.remove('hidden');
         
-        // Reverse geocode to get address (optional - using Nominatim API)
         reverseGeocode(latitude, longitude);
         
         console.log("Location retrieved:", latitude, longitude, "Accuracy:", accuracy);
@@ -335,26 +331,21 @@ function handleLocation(event) {
     }
 }
 
-// Request location
 function requestLocation() {
     const geoElement = document.getElementById('geolocator');
     const btn = document.getElementById('getLocationBtn');
     
-    // Update button state
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Getting Location...</span>';
     btn.disabled = true;
     
-    // Trigger geolocation
     geoElement.requestLocation();
     
-    // Reset button after 3 seconds if no response
     setTimeout(() => {
         btn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> <span>Use My Current Location</span>';
         btn.disabled = false;
     }, 3000);
 }
 
-// Reverse geocode using Nominatim (OpenStreetMap)
 async function reverseGeocode(lat, lng) {
     try {
         const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
@@ -363,7 +354,6 @@ async function reverseGeocode(lat, lng) {
         if (data && data.display_name) {
             document.getElementById('address').value = data.display_name;
             
-            // Try to extract region/city
             if (data.address) {
                 if (data.address.state) {
                     const regionSelect = document.querySelector('select[name="region"]');
@@ -383,7 +373,6 @@ async function reverseGeocode(lat, lng) {
     }
 }
 
-// Show location error
 function showLocationError(message) {
     const locationCard = document.getElementById('locationCard');
     locationCard.innerHTML = `
@@ -394,7 +383,9 @@ function showLocationError(message) {
     `;
 }
 
-// Form submission handler
+// ────────────────────────────────────────────────
+// FORM SUBMISSION - IMPROVED JSON HANDLING
+// ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('checkoutForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -403,14 +394,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('paymentModal');
     const modalContent = document.getElementById('modalContent');
 
-    form.addEventListener('submit', function(e) {
-        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+    form.addEventListener('submit', async function(e) {
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
 
         if (paymentMethod === 'cash_on_delivery') {
-            return;
+            return; // normal submit
         }
 
         e.preventDefault();
+
+        if (!paymentMethod) {
+            alert('Please select a payment method');
+            return;
+        }
 
         submitBtn.disabled = true;
         submitText.classList.add('hidden');
@@ -419,54 +415,69 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const formData = new FormData(form);
 
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                modalContent.innerHTML = `
-                    <i class="fa-solid fa-mobile-alt text-5xl mb-6" style="color: rgb(218,165,32);"></i>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Request Sent!</h3>
-                    <p class="text-lg text-gray-700 mb-2">Check your phone now</p>
-                    <p class="text-base text-gray-600 mb-6">Follow the instructions to complete your payment.</p>
-                    <a href="${data.redirect_url}" class="inline-block px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">Continue</a>
-                `;
-            } else {
-                modalContent.innerHTML = `
-                    <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
-                    <p class="text-lg text-gray-700 mb-6">${data.message || 'An error occurred while processing your payment.'}</p>
-                    <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
-                `;  
-                document.getElementById('modalCloseBtn').addEventListener('click', () => {
-                    modal.classList.add('hidden');
-                    submitBtn.disabled = false;
-                    submitText.classList.remove('hidden');
-                    submitLoader.classList.add('hidden');
-                });
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'Accept': 'application/json'  // ← Very important - tells Laravel we want JSON
+                },
+                body: formData,
+                credentials: 'same-origin'
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Content-Type:', response.headers.get('content-type'));
+
+            const contentType = response.headers.get('content-type') || '';
+
+            if (!response.ok) {
+                let errorText = await response.text();
+                console.log('Error response (first 400 chars):', errorText.substring(0, 400));
+                throw new Error(`Server error ${response.status}`);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+
+            if (contentType.includes('application/json')) {
+                const data = await response.json();
+
+                if (data.success) {
+                    modalContent.innerHTML = `
+                        <i class="fa-solid fa-mobile-alt text-5xl mb-6" style="color: rgb(218,165,32);"></i>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Request Sent!</h3>
+                        <p class="text-lg text-gray-700 mb-2">Check your phone now</p>
+                        <p class="text-base text-gray-600 mb-6">Follow the instructions to complete your payment.</p>
+                        ${data.redirect_url ? `<a href="${data.redirect_url}" class="inline-block px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">Continue</a>` : ''}
+                    `;
+                } else {
+                    modalContent.innerHTML = `
+                        <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
+                        <p class="text-lg text-gray-700 mb-6">${data.message || 'An error occurred while processing your payment.'}</p>
+                        <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
+                    `;
+                    document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
+                }
+            } else {
+                const text = await response.text();
+                console.log('Non-JSON response (first 400 chars):', text.substring(0, 400));
+                throw new Error('Server did not return JSON');
+            }
+        } catch (error) {
+            console.error('Fetch error:', error);
             modalContent.innerHTML = `
                 <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
-                <p class="text-lg text-gray-700 mb-6">An unexpected error occurred. Please try again.</p>
+                <h3 class="text-2xl font-bold text-gray-800 mb-4">Error</h3>
+                <p class="text-lg text-gray-700 mb-6">${error.message || 'An unexpected error occurred. Please try again.'}</p>
+                <p class="text-sm text-gray-500">Check browser console (F12) for details.</p>
                 <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
-            `;  
-            document.getElementById('modalCloseBtn').addEventListener('click', () => {
-                modal.classList.add('hidden');
-                submitBtn.disabled = false;
-                submitText.classList.remove('hidden');
-                submitLoader.classList.add('hidden');
-            });
-        });
+            `;
+            document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
+        } finally {
+            submitBtn.disabled = false;
+            submitText.classList.remove('hidden');
+            submitLoader.classList.add('hidden');
+        }
     });
 });
 </script>

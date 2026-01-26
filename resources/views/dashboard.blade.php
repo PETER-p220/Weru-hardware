@@ -223,7 +223,7 @@ $statusMessage = $latestOrder
     </div>
 
     <!-- Stats Cards – responsive layout -->
-    <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10 animate-slide-in">
+    <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10 animate-slide-in">
         
         <!-- Total Orders -->
         <div class="card-hover bg-white rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-6 smooth-shadow">
@@ -257,7 +257,7 @@ $statusMessage = $latestOrder
                 </div>
             </div>
             <p class="text-gray-600 text-sm font-medium">Total Spent</p>
-            <p class="text-3xl md:text-4xl font-black text-gray-900 mt-1">TZS {{ $totalSpent }}</p>
+            <p class="text-xl md:text-xl font-black text-gray-900 mt-1">TZS {{ $totalSpent }}</p>
             <p class="text-xs md:text-sm text-gray-500 mt-1.5">Avg: TZS {{ $averageOrderValue }}</p>
         </div>
 
