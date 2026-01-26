@@ -141,16 +141,7 @@
                         <div id="locationCard" class="location-card rounded-xl p-6 text-center transition-all duration-300">
                             <i class="fa-solid fa-location-crosshairs text-4xl mb-3" style="color: rgb(218,165,32);"></i>
                             <h4 class="text-lg font-bold text-gray-800 mb-2">Get Your Location</h4>
-                            <p class="text-sm text-gray-600 mb-4">Click below to automatically detect your delivery location</p>
-                            <button 
-                                type="button" 
-                                id="getLocationBtn"
-                                onclick="requestLocation()"
-                                class="bg-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center gap-2 mx-auto" 
-                                style="color: rgb(218,165,32); border: 2px solid rgb(218,165,32);">
-                                <i class="fa-solid fa-crosshairs"></i>
-                                <span>Use My Current Location</span>
-                            </button>
+                            
                         </div>
 
                         <div id="locationDisplay" class="hidden location-success rounded-xl p-6">
