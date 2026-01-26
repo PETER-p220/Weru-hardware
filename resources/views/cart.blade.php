@@ -18,7 +18,32 @@
         }
         body { 
             font-family: 'Inter', sans-serif; 
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Light Mode (Default) */
+        body {
             background: linear-gradient(135deg, #f9f9f9 0%, #f5f5f5 100%);
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%);
+            color: #e5e7eb;
+        }
+        body.dark-mode .text-gray-900 { color: #f3f4f6 !important; }
+        body.dark-mode .text-gray-700 { color: #d1d5db !important; }
+        body.dark-mode .text-gray-600 { color: #9ca3af !important; }
+        body.dark-mode .text-gray-500 { color: #6b7280 !important; }
+        body.dark-mode .bg-white { background-color: #1e293b !important; }
+        body.dark-mode .bg-slate-50 { background-color: #0f172a !important; }
+        body.dark-mode .border-gray-100 { border-color: #334155 !important; }
+        body.dark-mode .border-gray-200 { border-color: #475569 !important; }
+        body.dark-mode .from-gray-100 { --tw-gradient-from: #334155 !important; }
+        body.dark-mode .to-gray-50 { --tw-gradient-to: #1e293b !important; }
+        body.dark-mode .glass-effect { 
+            background: rgba(30, 41, 59, 0.95) !important; 
+            backdrop-filter: blur(10px); 
         }
 
         @keyframes slideInUp {
@@ -45,9 +70,11 @@
 
         .cart-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 16px; }
         .cart-item:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -5px rgba(0, 33, 71, 0.15); }
+        body.dark-mode .cart-item:hover { box-shadow: 0 20px 40px -5px rgba(218, 165, 32, 0.2); }
 
         .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .smooth-shadow { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 13px rgba(0, 0, 0, 0.1); }
+        body.dark-mode .smooth-shadow { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 10px 13px rgba(0, 0, 0, 0.4); }
 
         .quantity-btn { min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
         .quantity-btn:hover { transform: scale(1.05); background-color: rgba(218,165,32, 0.1); }
@@ -58,8 +85,42 @@
 
         header { position: sticky; top: 0; z-index: 50; background: linear-gradient(135deg, #002147, #001a33); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
 
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(218,165,32, 0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(218,165,32, 0.3);
+        }
+        .theme-toggle:hover {
+            background: rgba(218,165,32, 0.3);
+        }
+        .theme-toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 22px;
+            height: 22px;
+            background: rgb(218,165,32);
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #002147;
+            font-size: 10px;
+        }
+        body.dark-mode .theme-toggle-slider {
+            transform: translateX(30px);
+        }
+
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
+        body.dark-mode ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: rgb(218,165,32); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #d4af37; }
 
@@ -118,6 +179,13 @@
                 </div>
 
                 <div class="flex items-center gap-3 sm:gap-6">
+                    <!-- Theme Toggle -->
+                    <div class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">
+                        <div class="theme-toggle-slider">
+                            <i class="fa-solid fa-sun"></i>
+                        </div>
+                    </div>
+
                     <!-- Mobile Menu Button -->
                     <button id="mobile-menu-btn" class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg transition" style="background: rgba(218,165,32, 0.1); color: rgb(218,165,32);">
                         <i class="fa-solid fa-bars text-lg"></i>
@@ -363,123 +431,53 @@
                 <div class="animate-fade-in" style="animation-delay: 0.1s; text-center;">
                     <h4 class="font-bold text-white mb-4 text-sm uppercase tracking-wider">Quick Links</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="{{ route('products') }}" class="transition hover:text-white" style="color: rgba(218,165,32, 0.8);">Products</a></li>
-                        <li><a href="{{ route('order') }}" class="transition hover:text-white" style="color: rgba(218,165,32, 0.8);">My Orders</a></li>
-                        <li><a href="#" class="transition hover:text-white" style="color: rgba(218,165,32, 0.8);">Support</a></li>
+                        <li><a href="{{ route('products') }}" class="transition hover:underline">Products</a></li>
+                        <li><a href="{{ url('order') }}" class="transition hover:underline">Orders</a></li>
+                        <li><a href="{{ url('dashboard') }}" class="transition hover:underline">Dashboard</a></li>
+                        <li><a href="{{ route('cart') }}" class="transition hover:underline">Cart</a></li>
                     </ul>
                 </div>
-
-                <!-- Help -->
+                <!-- Contact Info -->
                 <div class="animate-fade-in" style="animation-delay: 0.2s; text-center;">
-                    <h4 class="font-bold text-white mb-4 text-sm uppercase tracking-wider">Help & Support</h4>
+                    <h4 class="font-bold text-white mb-4 text-sm uppercase tracking-wider">Contact Us</h4>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="transition hover:text-white" style="color: rgba(218,165,32, 0.8);">Privacy Policy</a></li>
-                        <li><a href="#" class="transition hover:text-white" style="color: rgba(218,165,32, 0.8);">Terms & Conditions</a></li>
-                        <li><a href="#" class="transition hover:text-white" style="color: rgba(218,165,32, 0.8);">Contact</a></li>
-                    </ul>
+                        <li><i class="fa-solid fa-phone mr-2"></i>+255 123 456 789</li>
+                        <li><i class="fa-solid fa-envelope mr-2"></i>
+                        <a href="mailto:info@oweruhardware.com" class="transition hover:underline">info@oweruhardware.com</a></li>
+                        <li><i class="fa-solid fa-map-marker-alt mr-2"></i>Dar es Salaam, Tanzania</li>
+                    </ul>   
                 </div>
             </div>
-
-            <!-- Bottom Section -->
-            <div class="border-t-2 pt-6 lg:pt-8 text-center text-xs lg:text-sm" style="border-color: rgba(218, 165, 32, 0.2);">
-                <p class="text-blue-200 mb-2">&copy; {{ date('Y') }} Oweru Hardware. All rights reserved.</p>
+            <div class="text-center text-sm text-blue-200">
+                &copy; {{ date('Y') }} Oweru Hardware. All rights reserved.
             </div>
         </div>
     </footer>
-
-    <!-- JavaScript Enhancements -->
     <script>
-        // Intersection Observer for Lazy Animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry, index) => {
-                if (entry.isIntersecting) {
-                    setTimeout(() => {
-                        entry.target.classList.add('animate-slide-in');
-                    }, index * 50);
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
+        // Load saved theme preference
+        if(localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark-mode');
+        }
 
-        // Observe Cart Items
-        document.querySelectorAll('.cart-item').forEach(el => {
-            observer.observe(el);
-        });
-
-        // Button Ripple Effect
-        document.querySelectorAll('button[type="submit"], a').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                if (window.innerWidth > 768 && (this.tagName === 'BUTTON' || this.classList.contains('btn-action'))) {
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-                    
-                    ripple.style.cssText = `
-                        position: absolute;
-                        width: ${size}px;
-                        height: ${size}px;
-                        background: rgba(255, 255, 255, 0.5);
-                        border-radius: 50%;
-                        left: ${x}px;
-                        top: ${y}px;
-                        pointer-events: none;
-                        animation: ripple 0.6s ease-out;
-                    `;
-                    
-                    this.style.position = 'relative';
-                    this.style.overflow = 'hidden';
-                    this.appendChild(ripple);
-                    
-                    setTimeout(() => ripple.remove(), 600);
-                }
-            });
-        });
-
-        // Add Ripple Animation
-        const style = document.createElement('style');
-        style.innerHTML = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            if(body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
             }
-        `;
-        document.head.appendChild(style);
+        });
 
         // Mobile Menu Toggle
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
 
-        if (mobileMenuBtn && mobileMenu) {
-            mobileMenuBtn.addEventListener('click', () => {
-                mobileMenu.classList.toggle('hidden');
-                const isOpen = !mobileMenu.classList.contains('hidden');
-                mobileMenuBtn.innerHTML = isOpen 
-                    ? '<i class="fa-solid fa-xmark text-lg"></i>' 
-                    : '<i class="fa-solid fa-bars text-lg"></i>';
-            });
-
-            // Close menu when a link is clicked
-            mobileMenu.querySelectorAll('a').forEach(link => {
-                link.addEventListener('click', () => {
-                    mobileMenu.classList.add('hidden');
-                    mobileMenuBtn.innerHTML = '<i class="fa-solid fa-bars text-lg"></i>';
-                });
-            });
-        }
-
-        // Smooth Page Transitions
-        window.addEventListener('load', () => {
-            document.body.style.transition = 'opacity 0.3s ease';
-            document.body.style.opacity = '1';
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
         });
     </script>
 </body>
