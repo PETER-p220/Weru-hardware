@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Leaflet CSS + JS -->
+    <!-- Leaflet for map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5nQ9nXqV8=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -21,26 +21,19 @@
         .btn-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,33,71,0.3); }
         .input-focus:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(218,165,32,0.15); }
         .payment-option:checked + label { box-shadow: 0 0 0 4px rgba(218,165,32,0.3); border-color: var(--primary); background-color: rgba(218,165,32,0.05); }
-
-        /* Professional map container */
-        .map-container {
-            margin-top: 1.25rem;
-            border-radius: 1rem;
-            overflow: hidden;
-            border: 1px solid rgba(218,165,32,0.3);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            background: white;
-            transition: all 0.4s ease;
+        
+        #map-container { 
+            transition: max-height 0.5s ease, opacity 0.5s ease; 
+            overflow: hidden; 
         }
-        #map {
-            height: 0;
-            transition: height 0.5s ease;
-        }
-        #map.expanded {
-            height: 350px;
+        #map { 
+            height: 350px; 
+            border-radius: 1rem; 
+            border: 1px solid rgba(218,165,32,0.3); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
         }
         @media (max-width: 768px) {
-            #map.expanded { height: 250px; }
+            #map { height: 250px; }
         }
         .map-toggle-btn {
             background: white;
@@ -52,13 +45,12 @@
             background: var(--primary);
             color: white;
         }
-        .status-pill {
+        .location-status {
             background: rgba(218,165,32,0.08);
-            border: 1px solid rgba(218,165,32,0.25);
-            border-radius: 9999px;
-            padding: 0.5rem 1.25rem;
+            border: 1px solid rgba(218,165,32,0.3);
+            border-radius: 0.75rem;
         }
-        .coord-info {
+        .coord-display {
             font-size: 0.875rem;
             color: #4b5563;
         }
@@ -115,7 +107,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
             <!-- Left Column -->
             <div class="lg:col-span-8 space-y-8">
-                <!-- Contact Information -->
+                <!-- 1. Contact Information -->
                 <div class="bg-white rounded-2xl lg:rounded-3xl shadow-lg border border-gray-200 p-4 lg:p-8">
                     <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
                         <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center text-lg lg:text-xl font-black text-white" style="background: rgb(218,165,32);">1</div>
@@ -137,7 +129,7 @@
                     </div>
                 </div>
 
-                <!-- Delivery Address with Professional Compact Map -->
+                <!-- 2. Delivery Address with Collapsible Map -->
                 <div class="bg-white rounded-2xl lg:rounded-3xl shadow-lg border border-gray-200 p-4 lg:p-8">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3 lg:gap-4">
@@ -147,49 +139,50 @@
                         <button 
                             type="button" 
                             id="toggleMapBtn"
-                            class="map-toggle-btn px-5 py-2.5 rounded-lg font-medium text-sm flex items-center gap-2 shadow-sm transition-all">
+                            class="map-toggle-btn px-5 py-2.5 rounded-lg font-medium text-sm flex items-center gap-2 shadow-sm hover:shadow transition-all">
                             <i class="fa-solid fa-map-location-dot"></i>
                             <span id="toggleText">Show Map</span>
                         </button>
                     </div>
 
-                    <!-- Compact Map Area -->
-                    <div id="map-wrapper" class="map-box">
+                    <!-- Collapsible Map Section -->
+                    <div id="map-container" class="max-h-0 opacity-0 overflow-hidden transition-all duration-500 ease-in-out">
                         <div id="map"></div>
-                    </div>
 
-                    <!-- Status & Controls -->
-                    <div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="status-box flex items-center gap-3 px-4 py-2.5 text-sm">
-                            <i id="statusIcon" class="fa-solid fa-location-crosshairs text-xl" style="color: var(--primary);"></i>
-                            <span id="statusText">Click "Use Current Location" or drag the marker</span>
+                        <!-- Status & Controls -->
+                        <div class="mt-4 p-4 rounded-xl location-status flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <i id="statusIcon" class="fa-solid fa-location-crosshairs text-xl min-w-[24px]" style="color: var(--primary);"></i>
+                                <span id="statusText" class="font-medium">Click "Use Current Location" or drag the marker to set delivery point</span>
+                            </div>
+                            <div class="flex gap-3 flex-wrap">
+                                <button type="button" id="getLocationBtn" class="px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm" style="background: white; border: 2px solid var(--primary); color: var(--primary);">
+                                    <i class="fa-solid fa-crosshairs"></i> Use Current Location
+                                </button>
+                                <button type="button" id="resetMapBtn" class="px-4 py-2.5 rounded-lg text-sm text-gray-600 hover:text-gray-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-rotate-left"></i> Reset
+                                </button>
+                            </div>
                         </div>
-                        <div class="flex gap-3 flex-wrap">
-                            <button type="button" id="getLocationBtn" class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm" style="border: 2px solid var(--primary); color: var(--primary);">
-                                <i class="fa-solid fa-crosshairs"></i> Use Location
-                            </button>
-                            <button type="button" id="resetMapBtn" class="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2">
-                                <i class="fa-solid fa-rotate-left"></i> Reset
-                            </button>
+
+                        <!-- Small coordinates display -->
+                        <div class="mt-3 coord-display flex flex-wrap gap-6 text-xs">
+                            <span>Latitude: <span id="displayLat" class="font-medium">—</span></span>
+                            <span>Longitude: <span id="displayLng" class="font-medium">—</span></span>
+                            <span>Accuracy: <span id="displayAccuracy" class="font-medium">—</span></span>
                         </div>
                     </div>
 
-                    <!-- Coordinates -->
-                    <div class="mt-3 text-xs coord-info flex gap-6 justify-center sm:justify-start">
-                        <span>Lat: <span id="displayLat">—</span></span>
-                        <span>Lng: <span id="displayLng">—</span></span>
-                    </div>
-
-                    <!-- Manual fields -->
+                    <!-- Always-visible address fields -->
                     <div class="space-y-6 mt-8">
                         <div>
-                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Full Address <span class="text-red-600">*</span></label>
-                            <input type="text" name="address" id="address" value="{{ old('address') }}" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[var(--primary)] transition text-base" placeholder="Plot 123, Mwananyamala">
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">Full Address <span class="text-red-600">*</span></label>
+                            <input type="text" name="address" id="address" value="{{ old('address') }}" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus transition text-base" placeholder="Plot 123, Mwananyamala">
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Region <span class="text-red-600">*</span></label>
-                                <select name="region" id="region" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[var(--primary)] transition text-base">
+                                <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">Region <span class="text-red-600">*</span></label>
+                                <select name="region" id="region" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus transition text-base">
                                     <option value="">Select Region</option>
                                     @foreach(['Dar es Salaam','Arusha','Mwanza','Dodoma','Mbeya','Morogoro','Tanga','Kilimanjaro','Zanzibar','Other'] as $region)
                                         <option value="{{ $region }}" {{ old('region') == $region ? 'selected' : '' }}>{{ $region }}</option>
@@ -197,13 +190,13 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">City / District <span class="text-red-600">*</span></label>
-                                <input type="text" name="city" id="city" value="{{ old('city') }}" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[var(--primary)] transition text-base" placeholder="Ilala">
+                                <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">City / District <span class="text-red-600">*</span></label>
+                                <input type="text" name="city" id="city" value="{{ old('city') }}" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus transition text-base" placeholder="Ilala">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-2">Delivery Notes (Optional)</label>
-                            <textarea name="notes" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-[var(--primary)] transition resize-none text-base" placeholder="Near mosque, red gate, call when close...">{{ old('notes') }}</textarea>
+                            <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">Delivery Notes (Optional)</label>
+                            <textarea name="notes" rows="4" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl input-focus transition resize-none text-base" placeholder="Near mosque, red gate, call when close...">{{ old('notes') }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -220,8 +213,8 @@
                             <input type="radio" name="payment_method" value="cash_on_delivery" checked class="mt-1.5 w-5 h-5" style="accent-color: var(--primary);">
                             <div>
                                 <p class="text-lg font-bold text-gray-900">Cash on Delivery (Recommended)</p>
-                                <p class="text-sm text-gray-600 mt-1">Pay with cash, M-Pesa, or bank transfer on delivery</p>
-                                <p class="text-xs text-gray-500 mt-2">Most popular • No online payment needed</p>
+                                <p class="text-sm text-gray-600 mt-1">Pay with cash, M-Pesa, or bank transfer when you receive your items</p>
+                                <p class="text-xs text-gray-500 mt-2">Most popular • No online payment needed • We call you to confirm</p>
                             </div>
                         </label>
 
@@ -230,7 +223,7 @@
                             <div>
                                 <p class="text-lg font-bold text-gray-900">Pay Now with Mobile Money</p>
                                 <p class="text-sm text-gray-600 mt-1">Instant payment via M-Pesa, Tigo Pesa, Airtel Money, HaloPesa</p>
-                                <p class="text-xs font-bold mt-2" style="color: var(--primary);">Faster processing • Prompt on phone</p>
+                                <p class="text-xs font-bold mt-2" style="color: var(--primary);">Get your order faster • Receive payment prompt on your phone • Powered by Selcom</p>
                             </div>
                         </label>
                     </div>
@@ -263,15 +256,17 @@
                         </div>
 
                         <div class="pt-6 space-y-4 text-base border-t border-white/20">
-                            <div class="flex justify-between"><span>Subtotal</span><span class="font-bold">TZS {{ number_format($subtotal) }}</span></div>
+                            <div class="flex justify-between"><span>Subtotal ({{ $totalItems }} items)</span><span class="font-bold">TZS {{ number_format($subtotal) }}</span></div>
                             <div class="flex justify-between"><span>Delivery Fee</span><span class="font-bold">TZS {{ number_format($delivery) }}</span></div>
-                            <div class="pt-4 border-t border-white/20 flex justify-between items-baseline">
-                                <span class="text-lg font-bold">Total</span>
-                                <span class="text-3xl font-black" style="color: var(--primary);">TZS {{ number_format($total) }}</span>
+                            <div class="pt-4 border-t border-white/20">
+                                <div class="flex justify-between items-baseline">
+                                    <span class="text-lg font-bold">Total Amount</span>
+                                    <span class="text-3xl font-black" style="color: var(--primary);">TZS {{ number_format($total) }}</span>
+                                </div>
                             </div>
                         </div>
 
-                        <button type="submit" id="submitBtn" class="w-full mt-8 py-5 text-white font-black text-lg rounded-xl shadow-xl transition-all flex items-center justify-center gap-3" style="background: var(--primary); color: #002147;">
+                        <button type="submit" id="submitBtn" class="btn-hover w-full mt-8 py-5 text-white font-black text-lg rounded-xl shadow-xl transition-all duration-300 flex items-center justify-center gap-3" style="background: var(--primary); color: #002147;">
                             <i class="fa-solid fa-check-circle text-xl"></i>
                             <span id="submitText">Complete Order</span>
                             <span id="submitLoader" class="hidden"><i class="fa-solid fa-spinner fa-spin"></i> Processing...</span>
@@ -302,7 +297,7 @@
     </div>
 </div>
 
-<!-- Hidden geolocation component -->
+<!-- Geolocation component (hidden) -->
 <geolocation 
     id="geolocator"
     onlocation="handleLocation(event)" 
@@ -313,13 +308,13 @@
 
 <script>
 // ────────────────────────────────────────────────
-// PROFESSIONAL COLLAPSIBLE MAP (small box, auto-center on show)
+// PROFESSIONAL COLLAPSIBLE MAP LOGIC
 // ────────────────────────────────────────────────
 let map = null;
 let marker = null;
-const defaultLat = -6.7924;
+const defaultLat = -6.7924;   // Dar es Salaam center
 const defaultLng = 39.2083;
-let mapVisible = false;
+let isMapVisible = false;
 
 function initMap(lat = defaultLat, lng = defaultLng) {
     if (map) return;
@@ -330,79 +325,83 @@ function initMap(lat = defaultLat, lng = defaultLng) {
     }).setView([lat, lng], 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19
     }).addTo(map);
 
+    // Custom marker
     marker = L.marker([lat, lng], { 
         draggable: true,
         icon: L.divIcon({
-            html: '<i class="fa-solid fa-location-pin text-4xl drop-shadow-lg" style="color: var(--primary);"></i>',
-            className: '',
-            iconSize: [40, 48],
-            iconAnchor: [20, 48]
+            className: 'custom-marker',
+            html: '<i class="fa-solid fa-location-pin text-5xl drop-shadow-xl" style="color: var(--primary);"></i>',
+            iconSize: [50, 60],
+            iconAnchor: [25, 60]
         })
     }).addTo(map);
 
     marker.on('dragend', (e) => {
         const pos = e.target.getLatLng();
-        document.getElementById('latitude').value = pos.lat.toFixed(6);
-        document.getElementById('longitude').value = pos.lng.toFixed(6);
+        updateLocationFields(pos.lat, pos.lng, 'Marker adjusted');
         reverseGeocode(pos.lat, pos.lng);
     });
 
-    // Add zoom control
+    // Add zoom control in top-right
     L.control.zoom({ position: 'topright' }).addTo(map);
 }
 
+function updateLocationFields(lat, lng, source = '') {
+    document.getElementById('latitude').value = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+    
+    document.getElementById('displayLat').textContent = lat.toFixed(6);
+    document.getElementById('displayLng').textContent = lng.toFixed(6);
+    document.getElementById('displayAccuracy').textContent = source || '—';
+}
+
 function toggleMap() {
-    const mapDiv = document.getElementById('map');
-    const wrapper = document.getElementById('map-wrapper');
+    const container = document.getElementById('map-container');
     const btn = document.getElementById('toggleMapBtn');
     const text = document.getElementById('toggleText');
 
-    mapVisible = !mapVisible;
+    isMapVisible = !isMapVisible;
 
-    if (mapVisible) {
-        mapDiv.classList.add('expanded');
-        wrapper.classList.add('shadow-lg');
-        text.textContent = 'Hide Map';
+    if (isMapVisible) {
+        container.style.maxHeight = '500px';
+        container.style.opacity = '1';
         btn.classList.add('bg-[var(--primary)]', 'text-white');
         btn.classList.remove('text-[var(--primary)]');
+        text.textContent = 'Hide Map';
 
-        // Initialize map if not already
+        // Initialize map only when first shown
         if (!map) {
-            initMap();
-        }
-
-        // Automatically try to get current location when showing map
-        if (!document.getElementById('latitude').value.trim() || 
-            document.getElementById('latitude').value === defaultLat.toFixed(6)) {
-            requestLocation();
+            setTimeout(() => {
+                initMap();
+                // Auto-geolocate on first expand if no coords
+                if (!document.getElementById('latitude').value.trim()) {
+                    requestLocation();
+                }
+            }, 100);
+        } else {
+            setTimeout(() => map.invalidateSize(), 100);
         }
     } else {
-        mapDiv.classList.remove('expanded');
-        wrapper.classList.remove('shadow-lg');
-        text.textContent = 'Show Map';
+        container.style.maxHeight = '0';
+        container.style.opacity = '0';
         btn.classList.remove('bg-[var(--primary)]', 'text-white');
         btn.classList.add('text-[var(--primary)]');
+        text.textContent = 'Show Map';
     }
 }
 
 function handleLocation(event) {
-    const geo = event.target;
+    const geoElement = event.target;
     
-    if (geo.position) {
-        const { latitude, longitude, accuracy } = geo.position.coords;
+    if (geoElement.position) {
+        const { latitude, longitude, accuracy } = geoElement.position.coords;
         
-        document.getElementById('latitude').value = latitude.toFixed(6);
-        document.getElementById('longitude').value = longitude.toFixed(6);
+        updateLocationFields(latitude, longitude, accuracy.toFixed(0) + 'm');
         
-        document.getElementById('displayLat').textContent = latitude.toFixed(6);
-        document.getElementById('displayLng').textContent = longitude.toFixed(6);
-        document.getElementById('statusText').textContent = 'Location acquired (' + accuracy.toFixed(0) + 'm)';
-        
-        // Center map and marker on current location
         if (map && marker) {
             map.setView([latitude, longitude], 16);
             marker.setLatLng([latitude, longitude]);
@@ -410,74 +409,77 @@ function handleLocation(event) {
         
         reverseGeocode(latitude, longitude);
         
-        document.getElementById('statusIcon').className = 'fa-solid fa-check-circle text-green-600';
-    } else if (geo.error) {
-        document.getElementById('statusText').textContent = geo.error.message || 'Location failed';
-        document.getElementById('statusIcon').className = 'fa-solid fa-exclamation-triangle text-red-500';
+        document.getElementById('statusText').textContent = 'Location acquired successfully';
+        document.getElementById('statusIcon').className = 'fa-solid fa-check-circle text-xl text-green-600';
+    } else if (geoElement.error) {
+        document.getElementById('statusText').textContent = geoElement.error.message || 'Could not get location';
+        document.getElementById('statusIcon').className = 'fa-solid fa-exclamation-triangle text-xl text-red-500';
     }
 }
 
 function requestLocation() {
-    const geo = document.getElementById('geolocator');
+    const geoElement = document.getElementById('geolocator');
     const btn = document.getElementById('getLocationBtn');
     
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Locating...';
     
     document.getElementById('statusText').textContent = 'Requesting your location...';
+    document.getElementById('statusIcon').className = 'fa-solid fa-spinner fa-spin text-xl';
     
-    geo.requestLocation();
+    geoElement.requestLocation();
     
     setTimeout(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-crosshairs mr-2"></i> Use Location';
+        btn.innerHTML = '<i class="fa-solid fa-crosshairs mr-2"></i> Use Current Location';
     }, 10000);
 }
 
 async function reverseGeocode(lat, lng) {
     try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
-        const data = await res.json();
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+        const data = await response.json();
         
-        if (data?.display_name) {
+        if (data && data.display_name) {
             document.getElementById('address').value = data.display_name;
             
             if (data.address) {
                 const regionSelect = document.getElementById('region');
-                const region = (data.address.state || data.address.region || '').toLowerCase();
-                const opt = Array.from(regionSelect.options).find(o => o.value.toLowerCase().includes(region));
-                if (opt) regionSelect.value = opt.value;
+                const regionText = (data.address.state || data.address.region || '').toLowerCase();
+                const option = Array.from(regionSelect.options).find(opt => 
+                    opt.value.toLowerCase().includes(regionText)
+                );
+                if (option) regionSelect.value = option.value;
 
                 document.getElementById('city').value = 
                     data.address.city || data.address.town || data.address.village || data.address.suburb || '';
             }
         }
-    } catch (e) {
-        console.error('Reverse geocoding failed', e);
+    } catch (err) {
+        console.error('Reverse geocoding failed:', err);
     }
 }
 
 // ────────────────────────────────────────────────
-// Initialize
+// DOM Ready + Event Listeners
 // ────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     // Toggle map
     document.getElementById('toggleMapBtn')?.addEventListener('click', toggleMap);
 
-    // Reset
+    // Get location
+    document.getElementById('getLocationBtn')?.addEventListener('click', requestLocation);
+
+    // Reset map
     document.getElementById('resetMapBtn')?.addEventListener('click', () => {
         if (map && marker) {
             map.setView([defaultLat, defaultLng], 13);
             marker.setLatLng([defaultLat, defaultLng]);
-            document.getElementById('latitude').value = defaultLat.toFixed(6);
-            document.getElementById('longitude').value = defaultLng.toFixed(6);
-            document.getElementById('displayLat').textContent = defaultLat.toFixed(6);
-            document.getElementById('displayLng').textContent = defaultLng.toFixed(6);
-            document.getElementById('statusText').textContent = 'Reset to default';
+            updateLocationFields(defaultLat, defaultLng, 'Reset to default');
         }
     });
 
-    // Form submission (your original logic)
+    // Form submission handler
     const form = document.getElementById('checkoutForm');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
@@ -503,56 +505,42 @@ document.addEventListener('DOMContentLoaded', () => {
         submitText.classList.add('hidden');
         submitLoader.classList.remove('hidden');
         modal.classList.remove('hidden');
-
-        const formData = new FormData(form);
-
+        modalContent.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin text-5xl mb-6" style="color: var(--primary);"></i>
+            <p class="text-xl font-bold text-gray-800 mb-3">Processing your payment...</p>
+            <p class="text-gray-600">Please wait a moment</p>
+        `;
         try {
+            const formData = new FormData(form);
             const response = await fetch(form.action, {
                 method: 'POST',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                    'Accept': 'application/json'
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: formData,
-                credentials: 'same-origin'
+                body: formData
             });
+            const result = await response.json();
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.log('Error response:', errorText.substring(0, 400));
-                throw new Error(`Server error ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
+            if (result.success && result.payment_url) {
                 modalContent.innerHTML = `
-                    <i class="fa-solid fa-mobile-alt text-5xl mb-6" style="color: var(--primary);"></i>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Request Sent!</h3>
-                    <p class="text-lg text-gray-700 mb-2">Check your phone now</p>
-                    <p class="text-base text-gray-600 mb-6">Follow the instructions to complete your payment.</p>
-                    ${data.redirect_url ? `<a href="${data.redirect_url}" class="inline-block px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">Continue</a>` : ''}
+                    <i class="fa-solid fa-check-circle text-5xl mb-6" style="color: var(--primary);"></i>
+                    <p class="text-xl font-bold text-gray-800 mb-3">Redirecting to payment...</p>
+                    <p class="text-gray-600">You will be redirected shortly</p>
                 `;
+                window.location.href = result.payment_url;
             } else {
-                modalContent.innerHTML = `
-                    <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
-                    <p class="text-lg text-gray-700 mb-6">${data.message || 'An error occurred while processing your payment.'}</p>
-                    <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
-                `;
-                document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
+                throw new Error(result.message || 'Payment initiation failed');
             }
         } catch (error) {
-            console.error('Fetch error:', error);
             modalContent.innerHTML = `
-                <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Error</h3>
-                <p class="text-lg text-gray-700 mb-6">${error.message || 'An unexpected error occurred. Please try again.'}</p>
-                <p class="text-sm text-gray-500">Check browser console (F12) for details.</p>
-                <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
+                <i class="fa-solid fa-exclamation-triangle text-5xl mb-6 text-red-500"></i>
+                <p class="text-xl font-bold text-gray-800 mb-3">Payment Error</p>
+                <p class="text-gray-600">${error.message}</p>
+                <button id="closeModalBtn" class="mt-6 px-6 py-3 bg-[var(--primary)] text-white rounded-lg font-bold">Close</button>
             `;
-            document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
+            document.getElementById('closeModalBtn').addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
         } finally {
             submitBtn.disabled = false;
             submitText.classList.remove('hidden');
