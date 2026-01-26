@@ -8,6 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS + JS for live map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5nQ9nXqV8=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         :root {
@@ -18,17 +21,13 @@
         .btn-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,33,71,0.3); }
         .input-focus:focus { outline: none; border-color: rgb(218,165,32); box-shadow: 0 0 0 3px rgba(218,165,32,0.15); }
         .payment-option:checked + label { box-shadow: 0 0 0 4px rgba(218,165,32,0.3); border-color: rgb(218,165,32); background-color: rgba(218,165,32,0.05); }
-        #map { height: 400px; width: 100%; border-radius: 1rem; }
+        #map { height: 400px; width: 100%; border-radius: 1rem; border: 2px solid rgba(218,165,32,0.3); background: #e0e0e0; }
         @media (max-width: 768px) {
             #map { height: 300px; }
         }
-        .location-card {
-            background: linear-gradient(135deg, rgba(218,165,32,0.1) 0%, rgba(0,33,71,0.05) 100%);
-            border: 2px dashed rgba(218,165,32,0.3);
-        }
-        .location-success {
-            background: linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(22,163,74,0.05) 100%);
-            border: 2px solid rgba(34,197,94,0.3);
+        .location-status {
+            background: rgba(218,165,32,0.1);
+            border: 1px dashed rgba(218,165,32,0.5);
         }
     </style>
 </head>
@@ -77,8 +76,8 @@
 
     <form action="{{ route('checkout.process') }}" method="POST" id="checkoutForm">
         @csrf
-        <input type="hidden" name="latitude" id="latitude">
-        <input type="hidden" name="longitude" id="longitude">
+        <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
+        <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
             <!-- Left: Form -->
@@ -105,70 +104,45 @@
                     </div>
                 </div>
 
-                <!-- Delivery Address with Geolocation -->
+                <!-- Delivery Address with LIVE MAP -->
                 <div class="bg-white rounded-2xl lg:rounded-3xl shadow-lg border border-gray-200 p-4 lg:p-8">
                     <div class="flex items-center gap-3 lg:gap-4 mb-6 lg:mb-8">
                         <div class="w-10 lg:w-12 h-10 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center text-lg lg:text-xl font-black text-white" style="background: rgb(218,165,32);">2</div>
                         <h3 class="text-lg lg:text-2xl font-black text-gray-900">Delivery Address</h3>
                     </div>
 
-                    <!-- Geolocation Component -->
+                    <!-- Live Map Container -->
                     <div class="mb-6">
-                        <geolocation 
-                            id="geolocator"
-                            onlocation="handleLocation(event)" 
-                            autolocate 
-                            accuracymode="precise"
-                            style="display: none;">
-                        </geolocation>
+                        <div id="map"></div>
 
-                        <div id="locationCard" class="location-card rounded-xl p-6 text-center transition-all duration-300">
-                            <i class="fa-solid fa-location-crosshairs text-4xl mb-3" style="color: rgb(218,165,32);"></i>
-                            <h4 class="text-lg font-bold text-gray-800 mb-2">Get Your Location</h4>
-                            <p class="text-sm text-gray-600 mb-4">Click below to automatically detect your delivery location</p>
+                        <!-- Status bar -->
+                        <div id="locationStatus" class="mt-3 p-3 rounded-lg location-status flex items-center gap-3 text-sm">
+                            <i id="statusIcon" class="fa-solid fa-location-crosshairs text-xl" style="color: rgb(218,165,32);"></i>
+                            <span id="statusText">Click "Use My Current Location" or drag the marker on the map to set delivery point</span>
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="mt-4 flex flex-wrap gap-4">
                             <button 
                                 type="button" 
                                 id="getLocationBtn"
-                                onclick="requestLocation()"
-                                class="bg-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center gap-2 mx-auto" 
-                                style="color: rgb(218,165,32); border: 2px solid rgb(218,165,32);">
+                                class="bg-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all font-bold text-sm flex items-center gap-2 border-2" 
+                                style="color: rgb(218,165,32); border-color: rgb(218,165,32);">
                                 <i class="fa-solid fa-crosshairs"></i>
                                 <span>Use My Current Location</span>
                             </button>
-                        </div>
 
-                        <div id="locationDisplay" class="hidden location-success rounded-xl p-6">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                                    <i class="fa-solid fa-check text-green-600 text-xl"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="text-lg font-bold text-gray-800 mb-2">Location Detected</h4>
-                                    <div class="space-y-1 text-sm text-gray-700">
-                                        <p><strong>Latitude:</strong> <span id="displayLat">-</span></p>
-                                        <p><strong>Longitude:</strong> <span id="displayLng">-</span></p>
-                                        <p class="text-xs text-gray-500 mt-2">
-                                            <i class="fa-solid fa-info-circle"></i> 
-                                            Accuracy: <span id="displayAccuracy">-</span>m
-                                        </p>
-                                    </div>
-                                    <button 
-                                        type="button" 
-                                        onclick="requestLocation()"
-                                        class="mt-3 text-sm font-semibold hover:underline" 
-                                        style="color: rgb(218,165,32);">
-                                        <i class="fa-solid fa-rotate"></i> Update Location
-                                    </button>
-                                </div>
-                            </div>
+                            <button 
+                                type="button" 
+                                id="resetMapBtn"
+                                class="text-sm font-semibold hover:underline flex items-center gap-2" 
+                                style="color: rgb(218,165,32);">
+                                <i class="fa-solid fa-rotate"></i> Reset Map
+                            </button>
                         </div>
-
-                        <p class="text-xs lg:text-sm text-gray-600 mt-3 flex items-center gap-2">
-                            <i class="fa-solid fa-info-circle" style="color: rgb(218,165,32);"></i>
-                            Your precise location helps us deliver faster and more accurately
-                        </p>
                     </div>
 
+                    <!-- Manual address fields -->
                     <div class="space-y-4 lg:space-y-6">
                         <div>
                             <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">Full Address <span class="text-red-600">*</span></label>
@@ -177,7 +151,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                             <div>
                                 <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">Region <span class="text-red-600">*</span></label>
-                                <select name="region" required class="w-full px-3 lg:px-6 py-2 lg:py-4 border-2 border-gray-200 rounded-lg lg:rounded-xl input-focus transition text-sm lg:text-base">
+                                <select name="region" id="region" required class="w-full px-3 lg:px-6 py-2 lg:py-4 border-2 border-gray-200 rounded-lg lg:rounded-xl input-focus transition text-sm lg:text-base">
                                     <option value="">Select Region</option>
                                     @foreach(['Dar es Salaam','Arusha','Mwanza','Dodoma','Mbeya','Morogoro','Tanga','Kilimanjaro','Zanzibar','Other'] as $region)
                                         <option value="{{ $region }}" {{ old('region') == $region ? 'selected' : '' }}>{{ $region }}</option>
@@ -186,7 +160,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs lg:text-sm font-bold text-gray-700 mb-1 lg:mb-2">City / District <span class="text-red-600">*</span></label>
-                                <input type="text" name="city" value="{{ old('city') }}" required class="w-full px-3 lg:px-6 py-2 lg:py-4 border-2 border-gray-200 rounded-lg lg:rounded-xl input-focus transition text-sm lg:text-base" placeholder="Ilala">
+                                <input type="text" name="city" id="city" value="{{ old('city') }}" required class="w-full px-3 lg:px-6 py-2 lg:py-4 border-2 border-gray-200 rounded-lg lg:rounded-xl input-focus transition text-sm lg:text-base" placeholder="Ilala">
                             </div>
                         </div>
                         <div>
@@ -204,7 +178,6 @@
                     </div>
 
                     <div class="space-y-3 lg:space-y-5">
-                        <!-- Cash on Delivery -->
                         <label class="flex items-start gap-3 lg:gap-5 p-3 lg:p-6 rounded-lg lg:rounded-2xl border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-all">
                             <input type="radio" name="payment_method" value="cash_on_delivery" checked class="mt-1 lg:mt-1 w-5 lg:w-6 h-5 lg:h-6" style="accent-color: rgb(218,165,32);">
                             <div class="flex-1">
@@ -219,7 +192,6 @@
                             </div>
                         </label>
 
-                        <!-- Pay Now with Mobile Money -->
                         <label class="flex items-start gap-3 lg:gap-5 p-3 lg:p-6 rounded-lg lg:rounded-2xl border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-all">
                             <input type="radio" name="payment_method" value="selcom" class="mt-1 lg:mt-1 w-5 lg:w-6 h-5 lg:h-6" style="accent-color: rgb(218,165,32);">
                             <div class="flex-1">
@@ -291,7 +263,7 @@
     </form>
 </div>
 
-<!-- Success Modal for Mobile Money -->
+<!-- Success Modal -->
 <div id="paymentModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
         <div class="p-6 text-center">
@@ -305,29 +277,81 @@
 </div>
 
 <script>
-// Geolocation handler (unchanged)
+// ────────────────────────────────────────────────
+// LIVE MAP + GEOLOCATION + DRAGGABLE MARKER
+// ────────────────────────────────────────────────
+let map;
+let marker;
+const defaultLat = -6.7924;  // Dar es Salaam center
+const defaultLng = 39.2083;
+
+function initMap(lat = defaultLat, lng = defaultLng) {
+    if (map) return;  // Prevent re-init
+
+    map = L.map('map').setView([lat, lng], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Add draggable marker
+    marker = L.marker([lat, lng], { 
+        draggable: true,
+        icon: L.divIcon({
+            className: 'marker-icon',
+            html: '<i class="fa-solid fa-location-pin text-3xl" style="color: #d8a520; text-shadow: 0 0 5px white;"></i>',
+            iconSize: [40, 40],
+            iconAnchor: [20, 40]
+        })
+    }).addTo(map);
+
+    // Update hidden fields + display when marker moves
+    marker.on('dragend', function(e) {
+        const pos = e.target.getLatLng();
+        updateLocationFields(pos.lat, pos.lng, 'Manual adjustment');
+        reverseGeocode(pos.lat, pos.lng);
+    });
+
+    // Initial status
+    updateLocationFields(lat, lng, 'Default location (Dar es Salaam)');
+}
+
+function updateLocationFields(lat, lng, accuracyText = '') {
+    document.getElementById('latitude').value = lat.toFixed(6);
+    document.getElementById('longitude').value = lng.toFixed(6);
+    
+    document.getElementById('displayLat').textContent = lat.toFixed(6);
+    document.getElementById('displayLng').textContent = lng.toFixed(6);
+    document.getElementById('displayAccuracy').textContent = accuracyText || '—';
+}
+
 function handleLocation(event) {
     const geoElement = event.target;
     
     if (geoElement.position) {
         const { latitude, longitude, accuracy } = geoElement.position.coords;
         
-        document.getElementById('latitude').value = latitude;
-        document.getElementById('longitude').value = longitude;
+        updateLocationFields(latitude, longitude, accuracy.toFixed(0) + 'm');
         
-        document.getElementById('displayLat').textContent = latitude.toFixed(6);
-        document.getElementById('displayLng').textContent = longitude.toFixed(6);
-        document.getElementById('displayAccuracy').textContent = accuracy.toFixed(0);
-        
-        document.getElementById('locationCard').classList.add('hidden');
-        document.getElementById('locationDisplay').classList.remove('hidden');
+        if (map && marker) {
+            map.setView([latitude, longitude], 16);
+            marker.setLatLng([latitude, longitude]);
+        } else {
+            initMap(latitude, longitude);
+        }
         
         reverseGeocode(latitude, longitude);
+        
+        document.getElementById('statusText').textContent = 'Location acquired successfully!';
+        document.getElementById('statusIcon').className = 'fa-solid fa-check-circle text-xl text-green-600';
         
         console.log("Location retrieved:", latitude, longitude, "Accuracy:", accuracy);
     } else if (geoElement.error) {
         console.error("Geolocation Error:", geoElement.error.message);
         showLocationError(geoElement.error.message);
+        document.getElementById('statusText').textContent = geoElement.error.message || 'Location access failed';
+        document.getElementById('statusIcon').className = 'fa-solid fa-exclamation-triangle text-xl text-red-500';
     }
 }
 
@@ -338,12 +362,15 @@ function requestLocation() {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Getting Location...</span>';
     btn.disabled = true;
     
+    document.getElementById('statusText').textContent = 'Requesting location...';
+    document.getElementById('statusIcon').className = 'fa-solid fa-spinner fa-spin text-xl';
+    
     geoElement.requestLocation();
     
     setTimeout(() => {
         btn.innerHTML = '<i class="fa-solid fa-crosshairs"></i> <span>Use My Current Location</span>';
         btn.disabled = false;
-    }, 3000);
+    }, 8000);  // Longer timeout for slow devices
 }
 
 async function reverseGeocode(lat, lng) {
@@ -355,17 +382,15 @@ async function reverseGeocode(lat, lng) {
             document.getElementById('address').value = data.display_name;
             
             if (data.address) {
-                if (data.address.state) {
-                    const regionSelect = document.querySelector('select[name="region"]');
-                    const regionOption = Array.from(regionSelect.options).find(opt => 
-                        opt.value.toLowerCase().includes(data.address.state.toLowerCase())
-                    );
-                    if (regionOption) regionSelect.value = regionOption.value;
-                }
-                if (data.address.city || data.address.town || data.address.suburb) {
-                    document.querySelector('input[name="city"]').value = 
-                        data.address.city || data.address.town || data.address.suburb;
-                }
+                const regionSelect = document.getElementById('region');
+                const possibleRegion = (data.address.state || data.address.region || '').toLowerCase();
+                const regionOption = Array.from(regionSelect.options).find(opt => 
+                    opt.value.toLowerCase().includes(possibleRegion)
+                );
+                if (regionOption) regionSelect.value = regionOption.value;
+
+                const cityField = document.getElementById('city');
+                cityField.value = data.address.city || data.address.town || data.address.village || data.address.suburb || '';
             }
         }
     } catch (error) {
@@ -374,19 +399,15 @@ async function reverseGeocode(lat, lng) {
 }
 
 function showLocationError(message) {
-    const locationCard = document.getElementById('locationCard');
-    locationCard.innerHTML = `
-        <i class="fa-solid fa-exclamation-triangle text-4xl mb-3 text-red-500"></i>
-        <h4 class="text-lg font-bold text-gray-800 mb-2">Location Access Denied</h4>
-        <p class="text-sm text-gray-600 mb-4">${message}</p>
-        <p class="text-xs text-gray-500">Please enter your address manually below</p>
-    `;
+    const statusText = document.getElementById('statusText');
+    statusText.textContent = message || 'Location access denied';
+    document.getElementById('statusIcon').className = 'fa-solid fa-exclamation-triangle text-xl text-red-500';
 }
 
-// ────────────────────────────────────────────────
-// FORM SUBMISSION - IMPROVED JSON HANDLING
-// ────────────────────────────────────────────────
+// Form submission handler (unchanged)
 document.addEventListener('DOMContentLoaded', function() {
+    initMap();  // Load map immediately
+
     const form = document.getElementById('checkoutForm');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
@@ -398,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
 
         if (paymentMethod === 'cash_on_delivery') {
-            return; // normal submit
+            return;
         }
 
         e.preventDefault();
@@ -421,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                    'Accept': 'application/json'  // ← Very important - tells Laravel we want JSON
+                    'Accept': 'application/json'
                 },
                 body: formData,
                 credentials: 'same-origin'
@@ -430,38 +451,30 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Response status:', response.status);
             console.log('Content-Type:', response.headers.get('content-type'));
 
-            const contentType = response.headers.get('content-type') || '';
-
             if (!response.ok) {
                 let errorText = await response.text();
                 console.log('Error response (first 400 chars):', errorText.substring(0, 400));
                 throw new Error(`Server error ${response.status}`);
             }
 
-            if (contentType.includes('application/json')) {
-                const data = await response.json();
+            const data = await response.json();
 
-                if (data.success) {
-                    modalContent.innerHTML = `
-                        <i class="fa-solid fa-mobile-alt text-5xl mb-6" style="color: rgb(218,165,32);"></i>
-                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Request Sent!</h3>
-                        <p class="text-lg text-gray-700 mb-2">Check your phone now</p>
-                        <p class="text-base text-gray-600 mb-6">Follow the instructions to complete your payment.</p>
-                        ${data.redirect_url ? `<a href="${data.redirect_url}" class="inline-block px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">Continue</a>` : ''}
-                    `;
-                } else {
-                    modalContent.innerHTML = `
-                        <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
-                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
-                        <p class="text-lg text-gray-700 mb-6">${data.message || 'An error occurred while processing your payment.'}</p>
-                        <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
-                    `;
-                    document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
-                }
+            if (data.success) {
+                modalContent.innerHTML = `
+                    <i class="fa-solid fa-mobile-alt text-5xl mb-6" style="color: rgb(218,165,32);"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Request Sent!</h3>
+                    <p class="text-lg text-gray-700 mb-2">Check your phone now</p>
+                    <p class="text-base text-gray-600 mb-6">Follow the instructions to complete your payment.</p>
+                    ${data.redirect_url ? `<a href="${data.redirect_url}" class="inline-block px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">Continue</a>` : ''}
+                `;
             } else {
-                const text = await response.text();
-                console.log('Non-JSON response (first 400 chars):', text.substring(0, 400));
-                throw new Error('Server did not return JSON');
+                modalContent.innerHTML = `
+                    <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
+                    <p class="text-lg text-gray-700 mb-6">${data.message || 'An error occurred while processing your payment.'}</p>
+                    <button id="modalCloseBtn" class="inline-block px-6 py-3 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition">Close</button>
+                `;
+                document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
             }
         } catch (error) {
             console.error('Fetch error:', error);
@@ -477,6 +490,15 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = false;
             submitText.classList.remove('hidden');
             submitLoader.classList.add('hidden');
+        }
+    });
+
+    // Reset map button
+    document.getElementById('resetMapBtn')?.addEventListener('click', () => {
+        if (map && marker) {
+            map.setView([defaultLat, defaultLng], 12);
+            marker.setLatLng([defaultLat, defaultLng]);
+            updateLocationFields(defaultLat, defaultLng, 'Reset to default');
         }
     });
 });
