@@ -320,7 +320,7 @@ function initMap(lat = defaultLat, lng = defaultLng) {
     if (map) return;
 
     map = L.map('map', {
-        zoomControl: false,           // We add custom control below
+        zoomControl: false,
         attributionControl: true
     }).setView([lat, lng], 15);
 
@@ -375,11 +375,15 @@ function toggleMap() {
 
         // Initialize map only when first shown
         if (!map) {
-            initMap();
-            // Auto-geolocate on first expand if no coords
-            if (!document.getElementById('latitude').value.trim()) {
-                requestLocation();
-            }
+            setTimeout(() => {
+                initMap();
+                // Auto-geolocate on first expand if no coords
+                if (!document.getElementById('latitude').value.trim()) {
+                    requestLocation();
+                }
+            }, 100);
+        } else {
+            setTimeout(() => map.invalidateSize(), 100);
         }
     } else {
         container.style.maxHeight = '0';
@@ -463,6 +467,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle map
     document.getElementById('toggleMapBtn')?.addEventListener('click', toggleMap);
 
+    // Get location
+    document.getElementById('getLocationBtn')?.addEventListener('click', requestLocation);
+
     // Reset map
     document.getElementById('resetMapBtn')?.addEventListener('click', () => {
         if (map && marker) {
@@ -472,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Form submission handler (your existing logic)
+    // Form submission handler
     const form = document.getElementById('checkoutForm');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
@@ -498,55 +505,42 @@ document.addEventListener('DOMContentLoaded', function() {
         submitText.classList.add('hidden');
         submitLoader.classList.remove('hidden');
         modal.classList.remove('hidden');
-
-        const formData = new FormData(form);
-
+        modalContent.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin text-5xl mb-6" style="color: var(--primary);"></i>
+            <p class="text-xl font-bold text-gray-800 mb-3">Processing your payment...</p>
+            <p class="text-gray-600">Please wait a moment</p>
+        `;
         try {
+            const formData = new FormData(form);
             const response = await fetch(form.action, {
                 method: 'POST',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                    'Accept': 'application/json'
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: formData,
-                credentials: 'same-origin'
+                body: formData
             });
+            const result = await response.json();
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.log('Error response:', errorText.substring(0, 400));
-                throw new Error(`Server error ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
+            if (result.success && result.payment_url) {
                 modalContent.innerHTML = `
-                    <i class="fa-solid fa-mobile-alt text-5xl mb-6" style="color: var(--primary);"></i>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Request Sent!</h3>
-                    <p class="text-lg text-gray-700 mb-2">Check your phone now</p>
-                    <p class="text-base text-gray-600 mb-6">Follow the instructions to complete your payment.</p>
-                    ${data.redirect_url ? `<a href="${data.redirect_url}" class="inline-block px-8 py-4 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition">Continue</a>` : ''}
+                    <i class="fa-solid fa-check-circle text-5xl mb-6" style="color: var(--primary);"></i>
+                    <p class="text-xl font-bold text-gray-800 mb-3">Redirecting to payment...</p>
+                    <p class="text-gray-600">You will be redirected shortly</p>
                 `;
+                window.location.href = result.payment_url;
             } else {
-                modalContent.innerHTML = `
-                    <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Payment Failed</h3>
-                    <p class="text-lg text-gray-700 mb-6">${data.message || 'An error occurred while processing your payment.'}</p>
-                    <button id="modalCloseBtn" class="inline-block px-8 py-4 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition">Close</button>
-                `;
-                document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
+                throw new Error(result.message || 'Payment initiation failed');
             }
         } catch (error) {
-            console.error('Fetch error:', error);
             modalContent.innerHTML = `
-                <i class="fa-solid fa-times-circle text-5xl mb-6 text-red-500"></i>
-                <h3 class="text-2xl font-bold text-gray-800 mb-4">Error</h3>
-                <p class="text-lg text-gray-700 mb-6">${error.message || 'An unexpected error occurred. Please try again.'}</p>
-                <button id="modalCloseBtn" class="inline-block px-8 py-4 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition">Close</button>
+                <i class="fa-solid fa-exclamation-triangle text-5xl mb-6 text-red-500"></i>
+                <p class="text-xl font-bold text-gray-800 mb-3">Payment Error</p>
+                <p class="text-gray-600">${error.message}</p>
+                <button id="closeModalBtn" class="mt-6 px-6 py-3 bg-[var(--primary)] text-white rounded-lg font-bold">Close</button>
             `;
-            document.getElementById('modalCloseBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
+            document.getElementById('closeModalBtn').addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
         } finally {
             submitBtn.disabled = false;
             submitText.classList.remove('hidden');
