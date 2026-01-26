@@ -183,7 +183,7 @@
             $cart = \App\Models\Cart::current();
             $subtotal = $cart->subtotal();
             $totalItems = $cart->totalItems();
-            $deliveryFee = $totalItems > 0 ? 25000 : 0;
+            $deliveryFee = $totalItems > 0 ? 20 : 0;
             $grandTotal = $subtotal + $deliveryFee;
         @endphp
 
